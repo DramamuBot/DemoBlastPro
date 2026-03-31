@@ -1,7 +1,9 @@
 import os
 import sys
 import logging
+import threading
 from flask import Flask
+from werkzeug.middleware.proxy_fix import ProxyFix
 from datetime import datetime, timedelta
 
 sys.path.insert(0, os.path.dirname(__file__))
@@ -20,6 +22,7 @@ from config import (
 )
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1, x_for=1)
 
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.secret_key = SECRET_KEY
@@ -167,7 +170,6 @@ def startup():
     start_self_ping()
 
     if BOT_POLLING_ENABLED and NOTIF_BOT_TOKEN and run_bot_process:
-        import threading
         bot_thread = threading.Thread(target=run_bot_process, name="TelegramBot", daemon=True)
         bot_thread.start()
         logger.info("✅ [BOOT] Sinyal Start Bot Terkirim.")
@@ -175,7 +177,8 @@ def startup():
         logger.info("ℹ️ Telegram polling bot nonaktif. Set ENABLE_BOT_POLLING=true untuk menyalakan.")
 
 
-startup()
+_startup_thread = threading.Thread(target=startup, name="AppStartup", daemon=True)
+_startup_thread.start()
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True, port=5000, use_reloader=False)
