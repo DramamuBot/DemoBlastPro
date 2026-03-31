@@ -1,0 +1,155 @@
+{% extends "auth/base.html" %}
+{% block title %}Masuk ke BlastPro{% endblock %}
+
+{% block auth_content %}
+<div class="relative z-50">
+    
+    <div class="text-center mb-8">
+        <div class="inline-block p-3.5 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl mb-4 text-indigo-600 shadow-sm border border-indigo-100">
+            <i class="fa-solid fa-fingerprint text-3xl animate-pulse" style="animation-duration: 3s;"></i>
+        </div>
+        <h2 class="text-3xl font-black text-gray-900 tracking-tight">Selamat Datang</h2>
+        <p class="text-gray-500 text-sm mt-2 font-medium">Masuk untuk melanjutkan kontrol automasi Anda.</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="mb-6 space-y-2">
+            {% for category, message in messages %}
+                {% if category == 'success' %}
+                    {% set icon = 'fa-circle-check' %}
+                    {% set icon_color = '#10b981' %}
+                    {% set stripe = '#10b981' %}
+                {% elif category == 'danger' or category == 'error' %}
+                    {% set icon = 'fa-circle-exclamation' %}
+                    {% set icon_color = '#ef4444' %}
+                    {% set stripe = '#ef4444' %}
+                {% elif category == 'warning' %}
+                    {% set icon = 'fa-triangle-exclamation' %}
+                    {% set icon_color = '#f59e0b' %}
+                    {% set stripe = '#f59e0b' %}
+                {% else %}
+                    {% set icon = 'fa-circle-info' %}
+                    {% set icon_color = '#2563eb' %}
+                    {% set stripe = '#2563eb' %}
+                {% endif %}
+                <div class="flex items-stretch rounded-xl overflow-hidden animate-fade-in-up"
+                     style="background:#ffffff; border:1px solid #e2e8f0; box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+                    <div class="w-1 flex-shrink-0" style="background:{{ stripe }};"></div>
+                    <div class="flex items-center gap-3 px-4 py-3 flex-1 min-w-0">
+                        <i class="fa-solid {{ icon }} text-base flex-shrink-0" style="color:{{ icon_color }};"></i>
+                        <span class="text-sm font-semibold text-gray-700 flex-1 leading-snug">{{ message }}</span>
+                    </div>
+                </div>
+            {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="/login" id="loginForm" onsubmit="return handleLoginSubmit()">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <div class="space-y-5">
+            
+            <div>
+                <label class="block text-xs font-black text-gray-700 uppercase tracking-widest mb-2 ml-1">Email Bisnis</label>
+                <div class="relative group">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-indigo-600 transition z-10">
+                        <i class="fa-regular fa-envelope"></i>
+                    </div>
+                    <input type="email" name="email" id="loginEmail" required placeholder="owner@bisnis.com" 
+                        class="form-input w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 outline-none text-sm font-bold text-gray-900 placeholder-gray-400 transition shadow-sm">
+                </div>
+            </div>
+
+            <div>
+                <div class="flex justify-between items-end mb-2 ml-1 pr-1">
+                    <label class="block text-xs font-black text-gray-700 uppercase tracking-widest">Password</label>
+                    <a href="/forgot-password" class="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 transition underline decoration-indigo-200">Lupa Password?</a>
+                </div>
+                <div class="relative group">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-indigo-600 transition z-10">
+                        <i class="fa-solid fa-lock"></i>
+                    </div>
+                    <input type="password" name="password" id="loginPass" required placeholder="••••••••" 
+                        class="form-input w-full pl-11 pr-12 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 outline-none text-sm font-bold text-gray-900 placeholder-gray-400 transition shadow-sm">
+                    
+                    <button type="button" onclick="togglePassword('loginPass', 'loginEye')" class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-indigo-600 focus:outline-none cursor-pointer transition">
+                        <i id="loginEye" class="fa-regular fa-eye"></i>
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" id="btnLoginSubmit" class="w-full py-4 bg-gray-900 hover:bg-black text-white font-black tracking-wide uppercase rounded-[1.25rem] shadow-xl shadow-gray-400/30 transition transform hover:-translate-y-1 active:scale-95 relative z-50 cursor-pointer flex items-center justify-center gap-3 group mt-2 outline-none focus:ring-4 focus:ring-gray-200">
+                <i class="fa-solid fa-arrow-right-to-bracket text-lg group-hover:translate-x-1 transition"></i>
+                <span>Masuk Dashboard</span>
+            </button>
+            
+        </div>
+    </form>
+
+    <div class="mt-8 text-center border-t border-gray-100 pt-6">
+        <p class="text-sm text-gray-600 font-medium">
+            Belum punya akun? 
+            <a href="/register" onclick="authNavigate('/register','left','right'); return false;" class="font-bold text-indigo-600 hover:text-indigo-700 hover:underline transition">Daftar Gratis Sekarang</a>
+        </p>
+
+        <div class="mt-8 flex items-center justify-center gap-6 opacity-60 grayscale hover:grayscale-0 transition duration-500">
+            <div class="flex items-center gap-1.5 text-[11px] font-bold text-gray-500">
+                <i class="fa-solid fa-shield-halved text-indigo-500 text-lg"></i>
+                <div class="flex flex-col text-left leading-tight">
+                    <span>256-bit</span>
+                    <span>Encrypted</span>
+                </div>
+            </div>
+            <div class="w-px h-6 bg-gray-300"></div>
+            <div class="flex items-center gap-1.5 text-[11px] font-bold text-gray-500">
+                <i class="fa-solid fa-server text-emerald-500 text-lg"></i>
+                <div class="flex flex-col text-left leading-tight">
+                    <span>Secure</span>
+                    <span>Login</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="toastContainer" class="fixed top-5 right-5 z-[9999] flex flex-col gap-3 pointer-events-none"></div>
+
+<script>
+    // UX Animasi Loading Saat Diklik
+    function handleLoginSubmit() {
+        var btn = document.getElementById('btnLoginSubmit');
+        // Ubah text jadi loading biar user gak spam klik
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-lg"></i><span>Memverifikasi...</span>';
+        btn.classList.add('opacity-80', 'cursor-wait');
+        return true;
+    }
+
+    // Custom Toast untuk link "Lupa Password"
+    function showToast(message, type = 'info') {
+        var container = document.getElementById('toastContainer');
+        var toast = document.createElement('div');
+        var bgClass, iconClass, iconBg;
+        
+        if (type === 'info') {
+            bgClass = 'bg-gray-900 border-gray-700';
+            iconBg = 'bg-blue-500/20 text-blue-400';
+            iconClass = 'fa-solid fa-circle-info';
+        }
+
+        toast.className = `transform transition-all duration-500 ease-out translate-x-full opacity-0 pointer-events-auto flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl border ${bgClass}`;
+        toast.innerHTML = `
+            <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${iconBg}"><i class="${iconClass}"></i></div>
+            <p class="text-sm font-bold text-white mr-4">${message}</p>
+            <button onclick="this.parentElement.remove()" class="btn-close-on-dark ml-auto"><i class="fa-solid fa-xmark text-lg"></i></button>
+        `;
+        container.appendChild(toast);
+        setTimeout(() => toast.classList.remove('translate-x-full', 'opacity-0'), 10);
+        setTimeout(() => {
+            toast.classList.add('translate-x-full', 'opacity-0');
+            setTimeout(() => toast.remove(), 500);
+        }, 3000);
+    }
+</script>
+{% endblock %}
+

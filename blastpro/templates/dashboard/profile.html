@@ -1,0 +1,671 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Profil Saya{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto pb-24 animate-fade-in profile-shell">
+
+    <!-- ===== HERO CARD ===== -->
+    <section class="profile-hero rounded-3xl mb-6 md:mb-8 overflow-hidden relative">
+        <!-- Decorative glows spanning entire hero -->
+        <div class="absolute inset-0 pointer-events-none" style="background-image:radial-gradient(circle at 85% 20%,rgba(99,102,241,0.4),transparent 40%),radial-gradient(circle at 10% 80%,rgba(59,130,246,0.2),transparent 45%)"></div>
+        <!-- Dot grid spanning entire hero -->
+        <div class="absolute inset-0 opacity-[0.07] pointer-events-none" style="background-image:radial-gradient(circle,#fff 1px,transparent 1px);background-size:28px 28px"></div>
+
+        <!-- All content in one unified block -->
+        <div class="relative z-10 p-6 md:p-8">
+            <div class="flex flex-col lg:flex-row lg:items-center gap-6">
+
+                <!-- Avatar + Name -->
+                <div class="flex items-center gap-4 md:gap-5">
+                    <div class="relative shrink-0 group/avatar">
+                        <button type="button" aria-label="Ubah foto profil" onclick="document.getElementById('avatarUpload').click()"
+                            class="w-28 h-28 md:w-32 md:h-32 rounded-full p-[1.5px] shadow-2xl block avatar-ring-btn"
+                            style="background:linear-gradient(135deg,#22d3ee,#818cf8,#e879f9)">
+                            <span class="w-full h-full rounded-full overflow-hidden flex items-center justify-center relative profile-avatar-inner">
+                                {% if user.avatar_url %}
+                                <img id="avatarPreview" src="{{ user.avatar_url }}" alt="Avatar" class="w-full h-full object-cover">
+                                {% else %}
+                                <span id="avatarText" class="text-3xl md:text-4xl font-bold text-slate-200 select-none">{{ user.email[0]|upper }}</span>
+                                <img id="avatarPreview" alt="Avatar" class="hidden w-full h-full object-cover">
+                                {% endif %}
+                                <span class="absolute inset-0 opacity-0 group-hover/avatar:opacity-100 transition-opacity bg-slate-900/60 flex items-center justify-center text-white text-sm font-semibold">
+                                    <i class="fa-solid fa-camera mr-1 text-xs"></i>Ubah
+                                </span>
+                            </span>
+                        </button>
+                        <input type="file" id="avatarUpload" class="hidden" accept="image/*" onchange="previewAvatar(event)">
+                        <span class="absolute bottom-1 right-1 w-6 h-6 rounded-full grid place-items-center border-2 profile-status-ring">
+                            {% if not user.is_banned %}
+                            <i class="fa-solid fa-circle-check text-emerald-400 text-xs"></i>
+                            {% else %}
+                            <i class="fa-solid fa-ban text-rose-400 text-xs"></i>
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <div>
+                        <p class="text-[10px] uppercase tracking-[0.18em] profile-hero-muted mb-0.5">Akun aktif</p>
+                        <h1 class="text-xl md:text-2xl font-extrabold text-white tracking-tight">{{ user.email.split('@')[0]|title }}</h1>
+                        <div class="mt-1.5 flex flex-wrap gap-1.5 items-center">
+                            <span class="profile-pill"><i class="fa-solid fa-hashtag text-[9px] mr-1 opacity-70"></i>{{ user.id }}</span>
+                            {% if user.plan_tier == 'UMKM PRO' %}
+                            <span class="profile-pill profile-pill-pro"><i class="fa-solid fa-star text-[9px] mr-1"></i>UMKM PRO</span>
+                            {% elif user.plan_tier == 'Agency' %}
+                            <span class="profile-pill profile-pill-agency"><i class="fa-solid fa-building text-[9px] mr-1"></i>AGENCY</span>
+                            {% else %}
+                            <span class="profile-pill"><i class="fa-solid fa-seedling text-[9px] mr-1 opacity-70"></i>STARTER</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats — no card boxes, inline with dividers -->
+                <div class="flex items-center gap-0 lg:ml-auto profile-stat-group">
+                    <div class="profile-stat-inline">
+                        <p class="profile-stat-label"><i class="fa-solid fa-wallet mr-1.5 opacity-60"></i>Saldo Affiliate</p>
+                        <p class="profile-stat-value">Rp {{ "{:,.0f}".format(user.wallet_balance).replace(',','.') }}</p>
+                    </div>
+                    <div class="profile-stat-divider"></div>
+                    <div class="profile-stat-inline">
+                        <p class="profile-stat-label">
+                            <i class="fa-solid {% if not user.is_banned %}fa-shield-check text-emerald-400{% else %}fa-ban text-rose-400{% endif %} mr-1.5"></i>Status Akun
+                        </p>
+                        <p class="profile-stat-value {% if not user.is_banned %}text-emerald-300{% else %}text-rose-300{% endif %}">
+                            {{ 'Terverifikasi' if not user.is_banned else 'Dibatasi' }}
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+
+        <!-- ===== LEFT SIDEBAR ===== -->
+        <aside class="xl:col-span-4 space-y-4">
+
+            <!-- Notif Bot Card -->
+            <div class="dp-card p-5">
+                <h2 class="text-sm font-bold mb-3 text-slate-800 flex items-center gap-2">
+                    <i class="fa-brands fa-telegram text-sky-500"></i> Notifikasi Bot
+                </h2>
+                {% if is_notif_connected %}
+                <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-3 mb-3 flex items-start gap-3">
+                    <i class="fa-solid fa-bell text-emerald-500 mt-0.5"></i>
+                    <div>
+                        <p class="font-bold text-sm text-emerald-800">Terhubung dan aktif</p>
+                        <p class="text-xs text-emerald-600 mt-0.5">Bot akan kirim pengingat sebelum jadwal broadcast dimulai.</p>
+                    </div>
+                </div>
+                <a href="https://t.me/{{ bot_username }}" target="_blank" class="dp-btn dp-btn-ghost w-full">Buka bot Telegram</a>
+                {% else %}
+                <p class="text-sm text-slate-500 mb-3 leading-relaxed">Hubungkan Telegram sekarang agar tidak ketinggalan jadwal. Notifikasi dikirim otomatis 5 menit sebelum broadcast.</p>
+                <a href="{{ bot_link }}" target="_blank" class="dp-btn dp-btn-sky w-full">
+                    <i class="fa-brands fa-telegram"></i> Hubungkan Telegram
+                </a>
+                {% endif %}
+            </div>
+
+            <!-- Tips Card -->
+            <div class="dp-card p-5">
+                <h2 class="text-sm font-bold mb-3 text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-lightbulb text-amber-500"></i> Tips Cepat
+                </h2>
+                <ul class="space-y-2.5">
+                    <li class="flex items-start gap-2.5">
+                        <span class="dp-icon-box dp-icon-box-amber flex-shrink-0" style="width:1.5rem;height:1.5rem;border-radius:0.4rem;font-size:0.6rem"><i class="fa-solid fa-check"></i></span>
+                        <span class="text-xs text-slate-600">Lengkapi profil agar tim support lebih cepat bantu saat ada kendala.</span>
+                    </li>
+                    <li class="flex items-start gap-2.5">
+                        <span class="dp-icon-box dp-icon-box-amber flex-shrink-0" style="width:1.5rem;height:1.5rem;border-radius:0.4rem;font-size:0.6rem"><i class="fa-solid fa-check"></i></span>
+                        <span class="text-xs text-slate-600">Periksa paket langganan secara berkala untuk hindari layanan berhenti.</span>
+                    </li>
+                    <li class="flex items-start gap-2.5">
+                        <span class="dp-icon-box dp-icon-box-amber flex-shrink-0" style="width:1.5rem;height:1.5rem;border-radius:0.4rem;font-size:0.6rem"><i class="fa-solid fa-check"></i></span>
+                        <span class="text-xs text-slate-600">Gunakan referral untuk menambah komisi otomatis setiap bulan.</span>
+                    </li>
+                </ul>
+            </div>
+        </aside>
+
+        <!-- ===== RIGHT MAIN ===== -->
+        <section class="xl:col-span-8">
+            <div class="dp-card">
+                <!-- Tabs -->
+                <div class="p-4 border-b border-slate-100">
+                    <div class="profile-tab-wrap">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-1.5">
+                            <button class="tab-btn tab-active" onclick="openTab(event, 'profile')">
+                                <span class="icon-box"><i class="fa-solid fa-user"></i></span> Profil
+                            </button>
+                            <button class="tab-btn" onclick="openTab(event, 'referral')">
+                                <span class="icon-box"><i class="fa-solid fa-link"></i></span> Referral
+                            </button>
+                            <button class="tab-btn" onclick="openTab(event, 'subscription')">
+                                <span class="icon-box"><i class="fa-solid fa-crown"></i></span> Langganan
+                            </button>
+                            <button class="tab-btn" onclick="openTab(event, 'security')">
+                                <span class="icon-box"><i class="fa-solid fa-shield-halved"></i></span> Keamanan
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-5 md:p-6">
+
+                    <!-- Profile Tab -->
+                    <div id="content-profile" class="tab-content space-y-5">
+                        <div class="flex items-start justify-between gap-3 flex-wrap">
+                            <div>
+                                <h3 class="text-lg font-bold text-slate-800">Informasi Dasar</h3>
+                                <p class="text-sm text-slate-500">Data ini membantu kami menampilkan identitas akun Anda dengan rapi.</p>
+                            </div>
+                            <button type="button" onclick="toggleEdit()" class="dp-btn dp-btn-ghost dp-btn-sm">
+                                <i class="fa-solid fa-pen"></i> Edit Data
+                            </button>
+                        </div>
+
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <label class="space-y-1.5">
+                                <span class="block text-xs font-bold uppercase tracking-wide text-slate-500">Nama Tampilan</span>
+                                <input class="dp-input profile-input" type="text" value="{{ user.email.split('@')[0]|title }}" disabled>
+                            </label>
+                            <label class="space-y-1.5">
+                                <span class="block text-xs font-bold uppercase tracking-wide text-slate-500">Email</span>
+                                <input class="dp-input profile-input" type="email" value="{{ user.email }}" disabled>
+                            </label>
+                            <label class="space-y-1.5 md:col-span-2">
+                                <span class="block text-xs font-bold uppercase tracking-wide text-slate-500">Nomor WhatsApp</span>
+                                <input class="dp-input profile-input" type="text" value="{{ user.phone_number or '' }}" placeholder="Contoh: 628123456789" disabled>
+                            </label>
+                        </div>
+
+                        <div id="saveBtnContainer" class="hidden pt-2">
+                            <button class="dp-btn dp-btn-primary" onclick="saveProfile(event)">Simpan Perubahan</button>
+                        </div>
+                    </div>
+
+                    <!-- Referral Tab -->
+                    <div id="content-referral" class="tab-content hidden space-y-5">
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-800">Program Referral</h3>
+                            <p class="text-sm text-slate-500">Bagikan link ini ke teman Anda. Setiap pendaftaran dari link referral akan tercatat otomatis.</p>
+                        </div>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div class="rounded-xl bg-slate-50 border border-slate-200 p-4">
+                                <p class="text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">Link Referral Anda</p>
+                                <p id="refLink" class="text-sm break-all font-mono text-slate-800">{{ request.host_url }}register?ref={{ user.referral_code or user.id }}</p>
+                                <button class="dp-btn dp-btn-ghost dp-btn-sm mt-3" onclick="copyRef()">
+                                    <i class="fa-regular fa-copy"></i> Salin Link
+                                </button>
+                            </div>
+                            <div class="rounded-xl bg-slate-50 border border-slate-200 p-4">
+                                <p class="text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">Dompet Komisi</p>
+                                <p class="text-2xl font-extrabold text-slate-800">Rp {{ "{:,.0f}".format(user.wallet_balance).replace(',','.') }}</p>
+                                <button class="dp-btn dp-btn-ghost dp-btn-sm mt-3" onclick="openWithdrawModal()">
+                                    <i class="fa-solid fa-money-bill-transfer"></i> Request Withdraw
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Subscription Tab -->
+                    <div id="content-subscription" class="tab-content hidden space-y-5">
+                        <div class="flex items-start justify-between gap-3 flex-wrap">
+                            <div>
+                                <h3 class="text-lg font-bold text-slate-800">Status Langganan</h3>
+                                <p class="text-sm text-slate-500">Pantau masa aktif paket agar automasi bisnis tetap berjalan lancar.</p>
+                            </div>
+                            <a href="/dashboard/payment" class="dp-btn dp-btn-primary dp-btn-sm">
+                                <i class="fa-solid fa-crown" style="margin-right:0.3rem;"></i> Upgrade Paket
+                            </a>
+                        </div>
+
+                        <!-- Plan card with crown/rocket/star animation in background -->
+                        <div class="sub-plan-card">
+
+                            <!-- Animation background layer -->
+                            <div class="sub-plan-anim" aria-hidden="true">
+                                <div class="sub-plan-crown-wrap">
+                                    <div class="sub-plan-glow"></div>
+                                    <!-- 3 orbiting rockets using FontAwesome -->
+                                    <div class="sub-plan-rocket sub-pr1"><i class="fa-solid fa-rocket"></i></div>
+                                    <div class="sub-plan-rocket sub-pr2"><i class="fa-solid fa-rocket"></i></div>
+                                    <div class="sub-plan-rocket sub-pr3"><i class="fa-solid fa-rocket"></i></div>
+                                    <!-- Crown centerpiece -->
+                                    <i class="fa-solid fa-crown sub-plan-crown-icon"></i>
+                                    <!-- Twinkling stars -->
+                                    <span class="sub-plan-star sub-ps1">✦</span>
+                                    <span class="sub-plan-star sub-ps2">✦</span>
+                                    <span class="sub-plan-star sub-ps3">✧</span>
+                                    <span class="sub-plan-star sub-ps4">✦</span>
+                                    <span class="sub-plan-star sub-ps5">✧</span>
+                                    <span class="sub-plan-star sub-ps6">✦</span>
+                                </div>
+                            </div>
+
+                            <!-- Card content -->
+                            <div class="sub-plan-content">
+                                <div class="flex items-start justify-between gap-3 mb-4">
+                                    <div>
+                                        <p class="text-xs font-bold uppercase mb-1" style="color:rgba(196,181,253,0.8);">Paket Saat Ini</p>
+                                        <p class="text-2xl font-extrabold text-white">{{ user.plan_tier|upper }}</p>
+                                    </div>
+                                    {% if user.plan_tier == 'Starter' %}
+                                    <span class="dp-badge dp-badge-pencil">FREE TIER</span>
+                                    {% else %}
+                                    <span class="dp-badge dp-badge-success">ACTIVE</span>
+                                    {% endif %}
+                                </div>
+                                {% if user.plan_tier != 'Starter' %}
+                                <div>
+                                    <div class="flex justify-between text-xs mb-1.5" style="color:rgba(196,181,253,0.7);">
+                                        <span>Sisa masa aktif</span>
+                                        <span class="font-bold" style="color:#e2e8f0;">{{ user.days_remaining }} hari</span>
+                                    </div>
+                                    <div class="dp-progress">
+                                        <div class="dp-progress-fill" style="width:{{ [100, (user.days_remaining / 30 * 100)|int]|min }}%"></div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security Tab -->
+                    <div id="content-security" class="tab-content hidden space-y-4">
+                        <h3 class="text-lg font-bold text-slate-800">Keamanan Akun</h3>
+                        <div class="rounded-xl bg-slate-50 border border-slate-200 p-4 flex items-start justify-between gap-3">
+                            <div>
+                                <p class="font-bold text-slate-800">Ganti Password</p>
+                                <p class="text-sm text-slate-500">Demi keamanan, perbarui password secara berkala.</p>
+                            </div>
+                            <button class="dp-btn dp-btn-ghost dp-btn-sm" onclick="openPasswordModal()">Update</button>
+                        </div>
+                        <div class="rounded-xl border border-rose-200 bg-rose-50 p-4">
+                            <p class="font-bold text-rose-700 mb-1 flex items-center gap-2">
+                                <i class="fa-solid fa-triangle-exclamation"></i> Zona Bahaya
+                            </p>
+                            <p class="text-sm text-rose-600 mb-3">Hapus akun bersifat permanen. Semua data tidak bisa dikembalikan.</p>
+                            <button onclick="confirmDelete()" class="dp-btn dp-btn-danger dp-btn-sm">Hapus Akun Saya</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<!-- Withdraw Modal -->
+<div id="withdrawModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden items-center justify-center px-4">
+    <div class="dp-card w-full max-w-sm p-6">
+        <h3 class="text-lg font-bold text-slate-800 mb-1">Request Withdraw</h3>
+        <p class="text-sm text-slate-500 mb-4">Masukkan jumlah dan nomor rekening tujuan pencairan komisi Anda.</p>
+        <label class="block text-xs font-bold text-slate-600 mb-1">Jumlah Withdraw (Rp)</label>
+        <input type="number" id="withdrawAmount" placeholder="Contoh: 50000" class="dp-input mb-3">
+        <label class="block text-xs font-bold text-slate-600 mb-1">Nomor Rekening / E-Wallet</label>
+        <input type="text" id="withdrawAccount" placeholder="Contoh: BCA 1234567890" class="dp-input mb-4">
+        <div class="flex gap-2">
+            <button onclick="closeWithdrawModal()" class="dp-btn dp-btn-ghost flex-1">Batal</button>
+            <button onclick="submitWithdraw()" class="dp-btn dp-btn-primary flex-1">Kirim Request</button>
+        </div>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div id="passwordModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden items-center justify-center px-4">
+    <div class="dp-card w-full max-w-sm p-6">
+        <h3 class="text-lg font-bold text-slate-800 mb-1">Ganti Password</h3>
+        <p class="text-sm text-slate-500 mb-4">Masukkan password lama dan password baru Anda.</p>
+        <label class="block text-xs font-bold text-slate-600 mb-1">Password Lama</label>
+        <input type="password" id="oldPassword" placeholder="Password saat ini" class="dp-input mb-3">
+        <label class="block text-xs font-bold text-slate-600 mb-1">Password Baru</label>
+        <input type="password" id="newPassword" placeholder="Password baru" class="dp-input mb-3">
+        <label class="block text-xs font-bold text-slate-600 mb-1">Konfirmasi Password Baru</label>
+        <input type="password" id="confirmPassword" placeholder="Ulangi password baru" class="dp-input mb-4">
+        <div class="flex gap-2">
+            <button onclick="closePasswordModal()" class="dp-btn dp-btn-ghost flex-1">Batal</button>
+            <button onclick="submitPassword()" class="dp-btn dp-btn-primary flex-1">Update Password</button>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div id="deleteModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden items-center justify-center px-4">
+    <div class="dp-card w-full max-w-sm p-6">
+        <h3 class="text-lg font-bold text-slate-800 mb-1">Konfirmasi Hapus Akun</h3>
+        <p class="text-sm text-slate-500 mb-4">Masukkan password untuk melanjutkan penghapusan akun permanen.</p>
+        <input type="password" id="deletePass" placeholder="Password Anda" class="dp-input mb-4">
+        <div class="flex gap-2">
+            <button onclick="closeDeleteModal()" class="dp-btn dp-btn-ghost flex-1">Batal</button>
+            <button onclick="closeDeleteModal(); showAlert({ title: 'Permintaan Terkirim', message: 'Permintaan penghapusan akun Anda telah dikirim ke admin untuk ditindaklanjuti.', icon: 'fa-paper-plane', iconColor: 'text-emerald-400', iconBg: 'bg-emerald-500/20', glowColor: 'bg-emerald-500' });" class="dp-btn dp-btn-danger flex-1">Hapus</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function openTab(evt, tabName) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+        document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('tab-active'));
+        document.getElementById('content-' + tabName).classList.remove('hidden');
+        evt.currentTarget.classList.add('tab-active');
+    }
+    function copyRef() {
+        navigator.clipboard.writeText(document.getElementById('refLink').innerText)
+            .then(() => showToast('Link referral berhasil disalin!', 'success'));
+    }
+    function toggleEdit() {
+        const inputs = document.querySelectorAll('.profile-input');
+        const saveContainer = document.getElementById('saveBtnContainer');
+        const isDisabled = inputs[0].disabled;
+        inputs.forEach(input => { if (input.id !== 'deletePass') input.disabled = !isDisabled; });
+        saveContainer.classList.toggle('hidden', !isDisabled);
+    }
+    function saveProfile(event) {
+        const btn = event.currentTarget;
+        const original = btn.innerText;
+        btn.innerText = 'Menyimpan...';
+        setTimeout(() => { showToast('Data profil berhasil disimpan.', 'success'); toggleEdit(); btn.innerText = original; }, 1000);
+    }
+    function confirmDelete() {
+        const modal = document.getElementById('deleteModal');
+        modal.classList.remove('hidden'); modal.classList.add('flex');
+        lockScroll();
+    }
+    function closeDeleteModal() {
+        const modal = document.getElementById('deleteModal');
+        modal.classList.add('hidden'); modal.classList.remove('flex');
+        unlockScroll();
+    }
+    function openWithdrawModal() {
+        const modal = document.getElementById('withdrawModal');
+        modal.classList.remove('hidden'); modal.classList.add('flex');
+        lockScroll();
+    }
+    function closeWithdrawModal() {
+        const modal = document.getElementById('withdrawModal');
+        modal.classList.add('hidden'); modal.classList.remove('flex');
+        document.getElementById('withdrawAmount').value = '';
+        document.getElementById('withdrawAccount').value = '';
+        unlockScroll();
+    }
+    function submitWithdraw() {
+        const amount = document.getElementById('withdrawAmount').value.trim();
+        const account = document.getElementById('withdrawAccount').value.trim();
+        if (!amount || !account) {
+            showToast('Harap isi semua kolom sebelum mengirim request.', 'error');
+            return;
+        }
+        closeWithdrawModal();
+        showAlert({ title: 'Request Terkirim', message: 'Request withdraw Anda telah dikirim ke admin dan akan diproses dalam 1x24 jam.', icon: 'fa-paper-plane', iconColor: 'text-emerald-400', iconBg: 'bg-emerald-500/20', glowColor: 'bg-emerald-500' });
+    }
+    function openPasswordModal() {
+        const modal = document.getElementById('passwordModal');
+        modal.classList.remove('hidden'); modal.classList.add('flex');
+        lockScroll();
+    }
+    function closePasswordModal() {
+        const modal = document.getElementById('passwordModal');
+        modal.classList.add('hidden'); modal.classList.remove('flex');
+        document.getElementById('oldPassword').value = '';
+        document.getElementById('newPassword').value = '';
+        document.getElementById('confirmPassword').value = '';
+        unlockScroll();
+    }
+    function submitPassword() {
+        const oldPw = document.getElementById('oldPassword').value.trim();
+        const newPw = document.getElementById('newPassword').value.trim();
+        const confirmPw = document.getElementById('confirmPassword').value.trim();
+        if (!oldPw || !newPw || !confirmPw) {
+            showToast('Harap isi semua kolom password.', 'error');
+            return;
+        }
+        if (newPw !== confirmPw) {
+            showToast('Konfirmasi password tidak cocok.', 'error');
+            return;
+        }
+        if (newPw.length < 6) {
+            showToast('Password baru minimal 6 karakter.', 'error');
+            return;
+        }
+        closePasswordModal();
+        showAlert({ title: 'Password Diperbarui', message: 'Password Anda berhasil diperbarui. Gunakan password baru saat login berikutnya.', icon: 'fa-shield-halved', iconColor: 'text-indigo-400', iconBg: 'bg-indigo-500/20', glowColor: 'bg-indigo-500' });
+    }
+    function previewAvatar(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('avatarPreview').src = e.target.result;
+                document.getElementById('avatarPreview').classList.remove('hidden');
+                const avatarText = document.getElementById('avatarText');
+                if (avatarText) avatarText.classList.add('hidden');
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+</script>
+
+<style>
+    /* ===== PROFILE SHELL ===== */
+    .profile-shell { color: var(--text-primary); }
+
+    /* ===== AVATAR RING ===== */
+    .avatar-ring-btn {
+        animation: avatarRingShift 4s ease-in-out infinite alternate;
+    }
+    @keyframes avatarRingShift {
+        0%   { background: linear-gradient(135deg, #22d3ee, #818cf8, #e879f9); box-shadow: 0 0 14px rgba(34,211,238,0.45), 0 0 28px rgba(232,121,249,0.25); }
+        50%  { background: linear-gradient(135deg, #e879f9, #818cf8, #22d3ee); box-shadow: 0 0 18px rgba(232,121,249,0.5), 0 0 36px rgba(34,211,238,0.3); }
+        100% { background: linear-gradient(135deg, #818cf8, #e879f9, #22d3ee); box-shadow: 0 0 14px rgba(129,140,248,0.5), 0 0 28px rgba(34,211,238,0.3); }
+    }
+
+    /* ===== HERO ===== */
+    .profile-hero {
+        background: linear-gradient(160deg, #1e1b4b 0%, #312e81 30%, #0f172a 70%, #0c1225 100%);
+        border: 1px solid rgba(99,102,241,0.2);
+        box-shadow: 0 8px 40px -12px rgba(37,99,235,0.3);
+    }
+    html[data-theme='dark'] .profile-hero {
+        background: linear-gradient(160deg, #160e3a 0%, #1e1450 30%, #080f1e 70%, #050c18 100%);
+        border-color: rgba(99,102,241,0.15);
+    }
+    .profile-avatar-inner { background: rgba(15,23,42,0.88); border: 2px solid rgba(148,163,184,0.4); }
+    html[data-theme='dark'] .profile-avatar-inner { background: #0d1628; border-color: rgba(99,132,180,0.35); }
+    .profile-status-ring { background: #1e1b4b; border-color: rgba(148,163,184,0.4); }
+    html[data-theme='dark'] .profile-status-ring { background: #160e3a; }
+    .profile-hero-muted { color: rgba(203,213,225,0.7); }
+
+    /* ===== PILLS ===== */
+    .profile-pill {
+        border-radius: 999px;
+        border: 1px solid rgba(148,163,184,0.35);
+        background: rgba(255,255,255,0.08);
+        color: #e2e8f0;
+        font-size: 0.68rem; font-weight: 700;
+        padding: 0.2rem 0.6rem;
+        letter-spacing: 0.03em;
+    }
+    .profile-pill-pro { border-color: rgba(99,102,241,0.6); background: rgba(99,102,241,0.22); color: #c7d2fe; }
+    .profile-pill-agency { border-color: rgba(168,85,247,0.6); background: rgba(168,85,247,0.22); color: #e9d5ff; }
+
+    /* ===== INLINE STATS (no card boxes) ===== */
+    .profile-stat-group { border: 1px solid rgba(255,255,255,0.1); border-radius: 0.9rem; background: rgba(255,255,255,0.05); overflow: hidden; }
+    .profile-stat-inline { padding: 0.85rem 1.25rem; }
+    .profile-stat-divider { width: 1px; align-self: stretch; background: rgba(255,255,255,0.1); flex-shrink: 0; }
+    .profile-stat-label { font-size: 0.67rem; text-transform: uppercase; letter-spacing: 0.09em; color: #94a3b8; font-weight: 700; margin-bottom: 0.25rem; }
+    .profile-stat-value { font-size: 1.1rem; font-weight: 800; color: #fff; }
+
+    /* ===== TABS ===== */
+    .profile-tab-wrap {
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.75rem;
+        padding: 0.35rem;
+        box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+    }
+    html[data-theme='dark'] .profile-tab-wrap {
+        background: rgba(15,28,53,0.7);
+        border-color: rgba(37,99,235,0.15);
+    }
+    .tab-btn {
+        display: flex; align-items: center; justify-content: center;
+        gap: 0.4rem; border-radius: 0.5rem;
+        border: 1px solid var(--border-color); background: var(--card-bg);
+        color: var(--text-muted); font-size: 0.8rem; font-weight: 700;
+        min-height: 2rem;
+    }
+    .icon-box {
+        width: 1.4rem; height: 1.4rem; display: inline-grid;
+        place-items: center; border-radius: 0.35rem;
+        background: transparent; font-size: 0.7rem;
+    }
+    .tab-btn:not(.tab-active):hover {
+        border-color: #93c5fd; color: #2563eb;
+        transition: border-color 0.15s, color 0.15s;
+    }
+    html[data-theme='dark'] .tab-btn:not(.tab-active):hover {
+        border-color: rgba(59,130,246,0.4); color: #60a5fa;
+    }
+    .tab-active { background: #2563eb; border-color: #2563eb; color: #ffffff; }
+    .tab-active .icon-box { background: transparent; color: #ffffff; }
+    html[data-theme='dark'] .tab-active { background: #2563eb; border-color: #2563eb; color: #ffffff; }
+    html[data-theme='dark'] .tab-btn .icon-box { background: transparent; }
+    html[data-theme='dark'] .tab-active .icon-box { background: transparent; color: #ffffff; }
+
+    /* =====================================================
+       SUBSCRIPTION PLAN CARD — CROWN / ROCKET / STAR BG
+    ===================================================== */
+    .sub-plan-card {
+        position: relative;
+        overflow: hidden;
+        border-radius: 0.75rem;
+        border: 1px solid rgba(124,58,237,0.3);
+        background: linear-gradient(135deg, #1e1b4b 0%, #2d1b69 35%, #1a0f3a 65%, #0c1225 100%);
+        box-shadow: 0 8px 32px -8px rgba(124,58,237,0.35), inset 0 1px 0 rgba(255,255,255,0.07);
+        padding: 1.25rem;
+        min-height: 120px;
+    }
+
+    /* Animation layer fills the entire card as background */
+    .sub-plan-anim {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding-right: 1.5rem;
+        overflow: hidden;
+    }
+
+    /* Crown + orbit wrapper */
+    .sub-plan-crown-wrap {
+        position: relative;
+        width: 150px;
+        height: 150px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    /* Radial glow behind crown */
+    .sub-plan-glow {
+        position: absolute;
+        inset: -16px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(124,58,237,0.22) 0%, rgba(245,158,11,0.1) 50%, transparent 72%);
+        animation: spGlowPulse 3s ease-in-out infinite;
+    }
+    @keyframes spGlowPulse {
+        0%,100% { transform: scale(0.85); opacity: 0.45; }
+        50%      { transform: scale(1.15); opacity: 1; }
+    }
+
+    /* Crown icon */
+    .sub-plan-crown-icon {
+        font-size: 3.5rem;
+        position: relative;
+        z-index: 2;
+        color: #a78bfa;
+        opacity: 0.28;
+        animation: spCrownFloat 3.2s ease-in-out infinite;
+        filter: drop-shadow(0 0 12px rgba(124,58,237,0.6)) drop-shadow(0 0 28px rgba(245,158,11,0.25));
+    }
+    @keyframes spCrownFloat {
+        0%,100% { transform: translateY(0px) rotate(-3deg); }
+        50%      { transform: translateY(-8px) rotate(3deg); filter: drop-shadow(0 0 22px rgba(124,58,237,0.85)) drop-shadow(0 0 42px rgba(245,158,11,0.4)); }
+    }
+
+    /* Orbiting rockets */
+    .sub-plan-rocket {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .sub-plan-rocket i {
+        font-size: 0.8rem;
+        color: #a78bfa;
+        filter: drop-shadow(0 0 5px rgba(124,58,237,0.8));
+        animation: spRocketFlame 0.65s ease-in-out infinite alternate;
+    }
+    @keyframes spRocketFlame {
+        from { filter: drop-shadow(0 0 4px rgba(124,58,237,0.6)); }
+        to   { filter: drop-shadow(0 0 10px rgba(167,139,250,1)) drop-shadow(0 2px 4px rgba(59,130,246,0.6)); }
+    }
+
+    .sub-pr1 { animation: spOrbit1 5s linear infinite; }
+    .sub-pr1 i { color: #a78bfa; }
+
+    .sub-pr2 { animation: spOrbit2 7.5s linear infinite; animation-delay: -2.5s; }
+    .sub-pr2 i { font-size: 0.62rem; color: #60a5fa; filter: drop-shadow(0 0 4px rgba(59,130,246,0.8)); }
+
+    .sub-pr3 { animation: spOrbit3 6s linear infinite; animation-delay: -1.2s; }
+    .sub-pr3 i { font-size: 0.7rem; color: #c4b5fd; }
+
+    @keyframes spOrbit1 {
+        from { transform: rotate(0deg)   translateX(55px) rotate(135deg); }
+        to   { transform: rotate(360deg) translateX(55px) rotate(135deg); }
+    }
+    @keyframes spOrbit2 {
+        from { transform: rotate(0deg)    translateX(38px) rotate(-45deg); }
+        to   { transform: rotate(-360deg) translateX(38px) rotate(-45deg); }
+    }
+    @keyframes spOrbit3 {
+        from { transform: rotate(110deg)  translateX(47px) rotate(90deg); }
+        to   { transform: rotate(470deg)  translateX(47px) rotate(90deg); }
+    }
+
+    /* Twinkling stars */
+    .sub-plan-star {
+        position: absolute;
+        animation: spStarTwinkle 2.2s ease-in-out infinite;
+        pointer-events: none;
+        line-height: 1;
+    }
+    @keyframes spStarTwinkle {
+        0%,100% { opacity: 0;   transform: scale(0.3) rotate(0deg); }
+        45%,55% { opacity: 0.85; transform: scale(1.3) rotate(20deg); }
+    }
+    .sub-ps1 { top:  8%; left:  10%; font-size: 0.7rem;  color: #a78bfa; animation-delay: 0.3s; }
+    .sub-ps2 { top: 12%; right: 5%;  font-size: 0.55rem; color: #F59E0B; animation-delay: 1.1s; }
+    .sub-ps3 { top: 45%; left:  4%;  font-size: 0.5rem;  color: #60a5fa; animation-delay: 1.8s; }
+    .sub-ps4 { bottom: 14%; left: 18%; font-size: 0.65rem; color: #c4b5fd; animation-delay: 0.7s; }
+    .sub-ps5 { bottom: 10%; right: 2%;  font-size: 0.48rem; color: #F59E0B; animation-delay: 1.4s; }
+    .sub-ps6 { top: 60%; right: 3%;  font-size: 0.6rem;  color: #a78bfa; animation-delay: 0.5s; }
+
+    /* Content sits above the animation */
+    .sub-plan-content {
+        position: relative;
+        z-index: 2;
+    }
+</style>
+{% endblock %}

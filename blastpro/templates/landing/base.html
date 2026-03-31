@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}BlastPro{% endblock %} — Automasi Telegram Marketing #1 di Kamboja</title>
+    <meta name="description" content="Kirim iklan ke ratusan grup Telegram Kamboja secara otomatis. Hemat biaya, perluas jangkauan, dan dominasi pasar dengan BlastPro.">
+    <meta property="og:title" content="BlastPro — Automasi Telegram Marketing #1">
+    <meta property="og:description" content="Jangkau ratusan grup Telegram secara otomatis & efisien. Platform SaaS terbaik untuk UMKM Indonesia di Kamboja.">
+    <meta property="og:type" content="website">
+
+    <link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..900;1,14..32,300..900&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            50:  '#eef2ff',
+                            100: '#e0e7ff',
+                            200: '#c7d2fe',
+                            300: '#a5b4fc',
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            800: '#3730a3',
+                            900: '#312e81',
+                        }
+                    },
+                    keyframes: {
+                        'fade-up': { '0%': { opacity: '0', transform: 'translateY(16px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+                    },
+                    animation: {
+                        'fade-up': 'fade-up 0.5s ease forwards',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-white text-slate-800 font-sans antialiased">
+
+    <!-- SCROLL PROGRESS BAR -->
+    <div id="scroll-progress"></div>
+    <div id="rocket-flyer">
+        <img src="{{ url_for('static', filename='img/favicon.png') }}" alt="">
+    </div>
+
+    <!-- NAVBAR -->
+    <nav id="navbar" class="fixed top-0 w-full z-50 transition-all duration-300">
+        <div class="bg-white/80 backdrop-blur-xl border-b border-slate-100/80 shadow-sm shadow-slate-100/50" id="navbar-inner">
+            <div class="max-w-7xl mx-auto px-5 md:px-8">
+                <div class="flex items-center justify-between h-[68px]">
+
+                    <!-- Logo -->
+                    <a href="/" class="flex items-center gap-2.5 shrink-0 group">
+                        <div id="navbar-rocket-icon" class="w-8 h-8 flex items-center justify-center group-hover:scale-105 transition-transform" style="opacity:0">
+                            <img src="{{ url_for('static', filename='img/logo-blastpro.png') }}" alt="BlastPro Logo" class="w-full h-full object-contain">
+                        </div>
+                        <span class="text-xl font-black text-slate-900 tracking-tight">Blast<span class="text-brand-600">Pro</span></span>
+                    </a>
+
+                    <!-- Desktop Nav -->
+                    <div class="hidden md:flex items-center gap-1">
+                        <a href="/#features" class="ha-nav-item nav-pill px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors rounded-lg hover:bg-slate-50">Fitur</a>
+                        <a href="/#pricing" class="ha-nav-item nav-pill px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors rounded-lg hover:bg-slate-50">Harga</a>
+                        <a href="/#faq" class="ha-nav-item nav-pill px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors rounded-lg hover:bg-slate-50">FAQ</a>
+                    </div>
+
+                    <!-- Desktop CTA -->
+                    <div class="hidden md:flex items-center gap-3">
+                        <a href="/login" class="ha-nav-login text-sm font-semibold text-slate-600 hover:text-brand-600 transition-colors px-4 py-2 rounded-lg hover:bg-brand-50">Masuk</a>
+                        <a href="/register" class="ha-nav-cta inline-flex items-center gap-2 px-5 py-2.5 shimmer-btn text-white text-sm font-bold rounded-full transition-all shadow-lg shadow-brand-300/40 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-brand-400/30 active:translate-y-0">
+                            Daftar Gratis <i class="fa-solid fa-arrow-right text-xs"></i>
+                        </a>
+                    </div>
+
+                    <!-- Mobile hamburger -->
+                    <button id="hamburger-btn" onclick="toggleMobileMenu()" class="md:hidden p-2 rounded-xl hover:bg-slate-100 transition-colors" aria-label="Buka Menu">
+                        <div class="space-y-1.5">
+                            <span id="h-line-1" class="block w-5 h-0.5 bg-slate-700 rounded transition-all duration-300 origin-center"></span>
+                            <span id="h-line-2" class="block w-5 h-0.5 bg-slate-700 rounded transition-all duration-300"></span>
+                            <span id="h-line-3" class="block w-5 h-0.5 bg-slate-700 rounded transition-all duration-300 origin-center"></span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="md:hidden bg-white/95 backdrop-blur-xl border-t border-slate-100">
+            <div class="max-w-7xl mx-auto px-5 py-3 flex flex-col gap-1">
+                <a href="/#features" onclick="closeMobileMenu()" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-brand-50 hover:text-brand-700 rounded-xl transition-colors">
+                    <i class="fa-solid fa-star text-brand-400 w-4 text-center"></i> Fitur Unggulan
+                </a>
+                <a href="/#pricing" onclick="closeMobileMenu()" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-brand-50 hover:text-brand-700 rounded-xl transition-colors">
+                    <i class="fa-solid fa-tag text-brand-400 w-4 text-center"></i> Harga Paket
+                </a>
+                <a href="/#faq" onclick="closeMobileMenu()" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-brand-50 hover:text-brand-700 rounded-xl transition-colors">
+                    <i class="fa-solid fa-circle-question text-brand-400 w-4 text-center"></i> FAQ
+                </a>
+                <div class="border-t border-slate-100 mt-2 pt-3 flex flex-col gap-2">
+                    <a href="/login" class="px-4 py-3 text-sm font-bold text-slate-700 border border-slate-200 rounded-full text-center hover:border-brand-300 hover:text-brand-700 hover:bg-brand-50 transition-colors">
+                        Masuk
+                    </a>
+                    <a href="/register" class="px-4 py-3 text-sm font-bold text-white shimmer-btn rounded-full text-center shadow-sm">
+                        Daftar Gratis →
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    {% block content %}{% endblock %}
+
+    {% include 'landing/_footer.html' %}
+
+    <script>
+        /* Navbar shadow on scroll */
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('navbar');
+            const inner = document.getElementById('navbar-inner');
+            if (window.scrollY > 20) {
+                inner.style.boxShadow = '0 4px 24px -4px rgba(79,70,229,0.10), 0 1px 0 rgba(0,0,0,0.04)';
+            } else {
+                inner.style.boxShadow = '';
+            }
+        });
+
+        /* Mobile menu */
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const l1 = document.getElementById('h-line-1');
+            const l2 = document.getElementById('h-line-2');
+            const l3 = document.getElementById('h-line-3');
+            const isOpen = menu.classList.contains('open');
+            if (isOpen) {
+                menu.classList.remove('open');
+                l1.style.transform = ''; l2.style.opacity = ''; l3.style.transform = '';
+            } else {
+                menu.classList.add('open');
+                l1.style.transform = 'translateY(6px) rotate(45deg)';
+                l2.style.opacity = '0';
+                l3.style.transform = 'translateY(-6px) rotate(-45deg)';
+            }
+        }
+        function closeMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const l1 = document.getElementById('h-line-1');
+            const l2 = document.getElementById('h-line-2');
+            const l3 = document.getElementById('h-line-3');
+            menu.classList.remove('open');
+            l1.style.transform = ''; l2.style.opacity = ''; l3.style.transform = '';
+        }
+
+        /* FAQ accordion */
+        function toggleFaq(btn) {
+            const item = btn.closest('.faq-item');
+            const content = btn.nextElementSibling;
+            const isOpen = content.style.maxHeight && content.style.maxHeight !== '0px';
+
+            /* Close all */
+            document.querySelectorAll('.faq-content').forEach(el => { el.style.maxHeight = null; });
+            document.querySelectorAll('.faq-item').forEach(el => el.classList.remove('open'));
+
+            if (!isOpen) {
+                content.style.maxHeight = content.scrollHeight + 'px';
+                item.classList.add('open');
+            }
+        }
+
+        /* Intersection Observer — scroll entrance animations */
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(e => {
+                if (e.isIntersecting) {
+                    const delay = parseInt(e.target.dataset.animDelay || 0, 10);
+                    setTimeout(() => {
+                        e.target.classList.add('visible');
+                        triggerCountUp(e.target);
+                    }, delay);
+                    observer.unobserve(e.target);
+                }
+            });
+        }, { threshold: 0.07, rootMargin: '0px 0px -60px 0px' });
+        document.querySelectorAll('[data-anim], [data-anim-stagger]').forEach(el => observer.observe(el));
+
+        /* ── SCROLL PROGRESS BAR + ROCKET LAUNCH ANIMATION ── */
+        (function() {
+            const bar        = document.getElementById('scroll-progress');
+            const flyer      = document.getElementById('rocket-flyer');
+            const logoIcon   = document.getElementById('navbar-rocket-icon');
+            if (!bar || !flyer) return;
+
+            let currentPct      = 0;
+            let isScrolling     = false;
+            let scrollTimer     = null;
+            let shakeTimer      = null;
+            let launched        = false;
+            let rocketReady     = false; /* locked until all page-load animations finish */
+
+            /* Unlock rocket animation after all intro animations are done (~5.5s) */
+            setTimeout(function() { rocketReady = true; }, 5500);
+
+            /* Get the center coordinates of the navbar rocket icon */
+            function getLogoCenter() {
+                if (!logoIcon) return { x: 40, y: 34 };
+                var r = logoIcon.getBoundingClientRect();
+                return { x: r.left + r.width * 0.5, y: r.top + r.height * 0.5 };
+            }
+
+            /* Get position of the progress bar tip */
+            function getTipCenter() {
+                return {
+                    x: (currentPct / 100) * window.innerWidth,
+                    y: 1.5
+                };
+            }
+
+            function getPct() {
+                var docH = document.documentElement.scrollHeight - window.innerHeight;
+                return docH > 0 ? (window.scrollY / docH) * 100 : 0;
+            }
+
+            /* Move flyer to exact pixel coordinates (centered on element) */
+            function placeFlyer(x, y, instant) {
+                if (instant) flyer.style.transition = 'none';
+                flyer.style.left = x + 'px';
+                flyer.style.top  = y + 'px';
+            }
+
+            /* Turn navbar icon gray — imprint/ghost left after rocket launches */
+            function ghostOn() {
+                if (logoIcon) logoIcon.classList.add('rocket-ghost');
+            }
+
+            /* Restore navbar icon to original color */
+            function ghostOff() {
+                if (logoIcon) logoIcon.classList.remove('rocket-ghost');
+            }
+
+            /* LAUNCH: rocket clone appears at navbar, shakes, then blasts to progress tip */
+            function launch() {
+                if (launched || !rocketReady) return;
+                launched = true;
+
+                var logo = getLogoCenter();
+                var tip  = getTipCenter();
+
+                /* Snap flyer instantly to logo position */
+                flyer.style.transition = 'none';
+                flyer.style.opacity    = '1';
+                placeFlyer(logo.x, logo.y, true);
+
+                /* Gray out the original navbar icon (imprint effect) */
+                ghostOn();
+
+                /* Engine ignition shake */
+                flyer.classList.add('shaking');
+                clearTimeout(shakeTimer);
+                shakeTimer = setTimeout(function() {
+                    flyer.classList.remove('shaking');
+
+                    /* Blast off toward the progress bar tip */
+                    flyer.style.transition =
+                        'left 0.5s cubic-bezier(0.55, 0, 0.9, 0.5),' +
+                        'top  0.5s cubic-bezier(0.55, 0, 0.9, 0.5)';
+                    placeFlyer(tip.x, tip.y, false);
+                }, 360);
+            }
+
+            /* RETURN: rocket glides back to logo, logo restores color */
+            function returnHome() {
+                if (!launched) return;
+
+                var logo = getLogoCenter();
+
+                /* Glide back to logo position */
+                flyer.style.transition =
+                    'left 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94),' +
+                    'top  0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94),' +
+                    'opacity 0.2s linear 0.4s';
+                flyer.style.opacity = '0';
+                placeFlyer(logo.x, logo.y, false);
+
+                /* Restore navbar icon color as rocket comes home */
+                setTimeout(ghostOff, 300);
+
+                setTimeout(function() { launched = false; }, 650);
+            }
+
+            function updateProgress() {
+                currentPct = getPct();
+                bar.style.width = currentPct + '%';
+
+                if (!isScrolling) {
+                    isScrolling = true;
+                    launch();
+                } else if (launched && !flyer.classList.contains('shaking')) {
+                    /* Continuously track the progress tip while scrolling */
+                    var tip = getTipCenter();
+                    flyer.style.transition = 'left 0.1s linear, top 0.1s linear';
+                    placeFlyer(tip.x, tip.y, false);
+                }
+
+                clearTimeout(scrollTimer);
+                scrollTimer = setTimeout(function() {
+                    isScrolling = false;
+                    returnHome();
+                }, 450);
+            }
+
+            window.addEventListener('scroll', updateProgress, { passive: true });
+            updateProgress();
+        })();
+
+        /* ── COUNT-UP NUMBERS ── */
+        function animateCount(el, target, duration) {
+            const start = performance.now();
+            const startVal = 0;
+            function update(now) {
+                const elapsed = now - start;
+                const progress = Math.min(elapsed / duration, 1);
+                const ease = 1 - Math.pow(1 - progress, 3);
+                const current = Math.round(startVal + (target - startVal) * ease);
+                el.textContent = current.toLocaleString('id-ID');
+                if (progress < 1) requestAnimationFrame(update);
+            }
+            requestAnimationFrame(update);
+        }
+        function triggerCountUp(container) {
+            container.querySelectorAll('[data-count]').forEach(el => {
+                const target = parseInt(el.dataset.count, 10);
+                const duration = parseInt(el.dataset.countDuration || 1800, 10);
+                if (!isNaN(target)) animateCount(el, target, duration);
+            });
+        }
+
+        /* ── MAGNETIC CARD 3D TILT ── */
+        (function() {
+            const cards = document.querySelectorAll('.feature-card, .testimonial-card');
+            cards.forEach(card => {
+                card.classList.add('mag-card');
+                card.addEventListener('mousemove', function(e) {
+                    const rect = this.getBoundingClientRect();
+                    const cx = rect.left + rect.width  / 2;
+                    const cy = rect.top  + rect.height / 2;
+                    const rx = (e.clientX - cx) / (rect.width  / 2) * 6;
+                    const ry = (e.clientY - cy) / (rect.height / 2) * -6;
+                    this.style.transform = `perspective(900px) rotateX(${ry}deg) rotateY(${rx}deg) translateY(-5px)`;
+                });
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = '';
+                });
+            });
+        })();
+
+        /* ── RIPPLE ON CLICK ── */
+        (function() {
+            document.querySelectorAll('.shimmer-btn, .ripple-target').forEach(btn => {
+                btn.style.position = 'relative';
+                btn.style.overflow = 'hidden';
+                btn.addEventListener('click', function(e) {
+                    const rect = this.getBoundingClientRect();
+                    const size = Math.max(rect.width, rect.height) * 0.8;
+                    const x = e.clientX - rect.left - size / 2;
+                    const y = e.clientY - rect.top  - size / 2;
+                    const ripple = document.createElement('span');
+                    ripple.className = 'ripple-dot';
+                    ripple.style.cssText = `width:${size}px;height:${size}px;left:${x}px;top:${y}px;`;
+                    this.appendChild(ripple);
+                    setTimeout(() => ripple.remove(), 620);
+                });
+            });
+        })();
+
+        /* ── INTRO ROCKET: muncul di tengah lalu meluncur ke navbar (satu logo, tanpa dobel) ── */
+        (function() {
+            var intro     = document.getElementById('intro-rocket');
+            var navRocket = document.getElementById('navbar-rocket-icon');
+            if (!intro || !navRocket) return;
+
+            /* Sembunyikan logo navbar sejak awal — intro-rocket yang "jadi" logonya */
+            navRocket.style.opacity    = '0';
+            navRocket.style.transition = 'none';
+
+            /* Set posisi awal ke tengah viewport */
+            var cx = window.innerWidth  / 2;
+            var cy = window.innerHeight / 2;
+            intro.style.left = cx + 'px';
+            intro.style.top  = cy + 'px';
+
+            /* Fase 1: Muncul besar di tengah SEJAK AWAL — di atas curtain ungu (t=80ms) */
+            setTimeout(function() {
+                intro.style.transition =
+                    'opacity 0.35s ease,' +
+                    'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                intro.style.opacity   = '1';
+                intro.style.transform = 'translate(-50%, -50%) scale(1) rotate(-10deg)';
+            }, 80);
+
+            /* Fase 2: Meluncur ke posisi logo navbar saat curtain mulai naik (~0.55s) */
+            setTimeout(function() {
+                var r  = navRocket.getBoundingClientRect();
+                var tx = (r.left + r.width  / 2) - cx;
+                var ty = (r.top  + r.height / 2) - cy;
+                var scale = r.width / 100;
+
+                intro.style.transition =
+                    'transform 0.8s cubic-bezier(0.55, 0, 0.85, 0.45),' +
+                    'opacity 0.25s linear 0.58s';
+                intro.style.opacity   = '0';
+                intro.style.transform =
+                    'translate(calc(-50% + ' + tx + 'px), calc(-50% + ' + ty + 'px))' +
+                    ' scale(' + scale + ') rotate(-22deg)';
+
+                /* Tampilkan logo navbar asli tepat saat intro-rocket tiba & fade out */
+                setTimeout(function() {
+                    navRocket.style.transition = 'opacity 0.2s ease';
+                    navRocket.style.opacity    = '1';
+                }, 600);
+            }, 550);
+        })();
+
+        /* ── FLOATING ORBS PARALLAX ON MOUSE MOVE ── */
+        (function() {
+            const orbs = [
+                { el: document.querySelector('.ha-orb-1'), strength: 18 },
+                { el: document.querySelector('.ha-orb-2'), strength: 12 },
+                { el: document.querySelector('.ha-orb-3'), strength: 8  },
+            ];
+            let tx = [0,0,0], ty = [0,0,0], cx = [0,0,0], cy = [0,0,0];
+            orbs.forEach((o, i) => { cx[i] = 0; cy[i] = 0; });
+            window.addEventListener('mousemove', function(e) {
+                const mx = (e.clientX / window.innerWidth  - 0.5) * 2;
+                const my = (e.clientY / window.innerHeight - 0.5) * 2;
+                orbs.forEach((o, i) => {
+                    if (!o.el) return;
+                    tx[i] = mx * o.strength;
+                    ty[i] = my * o.strength;
+                });
+            }, { passive: true });
+            function loop() {
+                orbs.forEach((o, i) => {
+                    if (!o.el) return;
+                    cx[i] += (tx[i] - cx[i]) * 0.06;
+                    cy[i] += (ty[i] - cy[i]) * 0.06;
+                    o.el.style.transform = `translate(${cx[i]}px, ${cy[i]}px)`;
+                });
+                requestAnimationFrame(loop);
+            }
+            loop();
+        })();
+    </script>
+</body>
+</html>

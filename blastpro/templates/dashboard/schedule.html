@@ -1,0 +1,602 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Jadwal Share Otomatis{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto animate-fade-in pb-28">
+
+    <!-- ===== PAGE HEADER ===== -->
+    <div class="dp-page-header mb-6">
+        <div class="flex flex-col md:flex-row md:items-center gap-4 md:justify-between pl-2">
+            <div>
+                <div class="flex items-center gap-3 mb-2">
+                    <i class="fa-solid fa-chart-gantt flex-shrink-0" style="color: var(--accent); font-size: 4rem;"></i>
+                    <div>
+                        <p class="text-[10px] font-bold uppercase tracking-widest leading-none mb-0.5" style="color: var(--accent); opacity: 0.75">Jadwal Share Grup</p>
+                        <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-800 leading-tight">Jadwalkan Sekali, Kirim Otomatis</h1>
+                    </div>
+                </div>
+                <p class="text-sm text-slate-500 mt-1.5 max-w-2xl">Pilih jam, akun pengirim, dan target folder — biarkan sistem berjalan sendiri setiap hari.</p>
+            </div>
+            <div class="flex gap-3 shrink-0">
+                <div class="dp-stat-card sky" style="padding:0.875rem 1.25rem;min-width:100px;text-align:center;cursor:default">
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Jadwal Aktif</p>
+                    <p class="text-2xl font-black text-slate-800 mt-0.5">{{ schedules|length }}</p>
+                </div>
+                <div class="dp-stat-card emerald" style="padding:0.875rem 1.25rem;min-width:100px;text-align:center;cursor:default">
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Status</p>
+                    <p class="text-sm font-black text-emerald-600 mt-1.5">Auto-Pilot</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+
+        <!-- ===== LEFT: CREATE FORM ===== -->
+        <section class="xl:col-span-4 xl:sticky xl:top-6">
+            <div class="dp-card">
+                <div class="dp-card-header-purple px-5 py-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-plus-circle"></i> Buat Jadwal Baru
+                        </h2>
+                        <p class="text-indigo-200 text-xs mt-0.5">Atur sekali dan biarkan bot share harian.</p>
+                    </div>
+                </div>
+
+                <form action="/add_schedule" method="POST" class="p-5 space-y-5">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+                    <!-- Time Picker -->
+                    <div>
+                        <label class="block text-xs font-black text-gray-700 uppercase tracking-widest mb-3">Waktu Eksekusi (WIB)</label>
+                        <div class="rounded-2xl border p-4" style="border-color:#c4b5fd;background:rgba(124,58,237,0.04)">
+                            <div class="grid grid-cols-[1fr_auto_1fr] gap-2 items-center">
+                                <input type="number" name="hour" min="0" max="23" value="00"
+                                    class="dp-input text-2xl font-black text-center font-mono" style="padding:0.875rem" required>
+                                <span class="text-2xl font-black text-slate-500">:</span>
+                                <input type="number" name="minute" min="0" max="59" value="00"
+                                    class="dp-input text-2xl font-black text-center font-mono" style="padding:0.875rem" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-black text-gray-700 uppercase tracking-widest mb-2">Akun Pengirim</label>
+                        <select name="sender_phone" id="createSenderSelect" onchange="updateTargetOptions('create')" class="dp-input create-form-select">
+                            <option value="auto">⚡ Otomatis (Rotasi Akun)</option>
+                            {% for acc in accounts %}
+                            <option value="{{ acc.phone_number }}">{{ acc.first_name }} ({{ acc.phone_number }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-black text-gray-700 uppercase tracking-widest mb-2">Target Audiens (Folder)</label>
+                        <select name="target_template_name" id="createTargetSelect" class="dp-input create-form-select"></select>
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between gap-3 mb-2">
+                            <label class="text-xs font-black text-gray-700 uppercase tracking-widest">Template Pesan</label>
+                            <a href="/dashboard/templates" class="text-xs font-semibold text-indigo-600 hover:underline">+ Kelola Template</a>
+                        </div>
+                        <select name="template_id" required class="dp-input create-form-select">
+                            <option value="">-- Pilih Template --</option>
+                            {% for t in templates %}
+                            <option value="{{ t.id }}">{{ t.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <button type="submit" class="dp-btn dp-btn-primary w-full">
+                        <i class="fa-solid fa-calendar-plus"></i> Simpan & Aktifkan Otomatis
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- ===== RIGHT: SCHEDULE LIST ===== -->
+        <section class="xl:col-span-8 space-y-4">
+            <div class="flex items-center justify-between gap-3 mb-2">
+                <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fa-regular fa-calendar-check text-indigo-500"></i> Daftar Jadwal Aktif
+                </h3>
+                <span class="dp-badge dp-badge-purple">{{ schedules|length }} jadwal</span>
+            </div>
+
+            {% if not schedules %}
+            <div class="dp-card">
+                <div class="dp-empty">
+                    <div class="dp-empty-icon"><i class="fa-solid fa-stopwatch"></i></div>
+                    <h3>Belum Ada Jadwal Aktif</h3>
+                    <p>Mulai dari formulir di kiri, lalu sistem akan share otomatis setiap hari sesuai waktu yang kamu pilih.</p>
+                </div>
+            </div>
+            {% else %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-3">
+                {% for s in schedules %}
+                <article class="sc-card">
+                    <!-- Status pill bar -->
+                    <div class="sc-bar sc-bar-run"></div>
+
+                    <div class="sc-body">
+                        <!-- Top: time + action buttons -->
+                        <div class="sc-top">
+                            <div>
+                                <div class="sc-time">
+                                    <span class="sc-digits">{{ '%02d' % s.run_hour }}:{{ '%02d' % s.run_minute }}</span>
+                                    <span class="sc-tz">WIB</span>
+                                </div>
+                                <span class="sc-badge">
+                                    <span class="sc-pulse"></span> Berjalan Harian
+                                </span>
+                            </div>
+                            <div class="sc-actions">
+                                <button type="button" onclick='openEditModal({{ s|tojson }})' class="sc-action-btn sc-edit-btn" title="Edit Jadwal">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                                <button type="button" onclick="showConfirm({ title:'Hapus Jadwal', message:'Yakin ingin menghapus jadwal ini?', icon:'fa-trash-can', iconColor:'text-red-400', iconBg:'bg-red-500/20', glowColor:'bg-red-500', confirmText:'Ya, Hapus', confirmCls:'bg-red-600 hover:bg-red-500 shadow-red-500/30', onConfirm: function(){ window.location.href='/delete_schedule/{{ s.id }}'; } })" class="sc-action-btn sc-del-btn" title="Hapus Jadwal">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="sc-divider"></div>
+
+                        <!-- Detail rows -->
+                        <div class="sc-rows">
+                            <div class="sc-row">
+                                <div class="sc-icon sc-icon-blue"><i class="fa-brands fa-telegram"></i></div>
+                                <div class="sc-row-info">
+                                    <p class="sc-row-label">Pengirim</p>
+                                    <p class="sc-row-value">{% if s.sender_phone and s.sender_phone != 'auto' %}{{ s.sender_phone }}{% else %}⚡ Auto Rotasi{% endif %}</p>
+                                </div>
+                            </div>
+                            <div class="sc-row">
+                                <div class="sc-icon sc-icon-indigo"><i class="fa-solid fa-folder"></i></div>
+                                <div class="sc-row-info">
+                                    <p class="sc-row-label">Target Folder</p>
+                                    <p class="sc-row-value">{% if s.target_template_name %}{{ s.target_template_name }}{% else %}🌍 Semua Grup{% endif %}</p>
+                                </div>
+                            </div>
+                            <div class="sc-row">
+                                <div class="sc-icon sc-icon-violet"><i class="fa-solid fa-file-lines"></i></div>
+                                <div class="sc-row-info">
+                                    <p class="sc-row-label">Template Pesan</p>
+                                    <p class="sc-row-value">{% for t in templates %}{% if t.id == s.template_id %}{{ t.name }}{% endif %}{% endfor %}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </section>
+    </div>
+</div>
+
+<!-- ===== EDIT MODAL ===== -->
+<div id="editModal" class="fixed inset-0 z-[100] hidden">
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity opacity-0" id="editBackdrop" onclick="closeEditModal()"></div>
+    <div class="fixed inset-0 z-10 flex items-center justify-center p-4">
+        <div class="dp-card w-full max-w-lg transform scale-95 opacity-0 transition-all duration-300 overflow-hidden" id="editPanel">
+            <form action="/update_schedule" method="POST" id="editForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="schedule_id" id="editScheduleId">
+
+                <div class="bg-gray-900 px-6 py-5 relative overflow-hidden shrink-0">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-violet-500/20 to-purple-500/20 rounded-full blur-3xl -mr-8 -mt-8 pointer-events-none"></div>
+                    <div class="relative z-10 flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-pen-to-square text-lg text-violet-400"></i>
+                            <div>
+                                <h3 class="font-bold text-lg text-white tracking-tight">Edit Jadwal</h3>
+                                <p class="text-gray-400 text-xs mt-0.5">Ubah pengaturan jadwal broadcast.</p>
+                            </div>
+                        </div>
+                        <button type="button" onclick="closeEditModal()" class="btn-close-on-dark">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Waktu Eksekusi (WIB)</label>
+                        <div class="grid grid-cols-[1fr_auto_1fr] gap-2 items-center">
+                            <input type="number" name="hour" id="editHour" min="0" max="23" required class="dp-input text-2xl font-black font-mono text-center" style="padding:0.875rem">
+                            <span class="text-2xl font-black text-slate-500">:</span>
+                            <input type="number" name="minute" id="editMinute" min="0" max="59" required class="dp-input text-2xl font-black font-mono text-center" style="padding:0.875rem">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Akun Pengirim</label>
+                        <select name="sender_phone" id="editSenderSelect" onchange="updateTargetOptions('edit')" class="dp-select">
+                            <option value="auto">⚡ Otomatis (Rotasi)</option>
+                            {% for acc in accounts %}
+                            <option value="{{ acc.phone_number }}">{{ acc.first_name }} ({{ acc.phone_number }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Target Audiens (Folder)</label>
+                        <select name="target_template_name" id="editTargetSelect" class="dp-select"></select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-500 mb-2">Template Pesan</label>
+                        <select name="template_id" id="editTemplateSelect" required class="dp-select">
+                            <option value="">-- Pilih Template --</option>
+                            {% for t in templates %}
+                            <option value="{{ t.id }}">{{ t.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-2">
+                    <button type="button" onclick="closeEditModal()" class="dp-btn dp-btn-ghost">Batal</button>
+                    <button type="submit" class="dp-btn dp-btn-primary">Update Jadwal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+    /* ==========================================================
+       CREATE FORM — Konsisten dengan desain login page
+    ========================================================== */
+    select.create-form-select {
+        border-radius: 0.75rem !important;
+        background-color: #f9fafb !important;
+        border: 1px solid #e5e7eb !important;
+        font-weight: 600;
+        color: #111827;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    select.create-form-select:focus {
+        border-color: #6366f1 !important;
+        background-color: #ffffff !important;
+        box-shadow: 0 0 0 3px rgba(99,102,241,0.12) !important;
+    }
+    select.create-form-select:hover:not(:focus) {
+        border-color: #a5b4fc !important;
+    }
+    html[data-theme='dark'] select.create-form-select {
+        background-color: rgba(30,27,46,0.8) !important;
+        border-color: rgba(99,102,241,0.25) !important;
+        color: #e2e8f0 !important;
+    }
+    html[data-theme='dark'] select.create-form-select:focus {
+        border-color: #818cf8 !important;
+        background-color: rgba(30,27,46,1) !important;
+    }
+
+    /* ==========================================================
+       SC-CARD — Schedule card (konsisten dengan tg-card)
+    ========================================================== */
+
+    /* Base */
+    .sc-card {
+        position: relative;
+        border-radius: 1.5rem;
+        overflow: visible;
+        background: #ffffff;
+        border: 1.5px solid #dbeafe;
+        box-shadow: 0 2px 10px rgba(37,99,235,.07), 0 1px 3px rgba(0,0,0,.05);
+        transition:
+            transform .32s cubic-bezier(.22,1,.36,1),
+            box-shadow .32s ease,
+            background .32s ease,
+            border-color .32s ease;
+    }
+    html[data-theme='dark'] .sc-card {
+        background: var(--panel-bg, #1e1e2e);
+        border-color: rgba(99,102,241,.2);
+        box-shadow: 0 2px 10px rgba(0,0,0,.2);
+    }
+    .sc-card:hover {
+        background: rgba(109,40,217,.05) !important;
+        border-color: #7c3aed !important;
+        border-width: 2px;
+        transform: translateY(-6px);
+        box-shadow: 0 12px 32px rgba(109,40,217,.15), 0 0 0 4px rgba(124,58,237,.08);
+    }
+    html[data-theme='dark'] .sc-card:hover {
+        background: rgba(109,40,217,.12) !important;
+        border-color: #a78bfa !important;
+    }
+
+    /* Pill bar — di luar card, straddling tepi atas */
+    .sc-bar {
+        display: block;
+        position: absolute;
+        top: -7px;
+        left: 50%;
+        transform: translateX(-50%);
+        height: 14px;
+        width: 48%;
+        border-radius: 99px;
+        transition: width .4s cubic-bezier(.22,1,.36,1), box-shadow .4s ease;
+        z-index: 10;
+    }
+    .sc-bar-run {
+        background: linear-gradient(90deg, #818cf8, #6366f1, #4f46e5);
+        box-shadow: 0 0 0 2px rgba(99,102,241,0.2), 0 4px 12px rgba(99,102,241,.45);
+    }
+    .sc-card:hover .sc-bar { width: 66%; }
+    .sc-card:hover .sc-bar-run {
+        box-shadow: 0 0 0 2px rgba(99,102,241,0.3), 0 5px 16px rgba(99,102,241,.55);
+    }
+
+    /* Body */
+    .sc-body { padding: 1.3rem 1.4rem 1.2rem; }
+
+    /* Top row */
+    .sc-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: .9rem;
+    }
+
+    /* Time */
+    .sc-time { display: flex; align-items: baseline; gap: .3rem; margin-bottom: .4rem; }
+    .sc-digits {
+        font-size: 2.5rem; font-weight: 900; font-family: monospace;
+        letter-spacing: -.03em; line-height: 1;
+        color: #0f172a;
+        transition: color .32s ease;
+    }
+    html[data-theme='dark'] .sc-digits { color: #f1f5f9; }
+    .sc-card:hover .sc-digits { color: #3b0764 !important; }
+    html[data-theme='dark'] .sc-card:hover .sc-digits { color: #e9d5ff !important; }
+    .sc-tz {
+        font-size: .7rem; font-weight: 700;
+        color: #94a3b8;
+        transition: color .32s ease;
+    }
+    .sc-card:hover .sc-tz { color: #7c3aed; }
+
+    /* Badge */
+    .sc-badge {
+        display: inline-flex; align-items: center; gap: .3rem;
+        padding: .22rem .65rem;
+        border-radius: 99px;
+        font-size: .6563rem; font-weight: 700; letter-spacing: .05em;
+        background: #ecfdf5;
+        color: #059669;
+        border: 1.5px solid #a7f3d0;
+        transition: background .32s ease, color .32s ease, border-color .32s ease;
+    }
+    html[data-theme='dark'] .sc-badge {
+        background: rgba(16,185,129,.12);
+        border-color: rgba(16,185,129,.3);
+        color: #34d399;
+    }
+    .sc-card:hover .sc-badge {
+        background: rgba(109,40,217,.1);
+        color: #6d28d9;
+        border-color: #c4b5fd;
+    }
+    html[data-theme='dark'] .sc-card:hover .sc-badge {
+        background: rgba(109,40,217,.2);
+        color: #ddd6fe;
+        border-color: #7c3aed;
+    }
+    .sc-pulse {
+        display: inline-block; width: 5px; height: 5px;
+        border-radius: 50%; background: #10b981;
+        animation: sc-pulse 1.6s ease-in-out infinite;
+    }
+    .sc-card:hover .sc-pulse { background: #7c3aed; }
+    html[data-theme='dark'] .sc-card:hover .sc-pulse { background: #a78bfa; }
+    @keyframes sc-pulse {
+        0%,100% { opacity:1; transform:scale(1); }
+        50%      { opacity:.4; transform:scale(.65); }
+    }
+
+    /* Action buttons */
+    .sc-actions { display: flex; gap: .5rem; }
+    .sc-action-btn {
+        width: 2.1rem; height: 2.1rem;
+        border-radius: .65rem;
+        border: 1.5px solid;
+        display: flex; align-items: center; justify-content: center;
+        font-size: .75rem;
+        cursor: pointer;
+        transition: background .25s ease, color .25s ease, border-color .25s ease, box-shadow .25s ease;
+    }
+    .sc-edit-btn {
+        background: #eff6ff; border-color: #bfdbfe; color: #2563eb;
+    }
+    .sc-edit-btn:hover {
+        background: #2563eb; color: #fff; border-color: #2563eb;
+        box-shadow: 0 3px 10px rgba(37,99,235,.35);
+    }
+    .sc-del-btn {
+        background: #fff1f2; border-color: #fecdd3; color: #e11d48;
+    }
+    .sc-del-btn:hover {
+        background: #e11d48; color: #fff; border-color: #e11d48;
+        box-shadow: 0 3px 10px rgba(225,29,72,.35);
+    }
+    html[data-theme='dark'] .sc-edit-btn {
+        background: rgba(37,99,235,.12); border-color: rgba(37,99,235,.3); color: #93c5fd;
+    }
+    html[data-theme='dark'] .sc-del-btn {
+        background: rgba(239,68,68,.1); border-color: rgba(239,68,68,.3); color: #fca5a5;
+    }
+    /* On hover card: action buttons adapt */
+    .sc-card:hover .sc-edit-btn {
+        background: rgba(37,99,235,.1); border-color: #93c5fd; color: #2563eb;
+    }
+    .sc-card:hover .sc-del-btn {
+        background: rgba(225,29,72,.07); border-color: #fca5a5; color: #e11d48;
+    }
+
+    /* Divider */
+    .sc-divider {
+        height: 1.5px;
+        background: #e0e7ff;
+        border-radius: 99px;
+        margin: 0 0 .85rem;
+        transition: background .32s ease;
+    }
+    html[data-theme='dark'] .sc-divider { background: rgba(99,102,241,.2); }
+    .sc-card:hover .sc-divider { background: rgba(124,58,237,.25); }
+
+    /* Detail rows */
+    .sc-rows { display: flex; flex-direction: column; gap: .5rem; }
+    .sc-row {
+        display: flex; align-items: center; gap: .75rem;
+        padding: .5rem .7rem;
+        border-radius: .75rem;
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        transition: background .32s ease, border-color .32s ease;
+    }
+    html[data-theme='dark'] .sc-row {
+        background: rgba(37,99,235,.08);
+        border-color: rgba(99,102,241,.2);
+    }
+    .sc-card:hover .sc-row {
+        background: rgba(109,40,217,.07) !important;
+        border-color: #c4b5fd !important;
+    }
+    html[data-theme='dark'] .sc-card:hover .sc-row {
+        background: rgba(109,40,217,.18) !important;
+        border-color: #7c3aed !important;
+    }
+
+    /* Icon box */
+    .sc-icon {
+        width: 1.875rem; height: 1.875rem;
+        border-radius: .55rem;
+        display: flex; align-items: center; justify-content: center;
+        font-size: .7rem; flex-shrink: 0;
+        transition: box-shadow .32s ease;
+    }
+    .sc-icon-blue   { background: #dbeafe; color: #2563eb; }
+    .sc-icon-indigo { background: #e0e7ff; color: #4f46e5; }
+    .sc-icon-violet { background: #ede9fe; color: #7c3aed; }
+    html[data-theme='dark'] .sc-icon-blue   { background: rgba(37,99,235,.2); color: #93c5fd; }
+    html[data-theme='dark'] .sc-icon-indigo { background: rgba(99,102,241,.2); color: #a5b4fc; }
+    html[data-theme='dark'] .sc-icon-violet { background: rgba(124,58,237,.2); color: #c4b5fd; }
+    .sc-card:hover .sc-icon-blue   { box-shadow: 0 0 0 3px rgba(37,99,235,.15); }
+    .sc-card:hover .sc-icon-indigo { box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+    .sc-card:hover .sc-icon-violet { box-shadow: 0 0 0 3px rgba(124,58,237,.2); }
+
+    /* Row text */
+    .sc-row-info { min-width: 0; }
+    .sc-row-label {
+        font-size: .625rem; font-weight: 700;
+        letter-spacing: .06em; text-transform: uppercase;
+        color: #64748b;
+        margin-bottom: .05rem;
+        transition: color .32s ease;
+    }
+    html[data-theme='dark'] .sc-row-label { color: #94a3b8; }
+    .sc-card:hover .sc-row-label { color: #7c3aed; }
+    html[data-theme='dark'] .sc-card:hover .sc-row-label { color: #a78bfa; }
+    .sc-row-value {
+        font-size: .8125rem; font-weight: 700;
+        color: #0f172a;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        transition: color .32s ease;
+    }
+    html[data-theme='dark'] .sc-row-value { color: #f1f5f9; }
+    .sc-card:hover .sc-row-value { color: #3b0764; }
+    html[data-theme='dark'] .sc-card:hover .sc-row-value { color: #e9d5ff; }
+
+    /* Dark mode edit panel */
+    html[data-theme='dark'] #editPanel {
+        background-color: var(--panel-bg) !important;
+        border-color: var(--border-color) !important;
+    }
+    html[data-theme='dark'] #editPanel .bg-slate-50 {
+        background-color: var(--panel-muted) !important;
+    }
+    html[data-theme='dark'] #editPanel .border-t,
+    html[data-theme='dark'] #editPanel .border-slate-100 {
+        border-color: var(--border-color) !important;
+    }
+    html[data-theme='dark'] #editPanel .text-slate-500 {
+        color: var(--text-muted) !important;
+    }
+</style>
+<script>
+    const rawTargets = [
+        {% for t in targets %}{id:"{{ t.id }}",group_name:"{{ t.group_name }}",template_name:"{{ t.template_name if t.template_name else 'Tanpa Nama' }}",source_phone:"{{ t.source_phone }}"},{% endfor %}
+    ];
+
+    function getGroupedTemplates(phoneFilter) {
+        let groups = {};
+        rawTargets.forEach(t => {
+            if (phoneFilter && phoneFilter !== 'auto' && t.source_phone !== phoneFilter) return;
+            let tmpl = t.template_name;
+            if (!groups[tmpl]) groups[tmpl] = { name: tmpl, count: 0 };
+            groups[tmpl].count++;
+        });
+        return Object.values(groups);
+    }
+
+    function updateTargetOptions(mode, preselectedValue = null) {
+        const senderSelect = document.getElementById(mode + 'SenderSelect');
+        const targetSelect = document.getElementById(mode + 'TargetSelect');
+        const selectedPhone = senderSelect.value;
+        targetSelect.innerHTML = '';
+
+        let globalOpt = document.createElement('option');
+        globalOpt.value = "";
+        globalOpt.text = (selectedPhone === 'auto') ? "🌍 Semua grup (Mode Auto)" : `🌍 Semua grup dari ${selectedPhone}`;
+        if (preselectedValue === "" || preselectedValue === null) globalOpt.selected = true;
+        targetSelect.appendChild(globalOpt);
+
+        const templates = getGroupedTemplates(selectedPhone);
+        templates.forEach(t => {
+            let opt = document.createElement('option');
+            opt.value = t.name;
+            opt.text = `📂 Folder: ${t.name} (${t.count} Grup)`;
+            if (preselectedValue === t.name) opt.selected = true;
+            targetSelect.appendChild(opt);
+        });
+    }
+
+    function openEditModal(scheduleData) {
+        if (!scheduleData) return;
+        document.getElementById('editScheduleId').value = scheduleData.id;
+        document.getElementById('editHour').value = scheduleData.run_hour.toString().padStart(2, '0');
+        document.getElementById('editMinute').value = scheduleData.run_minute.toString().padStart(2, '0');
+        const senderVal = (scheduleData.sender_phone && scheduleData.sender_phone !== 'auto') ? scheduleData.sender_phone : 'auto';
+        document.getElementById('editSenderSelect').value = senderVal;
+        document.getElementById('editTemplateSelect').value = scheduleData.template_id || "";
+        updateTargetOptions('edit', scheduleData.target_template_name || "");
+
+        const modal = document.getElementById('editModal');
+        modal.classList.remove('hidden');
+        lockScroll();
+        setTimeout(() => {
+            document.getElementById('editBackdrop').classList.remove('opacity-0');
+            document.getElementById('editPanel').classList.remove('opacity-0', 'scale-95');
+            document.getElementById('editPanel').classList.add('opacity-100', 'scale-100');
+        }, 10);
+    }
+
+    function closeEditModal() {
+        document.getElementById('editBackdrop').classList.add('opacity-0');
+        document.getElementById('editPanel').classList.remove('opacity-100', 'scale-100');
+        document.getElementById('editPanel').classList.add('opacity-0', 'scale-95');
+        setTimeout(() => { document.getElementById('editModal').classList.add('hidden'); unlockScroll(); }, 300);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => { updateTargetOptions('create'); });
+</script>
+{% endblock %}

@@ -1,0 +1,387 @@
+{% extends "landing/base.html" %}
+
+{% block content %}
+
+    {% include 'landing/_hero.html' %}
+    {% include 'landing/_features.html' %}
+
+    <!-- PRICING SECTION -->
+    <section id="pricing" class="py-20 md:py-32 overflow-hidden">
+        <div class="max-w-7xl mx-auto px-5 md:px-8">
+
+            <!-- Section header -->
+            <div class="text-center max-w-2xl mx-auto mb-14" data-anim="zoom-blur">
+                <span class="section-label">
+                    <i class="fa-solid fa-tag text-brand-500"></i> Harga & Paket
+                </span>
+                <h2 class="text-3xl md:text-[2.75rem] font-black text-slate-900 leading-tight mb-2">
+                    Modal Receh, <span class="gradient-text">Untung Luber Berlipat!</span>
+                </h2>
+                <span class="sc-heading-underline" style="max-width:90px; margin: 0 auto 14px;"></span>
+                <p class="text-slate-500 text-base leading-relaxed">
+                    Gak usah pusing mikirin teknis. Biar robot kita yang kerja 24 jam nyari pelanggan buat lo. Pilih paket sesuai target cuan lo bulan ini!
+                </p>
+            </div>
+
+            <div class="flex flex-col gap-5 max-w-5xl mx-auto">
+
+                {% if pricing %}
+
+                    {# ===== BASIC PLAN ===== #}
+                    {% set basic_plan = pricing.get('basic') %}
+                    {% if basic_plan %}
+                    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden hover:border-slate-300 hover:shadow-md transition-all" data-anim="flip-left">
+                        <div class="flex flex-col md:flex-row">
+                            <div class="p-7 md:p-9 md:w-[42%] md:border-r border-slate-100">
+                                <div class="flex items-center gap-3 mb-1.5">
+                                    <i class="fa-solid fa-seedling plan-icon text-slate-500 text-4xl shrink-0"></i>
+                                    <h3 class="text-3xl font-black text-slate-900">Paket Ngetes Ombak</h3>
+                                </div>
+                                <p class="text-slate-500 text-sm leading-relaxed mb-3">Cocok banget buat lo yang baru mau ngerasain narik pelanggan otomatis tanpa ribet. Coba dulu, gak bakal nyesel!</p>
+                                <div class="plan-features space-y-2.5 mb-7">
+                                    {% for f in basic_plan[0].features[:4] %}
+                                    <div class="flex items-center gap-2.5 text-slate-700 text-sm">
+                                        <i class="fa-solid fa-check text-green-500 text-xs shrink-0"></i>
+                                        {{ f }}
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                <a href="/register?ref=STARTER" class="inline-flex items-center justify-center gap-2 w-full py-3.5 bg-slate-900 text-white text-sm font-bold rounded-full hover:bg-slate-800 transition-all hover:-translate-y-0.5 shadow-sm">
+                                    Bungkus Sekarang →
+                                </a>
+                            </div>
+                            <div class="flex-1 p-5 md:p-7 space-y-3 self-center">
+                                {% for variant in basic_plan %}
+                                <label class="cursor-pointer relative flex items-center justify-between p-4 rounded-2xl border transition-all {{ 'border-2 border-green-400 bg-green-50' if variant.rawPrice == 0 else 'border-slate-200 bg-white hover:border-brand-300 hover:bg-brand-50/30' }}"
+                                       onclick="window.location.href='/register?ref=STARTER&plan={{ variant.id }}'">
+                                    {% if variant.bestValue %}
+                                    <span class="absolute -top-0 right-3 bg-orange-500 text-white text-[10px] font-black px-2.5 py-0.5 rounded-b-lg">TERBAIK</span>
+                                    {% endif %}
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-4 h-4 rounded-full border-2 {{ 'border-green-500 bg-green-500' if variant.rawPrice == 0 else 'border-slate-300' }} shrink-0"></div>
+                                        <div>
+                                            <span class="block font-bold text-slate-800 text-sm">{{ variant.title }}</span>
+                                            <span class="text-[10px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md font-medium">
+                                                <i class="fa-regular fa-clock"></i> {{ variant.duration }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        {% if variant.coret %}
+                                        <span class="block text-[10px] text-slate-400 line-through">{{ variant.coret }}</span>
+                                        {% endif %}
+                                        <span class="block font-black text-lg {{ 'text-green-600' if variant.rawPrice == 0 else 'text-brand-600' }}">{{ variant.price }}</span>
+                                        {% if variant.hemat %}
+                                        <span class="inline-block text-[9px] font-black text-white bg-red-500 px-2 py-0.5 rounded-full">{{ variant.hemat }}</span>
+                                        {% endif %}
+                                    </div>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {# ===== OPTIMAL PLAN (Featured) ===== #}
+                    {% set optimal_plan = pricing.get('optimal') %}
+                    {% if optimal_plan %}
+                    <div class="relative flex flex-col shadow-2xl shadow-brand-900/20 sc-featured-breathe bg-slate-900 rounded-3xl" data-anim="scale">
+                        <div class="absolute -top-4 left-1/2 -translate-x-1/2 z-20 whitespace-nowrap">
+                            <div class="bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-black px-8 py-1.5 rounded-full shadow-lg shadow-orange-500/30 tracking-wide uppercase animate-pulse">
+                                🔥 Paling Diburu Boss!
+                            </div>
+                        </div>
+                        <div class="bg-slate-900 border-2 border-brand-500/60 rounded-3xl overflow-hidden pt-7">
+                            <div class="flex flex-col md:flex-row">
+                                <div class="p-7 md:p-9 md:w-[42%] md:border-r border-white/10">
+                                    <div class="flex items-center gap-3 mb-1.5">
+                                        <i class="fa-solid fa-rocket plan-icon text-brand-400 text-4xl shrink-0"></i>
+                                        <h3 class="text-3xl font-black text-white">UMKM Siap Panen</h3>
+                                    </div>
+                                    <p class="text-slate-400 text-sm leading-relaxed mb-3">Ibarat pake motor kopling, larinya kenceng! Wajib buat lo yang mau orderan masuk tiap hari tanpa henti.</p>
+                                    <div class="plan-features space-y-2.5 mb-7">
+                                        {% for f in optimal_plan[0].features[:4] %}
+                                        <div class="flex items-center gap-2.5 text-slate-300 text-sm">
+                                            <i class="fa-solid fa-check text-green-400 text-xs shrink-0"></i>
+                                            {{ f }}
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    <a href="/register?ref=PRO" class="inline-flex items-center justify-center gap-2 w-full py-3.5 shimmer-btn text-white text-sm font-bold rounded-full transition-all shadow-xl shadow-brand-900/50 hover:-translate-y-0.5">
+                                        Sikat Promo Ini 🚀
+                                    </a>
+                                </div>
+                                <div class="flex-1 p-5 md:p-7 space-y-3 self-center">
+                                    {% for variant in optimal_plan %}
+                                    <label class="cursor-pointer relative flex items-center justify-between p-4 rounded-2xl border transition-all {{ 'border-2 border-yellow-500/60 bg-gradient-to-r from-slate-800 to-slate-800 hover:to-slate-700' if variant.bestValue else 'border-slate-700 bg-slate-800/60 hover:bg-slate-800' }}"
+                                           onclick="window.location.href='/register?ref=PRO&plan={{ variant.id }}'">
+                                        {% if variant.bestValue %}
+                                        <span class="absolute -top-0 right-3 bg-yellow-500 text-yellow-900 text-[10px] font-black px-2.5 py-0.5 rounded-b-lg">TERBAIK</span>
+                                        {% endif %}
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-4 h-4 rounded-full border-2 {{ 'border-yellow-400 bg-yellow-400' if variant.bestValue else 'border-slate-500' }} shrink-0"></div>
+                                            <div>
+                                                <span class="block font-bold text-sm {{ 'text-white' if variant.bestValue else 'text-slate-200' }}">{{ variant.title }}</span>
+                                                {% if variant.coret %}
+                                                <span class="text-[10px] text-slate-500 line-through">{{ variant.coret }}</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <span class="block font-black text-lg {{ 'text-yellow-400' if variant.bestValue else 'text-white' }}">{{ variant.price }}</span>
+                                            {% if variant.hemat %}
+                                            <span class="text-[9px] font-black text-white {{ 'bg-red-600' if variant.bestValue else 'bg-green-600' }} px-2 py-0.5 rounded-full">{{ variant.hemat }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {# ===== AGENCY PLAN ===== #}
+                    {% set agency_plan = pricing.get('agency') %}
+                    {% if agency_plan %}
+                    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden hover:border-amber-200 hover:shadow-md transition-all" data-anim="flip-right">
+                        <div class="flex flex-col md:flex-row">
+                            <div class="p-7 md:p-9 md:w-[42%] md:border-r border-slate-100">
+                                <div class="flex items-center gap-3 mb-1.5">
+                                    <i class="fa-solid fa-crown plan-icon text-amber-500 text-4xl shrink-0"></i>
+                                    <h3 class="text-3xl font-black text-slate-900">Mode Sultan (Agency)</h3>
+                                </div>
+                                <p class="text-slate-500 text-sm leading-relaxed mb-3">Mau ngeborong semua pelanggan di kota lo? Pegang kendali penuh dengan multi-akun. Gak ada obat!</p>
+                                <div class="plan-features space-y-2.5 mb-7">
+                                    {% for f in agency_plan[0].features[:4] %}
+                                    <div class="flex items-center gap-2.5 text-slate-700 text-sm">
+                                        <i class="fa-solid fa-check text-amber-600 text-[11px] shrink-0"></i>
+                                        {{ f }}
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                <a href="/register?ref=AGENCY" class="inline-flex items-center justify-center gap-2 w-full py-3.5 bg-white border-2 border-amber-300 text-amber-700 text-sm font-bold rounded-full hover:bg-amber-50 hover:border-amber-400 transition-all hover:-translate-y-0.5">
+                                    Aktifkan Mode Sultan 👑
+                                </a>
+                            </div>
+                            <div class="flex-1 p-5 md:p-7 space-y-3 self-center">
+                                {% for variant in agency_plan %}
+                                <label class="cursor-pointer relative flex items-center justify-between p-4 rounded-2xl border border-slate-200 bg-white hover:border-amber-300 hover:bg-amber-50/30 transition-all"
+                                       onclick="window.location.href='/register?ref=AGENCY&plan={{ variant.id }}'">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-4 h-4 rounded-full border-2 border-slate-300 shrink-0"></div>
+                                        <div>
+                                            <span class="block font-bold text-slate-800 text-sm">{{ variant.title }}</span>
+                                            {% if variant.coret %}
+                                            <span class="text-[10px] text-slate-400 line-through">{{ variant.coret }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="block font-black text-lg text-slate-800">{{ variant.price }}</span>
+                                        {% if variant.hemat %}
+                                        <span class="text-[9px] font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">{{ variant.hemat }}</span>
+                                        {% endif %}
+                                    </div>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                {% else %}
+                    <div class="text-center py-20">
+                        <i class="fa-solid fa-spinner fa-spin text-2xl text-brand-500 mx-auto mb-4 block"></i>
+                        <p class="text-slate-500 font-semibold">Lagi narik harga promo terbaru buat lo boss... Tunggu bentar yak!</p>
+                    </div>
+                {% endif %}
+
+            </div>
+
+            <!-- Guarantee banner -->
+            <div class="max-w-5xl mx-auto mt-8" data-anim="tilt-rise">
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-5 sm:gap-8 bg-gradient-to-r from-slate-50 to-brand-50/30 rounded-2xl border border-slate-200/80 px-7 py-5 shadow-sm">
+                    <div class="flex items-center gap-3 text-sm text-slate-600">
+                        <i class="fa-solid fa-shield-halved text-green-500 text-lg shrink-0"></i>
+                        <span>Takut zonk? Ada <strong class="text-slate-800">Garansi 7 Hari Uang Kembali</strong> kalau tools ini gak ngefek ke jualan lo. Aman bosque! 🤝</span>
+                    </div>
+                    <div class="h-px sm:h-8 w-full sm:w-px bg-slate-200 shrink-0"></div>
+                    <div class="flex items-center gap-3 text-sm text-slate-600">
+                        <i class="fa-solid fa-lock text-brand-600 text-lg shrink-0"></i>
+                        <span>Pembayaran aman & <strong class="text-slate-800">terenkripsi SSL</strong></span>
+                    </div>
+                    <div class="h-px sm:h-8 w-full sm:w-px bg-slate-200 shrink-0"></div>
+                    <div class="flex items-center gap-3 text-sm text-slate-600">
+                        <i class="fa-solid fa-headset text-blue-500 text-lg shrink-0"></i>
+                        <span>Dukungan via <strong class="text-slate-800">Telegram 24/7</strong></span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    {% include 'landing/_faq.html' %}
+
+    <!-- FINAL CTA SECTION -->
+    <section class="py-20" style="background-color:#f8f7ff;">
+        <div class="max-w-7xl mx-auto px-5 md:px-8">
+            <div class="cta-bg rounded-3xl p-10 md:p-16 text-center relative overflow-hidden" data-anim="zoom-blur">
+
+                <!-- 5 Demo Phone Screens -->
+                <div class="cta-phones">
+                    <!-- Phone 1 -->
+                    <div class="cta-ph" style="opacity:0.40;transform:rotate(-14deg) translateY(-10px);">
+                        <div class="cta-ph-frame">
+                            <div class="cta-ph-hdr">🛍️ Toko Indomie Kamboja</div>
+                            <div class="cta-ph-body">
+                                <div class="cta-ch-track" style="--spd:9s;">
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Budi S.</span>order dong bos! 🔥</div>
+                                    <div class="cta-ch-m o">Siap proses ya!</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Rani A.</span>mau 3 bungkus</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Doni K.</span>brp harganya?</div>
+                                    <div class="cta-ch-m o">Cek katalog 📋</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Sari M.</span>udah transfer kak</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Johan P.</span>kirim ke PP ya!</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Budi S.</span>order dong bos! 🔥</div>
+                                    <div class="cta-ch-m o">Siap proses ya!</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Rani A.</span>mau 3 bungkus</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Doni K.</span>brp harganya?</div>
+                                    <div class="cta-ch-m o">Cek katalog 📋</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Sari M.</span>udah transfer kak</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Johan P.</span>kirim ke PP ya!</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Phone 2 -->
+                    <div class="cta-ph" style="opacity:0.35;transform:rotate(-5deg) translateY(20px);">
+                        <div class="cta-ph-frame">
+                            <div class="cta-ph-hdr">💰 Jual Beli Phnom Penh</div>
+                            <div class="cta-ph-body">
+                                <div class="cta-ch-track" style="--spd:12s;">
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Agus R.</span>stok ada ga bos?</div>
+                                    <div class="cta-ch-m o">Ada! mau berapa?</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Dewi L.</span>mau 5 pcs!</div>
+                                    <div class="cta-ch-m o">Oke dicatat ✓</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Rudi T.</span>COD bisa?</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Maya S.</span>transfer BCA?</div>
+                                    <div class="cta-ch-m o">Bisa semua! 💰</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Agus R.</span>stok ada ga bos?</div>
+                                    <div class="cta-ch-m o">Ada! mau berapa?</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Dewi L.</span>mau 5 pcs!</div>
+                                    <div class="cta-ch-m o">Oke dicatat ✓</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Rudi T.</span>COD bisa?</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Maya S.</span>transfer BCA?</div>
+                                    <div class="cta-ch-m o">Bisa semua! 💰</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Phone 3 -->
+                    <div class="cta-ph" style="opacity:0.30;transform:rotate(2deg) translateY(-5px);">
+                        <div class="cta-ph-frame">
+                            <div class="cta-ph-hdr">📦 UMKM Kamboja Official</div>
+                            <div class="cta-ph-body">
+                                <div class="cta-ch-track" style="--spd:8s;">
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Eko F.</span>halo jualan apa?</div>
+                                    <div class="cta-ch-m o">Cek pinned msg!</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Fitri N.</span>promo hari ini?</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Gita W.</span>free ongkir?</div>
+                                    <div class="cta-ch-m o">Ya gratis! 🚀</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Hadi B.</span>mau pesen bos</div>
+                                    <div class="cta-ch-m o">Silakan DM ✓</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Eko F.</span>halo jualan apa?</div>
+                                    <div class="cta-ch-m o">Cek pinned msg!</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Fitri N.</span>promo hari ini?</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Gita W.</span>free ongkir?</div>
+                                    <div class="cta-ch-m o">Ya gratis! 🚀</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Hadi B.</span>mau pesen bos</div>
+                                    <div class="cta-ch-m o">Silakan DM ✓</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Phone 4 -->
+                    <div class="cta-ph" style="opacity:0.35;transform:rotate(6deg) translateY(20px);">
+                        <div class="cta-ph-frame">
+                            <div class="cta-ph-hdr">🔥 Promo Hari Ini</div>
+                            <div class="cta-ph-body">
+                                <div class="cta-ch-track" style="--spd:11s;">
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Irma K.</span>restock kapan?</div>
+                                    <div class="cta-ch-m o">Sudah ada! 🎉</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Joko S.</span>bayar dp berapa?</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Kiki M.</span>kualitas ok?</div>
+                                    <div class="cta-ch-m o">Dijamin top!</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Lala P.</span>order 10 pcs!</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Mira T.</span>kontak CS?</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Irma K.</span>restock kapan?</div>
+                                    <div class="cta-ch-m o">Sudah ada! 🎉</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Joko S.</span>bayar dp berapa?</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Kiki M.</span>kualitas ok?</div>
+                                    <div class="cta-ch-m o">Dijamin top!</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Lala P.</span>order 10 pcs!</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Mira T.</span>kontak CS?</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Phone 5 -->
+                    <div class="cta-ph" style="opacity:0.40;transform:rotate(14deg) translateY(-10px);">
+                        <div class="cta-ph-frame">
+                            <div class="cta-ph-hdr">🇮🇩 WNI Kamboja</div>
+                            <div class="cta-ph-body">
+                                <div class="cta-ch-track" style="--spd:7s;">
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Nanda R.</span>blast masuk! 🔥</div>
+                                    <div class="cta-ch-m o">Alhamdulillah 😊</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Oki D.</span>mau beli dong!</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Putri S.</span>ada diskon ga?</div>
+                                    <div class="cta-ch-m o">Lagi promo 30%!</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Rini A.</span>transfer lg ya</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Soni B.</span>laris bos! 💰</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Nanda R.</span>blast masuk! 🔥</div>
+                                    <div class="cta-ch-m o">Alhamdulillah 😊</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Oki D.</span>mau beli dong!</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Putri S.</span>ada diskon ga?</div>
+                                    <div class="cta-ch-m o">Lagi promo 30%!</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Rini A.</span>transfer lg ya</div>
+                                    <div class="cta-ch-m i"><span class="cta-ch-n">Soni B.</span>laris bos! 💰</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Floating particles -->
+                <div class="sc-cta-particle" style="width:6px;height:6px;top:18%;left:12%;animation-delay:0s;"></div>
+                <div class="sc-cta-particle" style="width:4px;height:4px;top:72%;left:8%;animation-delay:0.6s;"></div>
+                <div class="sc-cta-particle" style="width:8px;height:8px;top:30%;left:82%;animation-delay:1.1s;"></div>
+                <div class="sc-cta-particle" style="width:5px;height:5px;top:65%;left:78%;animation-delay:1.7s;"></div>
+                <div class="sc-cta-particle" style="width:4px;height:4px;top:50%;left:50%;animation-delay:0.4s;"></div>
+                <!-- Extra glow circle -->
+                <div class="absolute bottom-0 right-0 w-80 h-80 bg-violet-400/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10">
+                    <span class="inline-flex items-center gap-2 px-4 py-2 bg-white/15 border border-white/20 text-white text-xs font-bold rounded-full uppercase tracking-widest mb-6">
+                        <i class="fa-solid fa-rocket"></i> Mulai Sekarang
+                    </span>
+                    <h2 class="text-3xl md:text-5xl font-black text-white leading-tight mb-5">
+                        Siap Ngegebukin Pasar Kamboja<br>dan Panen Cuan Tiap Hari? 🔥
+                    </h2>
+                    <p class="text-indigo-200 text-base md:text-lg max-w-xl mx-auto mb-10 leading-relaxed">
+                        Ratusan ribu calon pembeli nongkrong di grup-grup Telegram Kamboja. Gas otomasi pemasaran lo hari ini — sebelum pesaing lo duluan!
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <a href="/register" class="inline-flex items-center justify-center gap-2.5 px-8 py-4 bg-white text-brand-700 text-base font-black rounded-full hover:bg-brand-50 transition-all shadow-2xl hover:-translate-y-1 hover:shadow-white/30">
+                            <i class="fa-solid fa-bolt text-sm text-brand-600"></i> Ambil Slot Dominasi Sekarang!
+                        </a>
+                        <a href="/#features" class="inline-flex items-center justify-center gap-2.5 px-8 py-4 bg-white/12 border border-white/25 text-white text-base font-bold rounded-full hover:bg-white/20 transition-all backdrop-blur-sm">
+                            <i class="fa-solid fa-play text-sm text-yellow-300"></i> Lihat Cara Kerjanya
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+{% endblock %}

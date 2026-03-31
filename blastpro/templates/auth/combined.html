@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if active_form == 'register' %}Daftar Akun{% else %}Masuk{% endif %} - BlastPro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; overflow: hidden; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        /* ── Root ─────────────────────────────── */
+        #auth-root {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+            background: #fff;
+        }
+
+        /* ── Form Zones — above overlay layers ── */
+        .form-zone {
+            position: absolute;
+            top: 0;
+            width: 50%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+            padding: 3rem 2.5rem 2rem;
+            background: #fff;
+            z-index: 15; /* forms sit ABOVE the sliding overlay */
+        }
+        #zone-login    { left: 50%; }
+        #zone-register { left: 0;   }
+
+        /* ── LAYER 1: Background color (slides first, leads) ── */
+        #overlay-bg {
+            position: absolute;
+            top: 0; width: 50%; height: 100%;
+            background: #4338ca;
+            z-index: 8;
+            will-change: left;
+            transition: left 0.55s cubic-bezier(0.76, 0, 0.24, 1);
+        }
+        #overlay-bg::before {
+            content: '';
+            position: absolute; inset: 0;
+            background-image: radial-gradient(circle, rgba(255,255,255,.14) 1.5px, transparent 1.5px);
+            background-size: 26px 26px;
+            pointer-events: none;
+        }
+        #auth-root.mode-login    #overlay-bg { left: 0; }
+        #auth-root.mode-register #overlay-bg { left: 50%; }
+
+        /* ── LAYER 2: Structure — floating shapes + content (slides after bg) ── */
+        #overlay-layer {
+            position: absolute;
+            top: 0; width: 50%; height: 100%;
+            z-index: 9;
+            overflow: hidden;
+            will-change: left;
+            transition: left 0.7s cubic-bezier(0.65, 0, 0.35, 1);
+        }
+        #auth-root.mode-login    #overlay-layer { left: 0; }
+        #auth-root.mode-register #overlay-layer { left: 50%; }
+
+        /* ── Wind-up anticipation animations ── */
+        /* When sliding right: lean left first */
+        #overlay-layer.wind-right {
+            animation: windR 0.28s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards;
+        }
+        /* When sliding left: lean right first */
+        #overlay-layer.wind-left {
+            animation: windL 0.28s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards;
+        }
+        @keyframes windR {
+            0%   { transform: translateX(0) scaleX(1); }
+            45%  { transform: translateX(-22px) scaleX(0.97); }
+            100% { transform: translateX(0) scaleX(1); }
+        }
+        @keyframes windL {
+            0%   { transform: translateX(0) scaleX(1); }
+            45%  { transform: translateX(22px) scaleX(0.97); }
+            100% { transform: translateX(0) scaleX(1); }
+        }
+        /* Bg wind-up (subtler) */
+        #overlay-bg.wind-right { animation: windBgR 0.28s ease-out forwards; }
+        #overlay-bg.wind-left  { animation: windBgL 0.28s ease-out forwards; }
+        @keyframes windBgR { 0%{transform:scaleX(1)} 50%{transform:scaleX(0.97) translateX(-8px)} 100%{transform:scaleX(1)} }
+        @keyframes windBgL { 0%{transform:scaleX(1)} 50%{transform:scaleX(0.97) translateX(8px)}  100%{transform:scaleX(1)} }
+
+        /* ── Floating shapes — live inside overlay-layer ── */
+        .fshape { position: absolute; z-index: 1; pointer-events: none; }
+        .fa { animation: fa 7s ease-in-out infinite; }
+        .fb { animation: fb 9s ease-in-out infinite; }
+        .fc { animation: fc 6s ease-in-out infinite; }
+        .fd { animation: fd 8s ease-in-out infinite; }
+        .fe { animation: fe 11s ease-in-out infinite; }
+        .ff { animation: ff 5.5s ease-in-out infinite; }
+        @keyframes fa{0%,100%{transform:translate(0,0) rotate(0deg)}30%{transform:translate(8px,-14px) rotate(6deg)}60%{transform:translate(-5px,8px) rotate(-4deg)}}
+        @keyframes fb{0%,100%{transform:translate(0,0) rotate(0deg)}25%{transform:translate(-10px,-8px) rotate(-8deg)}55%{transform:translate(6px,12px) rotate(5deg)}}
+        @keyframes fc{0%,100%{transform:translate(0,0) scale(1)}40%{transform:translate(6px,-10px) scale(1.06)}70%{transform:translate(-4px,6px) scale(.95)}}
+        @keyframes fd{0%,100%{transform:translate(0,0) rotate(0deg)}35%{transform:translate(-8px,-12px) rotate(12deg)}65%{transform:translate(10px,4px) rotate(-8deg)}}
+        @keyframes fe{0%,100%{transform:translate(0,0)}20%{transform:translate(4px,-16px)}50%{transform:translate(-8px,-6px)}80%{transform:translate(6px,8px)}}
+        @keyframes ff{0%,100%{transform:translate(0,0) rotate(0deg) scale(1)}45%{transform:translate(-6px,-10px) rotate(-10deg) scale(1.08)}}
+
+        /* ── Overlay content ── */
+        #ov-content {
+            position: absolute;
+            inset: 0; z-index: 2;
+            display: flex; align-items: center; justify-content: center;
+            padding: 2.5rem;
+        }
+
+        /* ── Feature items ───────────────────── */
+        .feat-item {
+            background: rgba(255,255,255,.08);
+            border: 1px solid rgba(255,255,255,.14);
+            border-radius: .875rem;
+            padding: .65rem .95rem;
+            display: flex; align-items: center; gap: .8rem;
+            transition: background .25s, transform .25s, border-color .25s;
+            cursor: default;
+        }
+        .feat-item:hover { background: rgba(255,255,255,.16); border-color: rgba(255,255,255,.22); transform: translateX(4px); }
+        .feat-icon {
+            width: 2rem; height: 2rem;
+            background: rgba(255,255,255,.14);
+            border-radius: .5rem;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+            transition: background .25s, transform .25s;
+        }
+        .feat-item:hover .feat-icon { background: rgba(255,255,255,.25); transform: scale(1.1); }
+
+        /* ── Form styles ─────────────────────── */
+        .form-inner { width: 100%; max-width: 400px; }
+        .field-label {
+            display: block;
+            font-size: .68rem; font-weight: 800;
+            color: #374151;
+            text-transform: uppercase; letter-spacing: .08em;
+            margin-bottom: .4rem; padding-left: .1rem;
+        }
+        .inp-wrap { position: relative; }
+        .inp {
+            width: 100%;
+            padding: .85rem 1rem .85rem 2.75rem;
+            background: #f9fafb;
+            border: 1.5px solid #e5e7eb;
+            border-radius: .875rem;
+            font-size: .875rem; font-weight: 600; color: #111827;
+            outline: none;
+            transition: border-color .2s, background .2s, box-shadow .2s;
+            font-family: inherit;
+        }
+        .inp::placeholder { color: #9ca3af; font-weight: 400; }
+        .inp:focus { background: #fff; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.12); }
+        .inp-icon {
+            position: absolute; left: .9rem; top: 50%; transform: translateY(-50%);
+            color: #9ca3af; font-size: .85rem; transition: color .2s; pointer-events: none;
+        }
+        .inp-wrap:focus-within .inp-icon { color: #6366f1; }
+        .inp-right {
+            position: absolute; right: .85rem; top: 50%; transform: translateY(-50%);
+            color: #9ca3af; cursor: pointer; transition: color .2s;
+            background: none; border: none; font-size: .85rem;
+        }
+        .inp-right:hover { color: #6366f1; }
+        .btn-main {
+            width: 100%; padding: .95rem 1rem;
+            font-weight: 800; font-size: .85rem;
+            letter-spacing: .06em; text-transform: uppercase;
+            border-radius: 1rem; border: none; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: .6rem;
+            transition: transform .2s, box-shadow .2s, background .2s;
+            font-family: inherit;
+        }
+        .btn-main:hover { transform: translateY(-2px); }
+        .btn-main:active { transform: scale(.97); }
+        .btn-dark   { background: #111827; color: #fff; box-shadow: 0 8px 24px -6px rgba(0,0,0,.3); }
+        .btn-dark:hover   { background: #000; }
+        .btn-indigo { background: #4f46e5; color: #fff; box-shadow: 0 8px 24px -6px rgba(79,70,229,.38); }
+        .btn-indigo:hover { background: #4338ca; }
+        .str-bar { flex: 1; height: 5px; border-radius: 99px; background: #e5e7eb; transition: background .3s; }
+
+        @keyframes fadeInUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+        .flash-msg { animation: fadeInUp .35s ease-out both; }
+
+        /* ── Post-Register Redirect Overlay ── */
+        #redirect-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(15,15,35,0.72);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            opacity: 0;
+            transition: opacity .4s ease;
+            pointer-events: none;
+        }
+        #redirect-overlay.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+        #redirect-overlay.fade-out {
+            opacity: 0;
+        }
+        .redirect-card {
+            background: #fff;
+            border-radius: 1.5rem;
+            padding: 2.5rem 2rem;
+            width: 100%;
+            max-width: 360px;
+            text-align: center;
+            box-shadow: 0 24px 60px -12px rgba(0,0,0,.28);
+            animation: fadeInUp .45s ease-out both;
+        }
+        .redirect-icon {
+            display: block;
+            font-size: 3rem;
+            color: #10b981;
+            margin-bottom: 1rem;
+            animation: coinFlip .6s ease-out both;
+        }
+        .redirect-title {
+            font-size: 1.15rem;
+            font-weight: 900;
+            color: #111827;
+            margin-bottom: .35rem;
+            letter-spacing: -.02em;
+        }
+        .redirect-sub {
+            font-size: .82rem;
+            color: #6b7280;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: .5rem;
+        }
+        .redirect-sub i { animation: spin 1s linear infinite; color: #6366f1; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .redirect-bar-track {
+            height: 8px;
+            border-radius: 99px;
+            background: #f3f4f6;
+            overflow: hidden;
+            margin-bottom: .85rem;
+        }
+        .redirect-bar-fill {
+            height: 100%;
+            border-radius: 99px;
+            background: linear-gradient(90deg,#6366f1,#818cf8);
+            width: 0%;
+            transition: width linear;
+        }
+        .redirect-counter {
+            font-size: .75rem;
+            color: #9ca3af;
+            font-weight: 700;
+        }
+
+        /* ══════════════════════════════════════════════════════
+           COMPLEX ENTRANCE ANIMATIONS — REBUILT FROM ZERO
+           ══════════════════════════════════════════════════════ */
+
+        /* — Overlay curtain sweep (scaleX from edge) */
+        @keyframes curtainReveal {
+            0%   { transform: scaleX(0); opacity: 0.6; filter: brightness(1.6) saturate(0.4); }
+            55%  { transform: scaleX(1.03); opacity: 1; filter: brightness(1.08) saturate(1); }
+            72%  { transform: scaleX(0.985); filter: brightness(1); }
+            86%  { transform: scaleX(1.006); }
+            100% { transform: scaleX(1); opacity: 1; filter: none; }
+        }
+
+        /* — 3D coin flip (for logos) */
+        @keyframes coinFlip {
+            0%   { transform: perspective(700px) rotateY(180deg) scale(0.35); opacity: 0; }
+            45%  { opacity: 1; }
+            72%  { transform: perspective(700px) rotateY(-10deg) scale(1.08); }
+            88%  { transform: perspective(700px) rotateY(4deg) scale(0.97); }
+            100% { transform: perspective(700px) rotateY(0deg) scale(1); opacity: 1; }
+        }
+
+        /* — Elastic spring pop */
+        @keyframes elasticPop {
+            0%   { transform: scale(0) rotate(-18deg); opacity: 0; }
+            50%  { transform: scale(1.22) rotate(5deg); opacity: 1; }
+            68%  { transform: scale(0.9) rotate(-2deg); }
+            82%  { transform: scale(1.07) rotate(1deg); }
+            92%  { transform: scale(0.97); }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        /* — Glitch-snap (for back link) */
+        @keyframes glitchSnap {
+            0%   { transform: translateX(-28px) skewX(0deg); opacity: 0; clip-path: inset(20% 0 60% 0); }
+            15%  { transform: translateX(8px) skewX(-10deg); opacity: 1; clip-path: inset(0 0 0 0); }
+            15.5%{ transform: translateX(8px) skewX(-10deg); clip-path: inset(40% 0 20% 0); filter: hue-rotate(90deg); }
+            16%  { clip-path: inset(0 0 0 0); filter: none; }
+            30%  { transform: translateX(-5px) skewX(5deg); }
+            48%  { transform: translateX(3px) skewX(-2deg); }
+            64%  { transform: translateX(-1.5px) skewX(1deg); }
+            80%  { transform: translateX(0.8px); }
+            100% { transform: translateX(0) skewX(0deg); opacity: 1; }
+        }
+
+        /* — 3D perspective warp slide (for feature items) */
+        @keyframes depthSlide {
+            0%   { transform: perspective(900px) rotateY(-40deg) translateX(-55px) scale(0.88); opacity: 0; filter: blur(5px); }
+            62%  { transform: perspective(900px) rotateY(4deg) translateX(5px) scale(1.02); opacity: 1; filter: blur(0); }
+            80%  { transform: perspective(900px) rotateY(-1.5deg) translateX(-1px); }
+            100% { transform: perspective(900px) rotateY(0deg) translateX(0) scale(1); opacity: 1; filter: none; }
+        }
+
+        /* — Word barrel roll (for h1/h2) */
+        @keyframes barrelUp {
+            0%   { transform: perspective(500px) rotateX(-95deg) translateY(28px) scale(0.85); opacity: 0; }
+            55%  { transform: perspective(500px) rotateX(8deg) translateY(-4px) scale(1.02); opacity: 1; }
+            75%  { transform: perspective(500px) rotateX(-3deg) translateY(1px); }
+            100% { transform: perspective(500px) rotateX(0deg) translateY(0) scale(1); opacity: 1; }
+        }
+
+        /* — Blur-to-sharp focus pull */
+        @keyframes focusPull {
+            0%   { filter: blur(14px) brightness(0.7); opacity: 0; transform: scale(1.06); letter-spacing: .3em; }
+            60%  { filter: blur(2px) brightness(1); opacity: 1; transform: scale(1.01); letter-spacing: inherit; }
+            100% { filter: blur(0) brightness(1); opacity: 1; transform: scale(1); }
+        }
+
+        /* — Neon burst (for submit button) */
+        @keyframes neonBurst {
+            0%   { transform: translateY(24px) scale(0.88); opacity: 0;
+                   box-shadow: 0 0 0 rgba(79,70,229,0); }
+            50%  { transform: translateY(-5px) scale(1.03); opacity: 1;
+                   box-shadow: 0 0 40px 6px rgba(79,70,229,.55), 0 0 80px 20px rgba(99,102,241,.25); }
+            70%  { transform: translateY(3px) scale(0.98);
+                   box-shadow: 0 0 12px rgba(79,70,229,.3); }
+            85%  { transform: translateY(-1px) scale(1.01); }
+            100% { transform: translateY(0) scale(1); opacity: 1;
+                   box-shadow: 0 8px 24px -6px rgba(79,70,229,.38); }
+        }
+
+        /* — Wipe reveal left-to-right (for form fields) */
+        @keyframes wipeIn {
+            0%   { clip-path: inset(0 100% 0 0 round 14px); opacity: 0.5; }
+            60%  { clip-path: inset(0 0% 0 0 round 14px); opacity: 1; }
+            100% { clip-path: inset(0 0% 0 0 round 14px); opacity: 1; }
+        }
+
+        /* — Stat drop with spin (for numbers) */
+        @keyframes statDrop {
+            0%   { transform: translateY(-40px) rotate(-360deg) scale(0.4); opacity: 0; }
+            55%  { transform: translateY(5px) rotate(8deg) scale(1.12); opacity: 1; }
+            72%  { transform: translateY(-3px) rotate(-2deg) scale(0.96); }
+            88%  { transform: translateY(1.5px) rotate(1deg) scale(1.02); }
+            100% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
+        }
+
+        /* — Shimmer pulse (after logo appears) */
+        @keyframes glowPulse {
+            0%,100% { box-shadow: 0 0 0 0 rgba(99,102,241,0); }
+            50%      { box-shadow: 0 0 20px 6px rgba(99,102,241,.28); }
+        }
+
+        /* Hidden initial states — set in CSS so no flash on load */
+        #overlay-bg, #overlay-layer { opacity: 0; }
+        .fshape { opacity: 0; }
+
+        #back-link {
+            position: fixed; top: 1rem; left: 1rem; z-index: 50;
+            display: inline-flex; align-items: center; gap: .45rem;
+            padding: .45rem .85rem .45rem .7rem;
+            background: #fff;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 99px;
+            color: #374151;
+            font-size: .75rem; font-weight: 700;
+            text-decoration: none;
+            box-shadow: 0 1px 4px rgba(0,0,0,.07);
+            transition: border-color .2s, box-shadow .2s, background .2s, transform .15s;
+        }
+        #back-link:hover {
+            border-color: #c7d2fe;
+            background: #f5f3ff;
+            box-shadow: 0 2px 8px rgba(99,102,241,.12);
+            transform: translateX(-2px);
+        }
+        #back-link .back-icon {
+            width: 1.35rem; height: 1.35rem;
+            background: #f3f4f6;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: .6rem; color: #6b7280;
+            transition: background .2s, color .2s;
+        }
+        #back-link:hover .back-icon { background: #ede9fe; color: #4f46e5; }
+
+        /* ── Overlay content HTML templates ─── */
+        /* These are injected via JS; kept here for reference only */
+    </style>
+</head>
+<body>
+
+<a href="/" id="back-link" style="opacity:0">
+    <span class="back-icon"><i class="fa-solid fa-arrow-left"></i></span>
+    Beranda
+</a>
+
+<div id="auth-root" class="mode-{{ active_form }}">
+
+    <!-- Post-Register Redirect Overlay -->
+    <div id="redirect-overlay">
+        <div class="redirect-card">
+            <i class="fa-solid fa-check redirect-icon"></i>
+            <div class="redirect-title">Pendaftaran Berhasil!</div>
+            <div class="redirect-sub">
+                <i class="fa-solid fa-circle-notch fa-spin"></i>
+                Mengarahkan ke halaman login...
+            </div>
+            <div class="redirect-bar-track">
+                <div class="redirect-bar-fill" id="redirect-bar"></div>
+            </div>
+            <div class="redirect-counter" id="redirect-counter">Mohon tunggu 3 detik...</div>
+        </div>
+    </div>
+
+    <!-- REGISTER form — always LEFT half -->
+    <div class="form-zone" id="zone-register">
+        <div class="form-inner">
+            <div style="text-align:center;margin-bottom:1.5rem;">
+                <div style="display:inline-flex;align-items:center;justify-content:center;width:3.25rem;height:3.25rem;border-radius:1rem;background:linear-gradient(135deg,#f0f4ff,#e8eafe);border:1px solid #dde2ff;margin-bottom:.9rem;">
+                    <img src="{{ url_for('static', filename='img/logo-blastpro.png') }}" alt="BlastPro" style="width:2rem;height:2rem;object-fit:contain;">
+                </div>
+                <h2 style="font-size:1.55rem;font-weight:900;color:#111827;letter-spacing:-.02em;">Buat Akun Baru</h2>
+                <p style="color:#6b7280;font-size:.83rem;margin-top:.35rem;">Mulai automasi bisnis Anda dalam hitungan detik.</p>
+            </div>
+            {% if active_form == 'register' %}
+            {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}
+            <div style="margin-bottom:1rem;display:flex;flex-direction:column;gap:.5rem;">
+            {% for category, message in messages %}
+                <div class="flash-msg" style="padding:.75rem 1rem;border-radius:.75rem;font-size:.8rem;font-weight:600;display:flex;align-items:center;gap:.6rem;{% if category=='success'%}background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;{% elif category=='danger'%}background:#fef2f2;color:#991b1b;border:1px solid #fecaca;{% elif category=='warning'%}background:#fffbeb;color:#92400e;border:1px solid #fde68a;{% else %}background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe;{% endif %}">
+                    <i class="fa-solid {% if category=='success'%}fa-circle-check{% elif category=='danger'%}fa-circle-exclamation{% else %}fa-circle-info{% endif %}"></i>
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
+            </div>{% endif %}{% endwith %}{% endif %}
+            <form method="POST" action="/register" id="regForm" onsubmit="return validateRegForm()">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <div style="display:flex;flex-direction:column;gap:.85rem;">
+                    <div>
+                        <label class="field-label">Username</label>
+                        <div class="inp-wrap">
+                            <span class="inp-icon"><i class="fa-solid fa-at"></i></span>
+                            <input class="inp" type="text" name="username" id="rUsername" required value="{{ username if username else '' }}" placeholder="huruf & angka (min 4)" autocomplete="username" oninput="this.value=this.value.replace(/[^a-zA-Z0-9_]/g,'').toLowerCase()">
+                        </div>
+                    </div>
+                    <div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem;padding:0 .1rem;">
+                            <label class="field-label" style="margin:0;">Email Aktif</label>
+                            <span id="emailWarn" style="font-size:.62rem;font-weight:700;color:#ef4444;display:none;"><i class="fa-solid fa-ban"></i> Domain Dilarang</span>
+                        </div>
+                        <div class="inp-wrap">
+                            <span class="inp-icon"><i class="fa-regular fa-envelope"></i></span>
+                            <input class="inp" type="email" name="email" id="rEmail" required value="{{ email if email else '' }}" placeholder="owner@bisnis.com" autocomplete="email" oninput="checkEmailDomain(this.value)">
+                        </div>
+                    </div>
+                    <div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem;padding:0 .1rem;">
+                            <label class="field-label" style="margin:0;">Password</label>
+                            <span id="passStatus" style="font-size:.62rem;font-weight:600;color:#9ca3af;">Min 8 Karakter</span>
+                        </div>
+                        <div class="inp-wrap">
+                            <span class="inp-icon"><i class="fa-solid fa-lock"></i></span>
+                            <input class="inp" type="password" name="password" id="rPass" required placeholder="Kombinasi huruf & angka" autocomplete="new-password" oninput="checkPassStrength(this.value)" style="padding-right:2.75rem;">
+                            <button type="button" class="inp-right" onclick="togglePwd('rPass','rEye')"><i id="rEye" class="fa-regular fa-eye"></i></button>
+                        </div>
+                        <div style="display:flex;gap:.3rem;margin-top:.45rem;">
+                            <div id="sb1" class="str-bar"></div><div id="sb2" class="str-bar"></div>
+                            <div id="sb3" class="str-bar"></div><div id="sb4" class="str-bar"></div>
+                        </div>
+                        <div style="display:flex;gap:.75rem;margin-top:.3rem;padding-left:.05rem;">
+                            <span id="rqLen" style="font-size:.6rem;color:#9ca3af;font-weight:600;display:flex;align-items:center;gap:.25rem;"><i class="fa-solid fa-circle" style="font-size:.2rem;"></i>8+ Char</span>
+                            <span id="rqUp"  style="font-size:.6rem;color:#9ca3af;font-weight:600;display:flex;align-items:center;gap:.25rem;"><i class="fa-solid fa-circle" style="font-size:.2rem;"></i>Huruf Besar</span>
+                            <span id="rqNum" style="font-size:.6rem;color:#9ca3af;font-weight:600;display:flex;align-items:center;gap:.25rem;"><i class="fa-solid fa-circle" style="font-size:.2rem;"></i>Angka</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="field-label">Kode Referral <span style="color:#9ca3af;font-weight:400;text-transform:none;letter-spacing:0;">(Opsional)</span></label>
+                        <div class="inp-wrap">
+                            <span class="inp-icon">{% if ref %}<i class="fa-solid fa-lock" style="color:#10b981;"></i>{% else %}<i class="fa-solid fa-ticket"></i>{% endif %}</span>
+                            <input class="inp" type="text" name="referral_code" value="{{ ref if ref else '' }}" placeholder="Kode dari teman" {% if ref %}readonly{% endif %} style="font-family:monospace;{% if ref %}background:#f0fdf4;border-color:#a7f3d0;color:#065f46;{% endif %}">
+                            {% if ref %}<span class="inp-right" style="cursor:default;pointer-events:none;"><span style="background:#d1fae5;color:#059669;font-size:.58rem;font-weight:800;padding:.2rem .45rem;border-radius:.4rem;border:1px solid #a7f3d0;">✓ OK</span></span>{% endif %}
+                        </div>
+                    </div>
+                    <button type="submit" id="btn-register" class="btn-main btn-indigo" style="margin-top:.25rem;">
+                        <i class="fa-solid fa-user-plus"></i><span>Buat Akun Sekarang</span>
+                    </button>
+                </div>
+            </form>
+            <div style="margin-top:1.4rem;text-align:center;border-top:1px solid #f3f4f6;padding-top:1rem;">
+                <p style="font-size:.83rem;color:#6b7280;">Sudah punya akun?
+                    <button onclick="switchToLogin()" style="font-weight:800;color:#4f46e5;background:none;border:none;cursor:pointer;font-family:inherit;font-size:.83rem;margin-left:.25rem;">Masuk Disini →</button>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGIN form — always RIGHT half -->
+    <div class="form-zone" id="zone-login">
+        <div class="form-inner">
+            <div style="text-align:center;margin-bottom:1.75rem;">
+                <div style="display:inline-flex;align-items:center;justify-content:center;width:3.25rem;height:3.25rem;border-radius:1rem;background:linear-gradient(135deg,#f0f4ff,#e8eafe);border:1px solid #dde2ff;margin-bottom:.9rem;">
+                    <i class="fa-solid fa-fingerprint" style="font-size:1.4rem;color:#4f46e5;"></i>
+                </div>
+                <h2 style="font-size:1.55rem;font-weight:900;color:#111827;letter-spacing:-.02em;">Selamat Datang</h2>
+                <p style="color:#6b7280;font-size:.83rem;margin-top:.35rem;">Masuk untuk melanjutkan kontrol automasi Anda.</p>
+            </div>
+            {% if active_form == 'login' %}
+            {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}
+            <div style="margin-bottom:1rem;display:flex;flex-direction:column;gap:.5rem;">
+            {% for category, message in messages %}
+                <div class="flash-msg" style="padding:.75rem 1rem;border-radius:.75rem;font-size:.8rem;font-weight:600;display:flex;align-items:center;gap:.6rem;{% if category=='success'%}background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;{% elif category=='danger'%}background:#fef2f2;color:#991b1b;border:1px solid #fecaca;{% elif category=='warning'%}background:#fffbeb;color:#92400e;border:1px solid #fde68a;{% else %}background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe;{% endif %}">
+                    <i class="fa-solid {% if category=='success'%}fa-circle-check{% elif category=='danger'%}fa-circle-exclamation{% else %}fa-circle-info{% endif %}"></i>
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
+            </div>{% endif %}{% endwith %}{% endif %}
+            <form method="POST" action="/login" onsubmit="return handleLoginSubmit()">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <div style="display:flex;flex-direction:column;gap:1rem;">
+                    <div>
+                        <label class="field-label">Email Bisnis</label>
+                        <div class="inp-wrap">
+                            <span class="inp-icon"><i class="fa-regular fa-envelope"></i></span>
+                            <input class="inp" type="email" name="email" required placeholder="owner@bisnis.com" autocomplete="email">
+                        </div>
+                    </div>
+                    <div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem;padding:0 .1rem;">
+                            <label class="field-label" style="margin:0;">Password</label>
+                            <a href="/forgot-password" style="font-size:.65rem;font-weight:700;color:#4f46e5;text-decoration:underline;text-underline-offset:2px;">Lupa Password?</a>
+                        </div>
+                        <div class="inp-wrap">
+                            <span class="inp-icon"><i class="fa-solid fa-lock"></i></span>
+                            <input class="inp" type="password" name="password" id="lPass" required placeholder="••••••••" autocomplete="current-password" style="padding-right:2.75rem;">
+                            <button type="button" class="inp-right" onclick="togglePwd('lPass','lEye')"><i id="lEye" class="fa-regular fa-eye"></i></button>
+                        </div>
+                    </div>
+                    <button type="submit" id="btn-login" class="btn-main btn-dark" style="margin-top:.15rem;">
+                        <i class="fa-solid fa-arrow-right-to-bracket"></i><span>Masuk Dashboard</span>
+                    </button>
+                </div>
+            </form>
+            <div style="margin-top:1.4rem;text-align:center;border-top:1px solid #f3f4f6;padding-top:1rem;">
+                <p style="font-size:.83rem;color:#6b7280;">Belum punya akun?
+                    <button onclick="switchToRegister()" style="font-weight:800;color:#4f46e5;background:none;border:none;cursor:pointer;font-family:inherit;font-size:.83rem;margin-left:.25rem;">← Daftar Gratis</button>
+                </p>
+                <div style="margin-top:1.25rem;display:flex;align-items:center;justify-content:center;gap:1.25rem;opacity:.5;">
+                    <div style="display:flex;align-items:center;gap:.35rem;font-size:.68rem;font-weight:700;color:#6b7280;">
+                        <i class="fa-solid fa-shield-halved" style="color:#6366f1;font-size:1rem;"></i>256-bit Encrypted
+                    </div>
+                    <div style="width:1px;height:18px;background:#e5e7eb;"></div>
+                    <div style="display:flex;align-items:center;gap:.35rem;font-size:.68rem;font-weight:700;color:#6b7280;">
+                        <i class="fa-solid fa-server" style="color:#10b981;font-size:1rem;"></i>Secure Login
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LAYER 1: Background color — slides first/fastest -->
+    <div id="overlay-bg"></div>
+
+    <!-- LAYER 2: Structure — floating shapes + content, slides after bg -->
+    <div id="overlay-layer">
+
+        <!-- Floating decorative shapes — animate naturally, slide with layer -->
+        <div class="fshape fa" style="top:-55px;right:-55px;"><div style="width:200px;height:200px;border-radius:50%;border:2px solid rgba(255,255,255,.1);"></div></div>
+        <div class="fshape fb" style="top:26px;right:26px;"><div style="width:70px;height:70px;border-radius:50%;border:1.5px solid rgba(255,255,255,.15);"></div></div>
+        <div class="fshape fc" style="top:52px;left:36px;opacity:.16;"><i class="fa-brands fa-telegram" style="font-size:48px;color:white;"></i></div>
+        <div class="fshape fd" style="bottom:190px;right:40px;opacity:.12;"><i class="fa-solid fa-paper-plane" style="font-size:36px;color:white;"></i></div>
+        <div class="fshape fe" style="top:42%;left:14px;opacity:.22;"><div style="width:10px;height:10px;background:#fff;border-radius:2px;transform:rotate(45deg);"></div></div>
+        <div class="fshape ff" style="top:22%;right:56px;opacity:.18;"><div style="width:7px;height:7px;background:#fff;border-radius:1.5px;transform:rotate(45deg);"></div></div>
+        <div class="fshape fb" style="bottom:72px;left:30px;opacity:.12;"><i class="fa-solid fa-robot" style="font-size:40px;color:white;"></i></div>
+        <div class="fshape fa" style="top:72px;left:50%;transform:translateX(-50%);opacity:.09;"><i class="fa-solid fa-calendar-check" style="font-size:32px;color:white;"></i></div>
+        <div class="fshape" style="bottom:-46px;right:-46px;"><div style="width:165px;height:165px;border-radius:50%;border:2px dashed rgba(255,255,255,.1);"></div></div>
+        <div class="fshape fc" style="bottom:132px;right:90px;opacity:.25;"><div style="width:5px;height:5px;background:#fff;border-radius:50%;"></div></div>
+        <div class="fshape fe" style="top:140px;left:110px;opacity:.2;"><div style="width:4px;height:4px;background:#fff;border-radius:50%;"></div></div>
+        <div class="fshape fd" style="bottom:248px;left:74px;opacity:.22;"><div style="width:5px;height:5px;background:#fff;border-radius:50%;"></div></div>
+
+        <!-- Content: swaps at midpoint of slide -->
+        <div id="ov-content" style="position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;padding:2.5rem;">
+            <!-- Content is rendered by server initially, then updated by JS on switch -->
+            {% if active_form == 'login' %}
+            <div id="ov-inner" style="text-align:center;color:white;max-width:285px;width:100%;">
+                <div style="display:inline-flex;align-items:center;justify-content:center;width:3.5rem;height:3.5rem;border-radius:1rem;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);margin-bottom:1.4rem;">
+                    <i class="fa-solid fa-fingerprint" style="font-size:1.5rem;color:#fde68a;"></i>
+                </div>
+                <h1 style="font-size:1.75rem;font-weight:800;line-height:1.2;margin-bottom:.55rem;">Otomatisasi<br>Tanpa Batas</h1>
+                <p style="color:#c7d2fe;font-size:.83rem;line-height:1.55;margin-bottom:1.4rem;">Bergabung dengan ribuan UMKM yang sukses bersama BlastPro.</p>
+                <div style="display:flex;align-items:center;justify-content:center;gap:1rem;margin-bottom:1.4rem;">
+                    <div><div style="font-size:1.45rem;font-weight:900;">500+</div><div style="font-size:.6rem;color:#c7d2fe;margin-top:.15rem;">UMKM Aktif</div></div>
+                    <div style="width:1px;height:30px;background:rgba(255,255,255,.2);"></div>
+                    <div><div style="font-size:1.45rem;font-weight:900;">24/7</div><div style="font-size:.6rem;color:#c7d2fe;margin-top:.15rem;">Bot Aktif</div></div>
+                    <div style="width:1px;height:30px;background:rgba(255,255,255,.2);"></div>
+                    <div><div style="font-size:1.45rem;font-weight:900;">100+</div><div style="font-size:.6rem;color:#c7d2fe;margin-top:.15rem;">Grup Dijangkau</div></div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:.55rem;text-align:left;">
+                    <div class="feat-item"><div class="feat-icon"><i class="fa-solid fa-paper-plane" style="color:white;font-size:.75rem;"></i></div><div><p style="font-size:.8rem;font-weight:700;color:white;line-height:1.2;">Broadcast ke Ratusan Grup</p><p style="font-size:.7rem;color:#c7d2fe;">Satu klik, semua terjangkau</p></div></div>
+                    <div class="feat-item"><div class="feat-icon"><i class="fa-solid fa-robot" style="color:white;font-size:.75rem;"></i></div><div><p style="font-size:.8rem;font-weight:700;color:white;line-height:1.2;">Auto Reply 24 Jam</p><p style="font-size:.7rem;color:#c7d2fe;">Bot kerja saat Anda istirahat</p></div></div>
+                    <div class="feat-item"><div class="feat-icon"><i class="fa-solid fa-calendar-check" style="color:white;font-size:.75rem;"></i></div><div><p style="font-size:.8rem;font-weight:700;color:white;line-height:1.2;">Jadwal Posting Otomatis</p><p style="font-size:.7rem;color:#c7d2fe;">Set sekali, jalan selamanya</p></div></div>
+                </div>
+            </div>
+            {% else %}
+            <div id="ov-inner" style="text-align:center;color:white;max-width:285px;width:100%;">
+                <div style="display:inline-flex;align-items:center;justify-content:center;width:3.5rem;height:3.5rem;border-radius:1rem;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);margin-bottom:1.4rem;">
+                    <img src="{{ url_for('static', filename='img/logo-blastpro.png') }}" alt="BlastPro" style="width:2.2rem;height:2.2rem;object-fit:contain;">
+                </div>
+                <h1 style="font-size:1.75rem;font-weight:800;line-height:1.2;margin-bottom:.55rem;">Bergabung &<br>Mulai Dominasi!</h1>
+                <p style="color:#c7d2fe;font-size:.83rem;line-height:1.55;margin-bottom:1.4rem;">Blast ke ratusan grup Telegram dalam hitungan menit.</p>
+                <div style="display:flex;align-items:center;justify-content:center;gap:1rem;margin-bottom:1.4rem;">
+                    <div><div style="font-size:1.45rem;font-weight:900;">500+</div><div style="font-size:.6rem;color:#c7d2fe;margin-top:.15rem;">UMKM Aktif</div></div>
+                    <div style="width:1px;height:30px;background:rgba(255,255,255,.2);"></div>
+                    <div><div style="font-size:1.45rem;font-weight:900;">Gratis</div><div style="font-size:.6rem;color:#c7d2fe;margin-top:.15rem;">Mulai Coba</div></div>
+                    <div style="width:1px;height:30px;background:rgba(255,255,255,.2);"></div>
+                    <div><div style="font-size:1.45rem;font-weight:900;">100+</div><div style="font-size:.6rem;color:#c7d2fe;margin-top:.15rem;">Grup Dijangkau</div></div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:.55rem;text-align:left;">
+                    <div class="feat-item"><div class="feat-icon"><i class="fa-solid fa-user-plus" style="color:white;font-size:.75rem;"></i></div><div><p style="font-size:.8rem;font-weight:700;color:white;line-height:1.2;">Daftar Dalam 30 Detik</p><p style="font-size:.7rem;color:#c7d2fe;">Tanpa kartu kredit</p></div></div>
+                    <div class="feat-item"><div class="feat-icon"><i class="fa-solid fa-shield-halved" style="color:white;font-size:.75rem;"></i></div><div><p style="font-size:.8rem;font-weight:700;color:white;line-height:1.2;">Data 100% Aman</p><p style="font-size:.7rem;color:#c7d2fe;">Enkripsi 256-bit</p></div></div>
+                    <div class="feat-item"><div class="feat-icon"><i class="fa-solid fa-bolt" style="color:white;font-size:.75rem;"></i></div><div><p style="font-size:.8rem;font-weight:700;color:white;line-height:1.2;">Langsung Aktif</p><p style="font-size:.7rem;color:#c7d2fe;">Verifikasi email, langsung pakai</p></div></div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+var currentMode = '{{ active_form }}';
+var busy = false;
+
+/* ── Z-index management: controls which form floats above the overlay ── */
+var zoneLogin    = null;
+var zoneRegister = null;
+function initZones() {
+    zoneLogin    = document.getElementById('zone-login');
+    zoneRegister = document.getElementById('zone-register');
+    applyZIndex(currentMode, true); /* instant, no transition */
+}
+function applyZIndex(mode, instant) {
+    var active   = mode === 'login' ? zoneLogin : zoneRegister;
+    var inactive = mode === 'login' ? zoneRegister : zoneLogin;
+    active.style.zIndex   = '15';
+    inactive.style.zIndex = '5';
+}
+document.addEventListener('DOMContentLoaded', initZones);
+
+/* HTML content templates */
+var CONTENT = {
+    login: '<div style="text-align:center;color:white;max-width:285px;width:100%;">'
+        + '<div style="display:inline-flex;align-items:center;justify-content:center;width:3.5rem;height:3.5rem;border-radius:1rem;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);margin-bottom:1.4rem;">'
+        + '<i class="fa-solid fa-fingerprint" style="font-size:1.5rem;color:#fde68a;"></i></div>'
+        + '<h1 style="font-size:1.75rem;font-weight:800;line-height:1.2;margin-bottom:.55rem;">Otomatisasi<br>Tanpa Batas</h1>'
+        + '<p style="color:#c7d2fe;font-size:.83rem;line-height:1.55;margin-bottom:1.4rem;">Bergabung dengan ribuan UMKM yang sukses bersama BlastPro.</p>'
+        + '<div style="display:flex;align-items:center;justify-content:center;gap:1rem;margin-bottom:1.4rem;">'
+        + '<div><div style="font-size:1.45rem;font-weight:900;">500+</div><div style="font-size:.6rem;color:#c7d2fe;margin-top:.15rem;">UMKM Aktif</div></div>'
+        + '<div style="width:1px;height:30px;background:rgba(255,255,255,.2);"></div>'
+        + '<div><div style="font-size:1.45rem;font-weight:900;">24/7</div><div style="font-size:.6rem;color:#c7d2fe;margin-top:.15rem;">Bot Aktif</div></div>'
+        + '<div style="width:1px;height:30px;background:rgba(255,255,255,.2);"></div>'
+        + '<div><div style="font-size:1.45rem;font-weight:900;">100+</div><div style="font-size:.6rem;color:#c7d2fe;margin-top:.15rem;">Grup Dijangkau</div></div>'
+        + '</div>'
+        + '<div style="display:flex;flex-direction:column;gap:.55rem;text-align:left;">'
+        + '<div class="feat-item"><div class="feat-icon"><i class="fa-solid fa-paper-plane" style="color:white;font-size:.75rem;"></i></div><div><p style="font-size:.8rem;font-weight:700;color:white;line-height:1.2;">Broadcast ke Ratusan Grup</p><p style="font-size:.7rem;color:#c7d2fe;">Satu klik, semua terjangkau</p></div></div>'
+        + '<div class="feat-item"><div class="feat-icon"><i class="fa-solid fa-robot" style="color:white;font-size:.75rem;"></i></div><div><p style="font-size:.8rem;font-weight:700;color:white;line-height:1.2;">Auto Reply 24 Jam</p><p style="font-size:.7rem;color:#c7d2fe;">Bot kerja saat Anda istirahat</p></div></div>'
+        + '<div class="feat-item"><div class="feat-icon"><i class="fa-solid fa-calendar-check" style="color:white;font-size:.75rem;"></i></div><div><p style="font-size:.8rem;font-weight:700;color:white;line-height:1.2;">Jadwal Posting Otomatis</p><p style="font-size:.7rem;color:#c7d2fe;">Set sekali, jalan selamanya</p></div></div>'
+        + '</div></div>',
+
+    register: '<div style="text-align:center;color:white;max-width:285px;width:100%;">'
+        + '<div style="display:inline-flex;align-items:center;justify-content:center;width:3.5rem;height:3.5rem;border-radius:1rem;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);margin-bottom:1.4rem;">'
+        + '<img src="{{ url_for("static", filename="img/logo-blastpro.png") }}" alt="BlastPro" style="width:2.2rem;height:2.2rem;object-fit:contain;"></div>'
+        + '<h1 style="font-size:1.75rem;font-weight:800;line-height:1.2;margin-bottom:.55rem;">Bergabung &<br>Mulai Dominasi!</h1>'
+        + '<p style="color:#c7d2fe;font-size:.83rem;line-height:1.55;margin-bottom:1.4rem;">Blast ke ratusan grup Telegram dalam hitungan menit.</p>'
+        + '<div style="display:flex;align-items:center;justify-content:center;gap:1rem;margin-bottom:1.4rem;">'
+        + '<div><div style="font-size:1.45rem;font-weight:900;">500+</div><div style="font-size:.6rem;color:#c7d2fe;margin-top:.15rem;">UMKM Aktif</div></div>'
+        + '<div style="width:1px;height:30px;background:rgba(255,255,255,.2);"></div>'
+        + '<div><div style="font-size:1.45rem;font-weight:900;">Gratis</div><div style="font-size:.6rem;color:#c7d2fe;margin-top:.15rem;">Mulai Coba</div></div>'
+        + '<div style="width:1px;height:30px;background:rgba(255,255,255,.2);"></div>'
+        + '<div><div style="font-size:1.45rem;font-weight:900;">100+</div><div style="font-size:.6rem;color:#c7d2fe;margin-top:.15rem;">Grup Dijangkau</div></div>'
+        + '</div>'
+        + '<div style="display:flex;flex-direction:column;gap:.55rem;text-align:left;">'
+        + '<div class="feat-item"><div class="feat-icon"><i class="fa-solid fa-user-plus" style="color:white;font-size:.75rem;"></i></div><div><p style="font-size:.8rem;font-weight:700;color:white;line-height:1.2;">Daftar Dalam 30 Detik</p><p style="font-size:.7rem;color:#c7d2fe;">Tanpa kartu kredit</p></div></div>'
+        + '<div class="feat-item"><div class="feat-icon"><i class="fa-solid fa-shield-halved" style="color:white;font-size:.75rem;"></i></div><div><p style="font-size:.8rem;font-weight:700;color:white;line-height:1.2;">Data 100% Aman</p><p style="font-size:.7rem;color:#c7d2fe;">Enkripsi 256-bit</p></div></div>'
+        + '<div class="feat-item"><div class="feat-icon"><i class="fa-solid fa-bolt" style="color:white;font-size:.75rem;"></i></div><div><p style="font-size:.8rem;font-weight:700;color:white;line-height:1.2;">Langsung Aktif</p><p style="font-size:.7rem;color:#c7d2fe;">Verifikasi email, langsung pakai</p></div></div>'
+        + '</div></div>'
+};
+
+function doSwitch(to) {
+    if (to === currentMode || busy) return;
+    busy = true;
+
+    var from     = currentMode;
+    currentMode  = to;
+    var goRight  = (to === 'register'); /* panel slides RIGHT when going to register */
+
+    var root      = document.getElementById('auth-root');
+    var ovEl      = document.getElementById('ov-content');
+    var bgEl      = document.getElementById('overlay-bg');
+    var layerEl   = document.getElementById('overlay-layer');
+    var revZone   = document.getElementById('zone-' + to);
+    var srcZone   = document.getElementById('zone-' + from);
+    var revInner  = revZone.querySelector('.form-inner');
+
+    /* ── PRE-SWITCH: Drop BOTH zones below the overlay so panel can slide
+       over the source form and reveal the target form naturally ── */
+    srcZone.style.zIndex = '5';
+    revZone.style.zIndex = '5';
+
+    /* ── PHASE 0: Pre-set the revealed form hidden (instant, no transition) ── */
+    revInner.style.transition = 'none';
+    revInner.style.opacity    = '0';
+    revInner.style.transform  = 'translateY(24px)';
+    revInner.offsetHeight; /* force reflow */
+
+    /* ── PHASE 1: WIND-UP / ANCANG-ANCANG (0 – 280ms) ──────────────────────
+       The layer leans backward (opposite to travel direction) — like winding
+       up a spring. The background also subtly compresses. Both use the same
+       280ms duration so they finish together right before the slide. */
+    var windClass = goRight ? 'wind-right' : 'wind-left';
+    layerEl.classList.add(windClass);
+    bgEl.classList.add(windClass);
+
+    /* ── PHASE 2: SLIDE (starts at 280ms when wind-up ends) ─────────────────
+       Background slides FIRST at 280ms (faster curve, 550ms).
+       Layer structure slides 50ms LATER at 330ms (slower curve, 700ms).
+       This stagger creates visible depth — bg leads, structure follows. */
+    setTimeout(function() {
+        /* Remove wind-up classes */
+        layerEl.classList.remove(windClass);
+        bgEl.classList.remove(windClass);
+
+        /* Kick off BG slide immediately */
+        root.className = 'mode-' + to;
+        history.replaceState(null, '', '/' + to);
+
+        /* ── PHASE 3: FORM REVEAL (50ms after slide starts = 330ms total) ──
+           Make container instantly visible; complex child entrance animations
+           handle the reveal — each element animates in with its own effect. */
+        setTimeout(function() {
+            revInner.style.transition = 'none';
+            revInner.style.opacity    = '1';
+            revInner.style.transform  = 'translateY(0)';
+            runFormEntrance(revZone, 0);
+        }, 80);
+
+        /* ── PHASE 4: CONTENT SWAP inside panel (at midpoint ~350ms after slide) ──
+           Panel content briefly fades, swaps to new content, fades back in.
+           The midpoint is visually inside the panel's path — seamless. */
+        setTimeout(function() {
+            ovEl.style.transition = 'opacity 0.13s ease';
+            ovEl.style.opacity    = '0';
+            setTimeout(function() {
+                ovEl.innerHTML        = CONTENT[to];
+                ovEl.style.transition = 'opacity 0.3s ease';
+                ovEl.style.opacity    = '1';
+            }, 130);
+        }, 290);
+
+    }, 280); /* wait for wind-up to complete */
+
+    /* ── PHASE 5: UNLOCK + elevate target zone above overlay ── */
+    setTimeout(function() {
+        revZone.style.zIndex = '15';
+        busy = false;
+    }, 1100);
+}
+
+function switchToRegister() { doSwitch('register'); }
+function switchToLogin()    { doSwitch('login');    }
+
+/* Password visibility */
+function togglePwd(id, iconId) {
+    var inp = document.getElementById(id), icon = document.getElementById(iconId);
+    if (!inp) return;
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+    icon.classList.toggle('fa-eye', inp.type === 'password');
+    icon.classList.toggle('fa-eye-slash', inp.type === 'text');
+}
+
+/* Login submit */
+function handleLoginSubmit() {
+    var btn = document.getElementById('btn-login');
+    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i><span>Memverifikasi...</span>';
+    btn.disabled = true; btn.style.opacity = '.75';
+    return true;
+}
+
+/* Email domain check */
+var BAD = ['10minutemail.com','temp-mail.org','yopmail.com','guerrillamail.com','mailinator.com','throwawaymail.com','maildrop.cc','trashmail.com','tempmail.com','spam4.me','getnada.com','inboxkitten.com'];
+var emailOk = true;
+function checkEmailDomain(val) {
+    var warn = document.getElementById('emailWarn'), btn = document.getElementById('btn-register');
+    if (val.includes('@') && BAD.includes(val.split('@')[1].toLowerCase())) {
+        warn.style.display = 'inline'; btn.disabled = true; btn.style.opacity = '.5'; emailOk = false; return;
+    }
+    warn.style.display = 'none'; btn.disabled = false; btn.style.opacity = '1'; emailOk = true;
+}
+
+/* Password strength */
+var passOk = false;
+function checkPassStrength(pw) {
+    var bars = ['sb1','sb2','sb3','sb4'].map(function(id){ return document.getElementById(id); });
+    var stat = document.getElementById('passStatus');
+    var rqs  = [document.getElementById('rqLen'), document.getElementById('rqUp'), document.getElementById('rqNum')];
+    bars.forEach(function(b){ b.style.background = '#e5e7eb'; });
+    rqs.forEach(function(el){ el.style.color='#9ca3af'; el.style.fontWeight='600'; var i=el.querySelector('i'); i.className='fa-solid fa-circle'; i.style.fontSize='.2rem'; });
+    if (!pw) { stat.textContent='Min 8 Karakter'; stat.style.color='#9ca3af'; passOk=false; return; }
+    var s=0;
+    if (pw.length>=8){s++;mark(rqs[0]);}
+    if(/[A-Z]/.test(pw)&&/[a-z]/.test(pw)){s++;mark(rqs[1]);}
+    if(/\d/.test(pw)){s++;mark(rqs[2]);}
+    if(/[^a-zA-Z\d]/.test(pw)){s++;}
+    var cols=['','#ef4444','#f59e0b','#10b981','#6366f1'],txts=['','Sangat Lemah','Sedang','Kuat','Sangat Kuat 🔥'];
+    for(var i=0;i<s;i++) bars[i].style.background=cols[s];
+    stat.textContent=txts[s]; stat.style.color=cols[s]; stat.style.fontWeight=s>=3?'800':'600';
+    passOk=s>=3;
+}
+function mark(el){ el.style.color='#10b981'; el.style.fontWeight='800'; var i=el.querySelector('i'); i.className='fa-solid fa-check'; i.style.fontSize='.6rem'; }
+
+/* Register validation */
+function validateRegForm() {
+    if (document.getElementById('rUsername').value.length < 4) { alert('Username minimal 4 karakter!'); return false; }
+    if (!emailOk) return false;
+    if (!passOk)  { alert('Password terlalu lemah. Lengkapi syarat di bawah kolom password.'); return false; }
+    var btn = document.getElementById('btn-register');
+    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i><span>Membuat Akun...</span>';
+    btn.disabled = true; btn.style.opacity='.75';
+    return true;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   PAGE ENTRANCE SYSTEM — COMPLEX & UNUSUAL ANIMATIONS (REBUILT FROM ZERO)
+   ══════════════════════════════════════════════════════════════════════════ */
+
+function anim(el, keyframe, dur, delay, easing, onDone) {
+    if (!el) return;
+    var e = easing || 'cubic-bezier(0.22,1,0.36,1)';
+    el.style.animation = keyframe + ' ' + dur + 's ' + e + ' ' + (delay||0) + 'ms both';
+    if (onDone) setTimeout(onDone, (delay||0) + dur*1000 + 20);
+}
+
+function runPageEntrance() {
+    var isReg = currentMode === 'register';
+    var activeZone = document.getElementById(isReg ? 'zone-register' : 'zone-login');
+
+    /* ── 0. SCAN LINE — neon sweep across full page on load ── */
+    var scan = document.createElement('div');
+    scan.style.cssText = [
+        'position:fixed;left:0;right:0;height:3px;z-index:9999;pointer-events:none;',
+        'background:linear-gradient(90deg,transparent 0%,rgba(99,102,241,.85) 30%,',
+        'rgba(167,139,250,1) 50%,rgba(99,102,241,.85) 70%,transparent 100%);',
+        'top:-4px;opacity:0;filter:blur(1px);box-shadow:0 0 14px rgba(99,102,241,.7);'
+    ].join('');
+    document.body.appendChild(scan);
+    setTimeout(function() {
+        scan.style.cssText += 'transition:top 0.92s linear,opacity 0.18s ease;opacity:1;';
+        scan.style.top = '101vh';
+        setTimeout(function() {
+            scan.style.opacity = '0';
+            setTimeout(function() { scan.remove(); }, 200);
+        }, 870);
+    }, 40);
+
+    /* ── 1. BACK LINK — glitch-snap from left with hue artifact ── */
+    var bl = document.getElementById('back-link');
+    if (bl) {
+        setTimeout(function() {
+            bl.style.opacity = '';
+            bl.style.animation = 'glitchSnap 0.72s cubic-bezier(0.22,1,0.36,1) both';
+        }, 80);
+    }
+
+    /* ── 2. OVERLAY BG — curtain sweep from near edge ── */
+    var ovBg    = document.getElementById('overlay-bg');
+    var ovLayer = document.getElementById('overlay-layer');
+    var origin  = isReg ? 'right center' : 'left center';
+
+    if (ovBg) {
+        ovBg.style.transformOrigin = origin;
+        ovBg.style.animation = 'curtainReveal 0.9s cubic-bezier(0.22,1,0.36,1) 60ms both';
+        setTimeout(function() {
+            ovBg.style.transformOrigin = '';
+            ovBg.style.animation = '';
+            ovBg.style.opacity = '1';
+        }, 1120);
+    }
+
+    /* ── 3. OVERLAY LAYER — curtain sweep, 60ms later, same origin ── */
+    if (ovLayer) {
+        ovLayer.style.transformOrigin = origin;
+        ovLayer.style.animation = 'curtainReveal 0.95s cubic-bezier(0.22,1,0.36,1) 120ms both';
+        setTimeout(function() {
+            ovLayer.style.transformOrigin = '';
+            ovLayer.style.animation = '';
+            ovLayer.style.opacity = '1';
+        }, 1200);
+    }
+
+    /* ── 4. FLOATING SHAPES — spring pop-in, staggered ── */
+    var shapes = document.querySelectorAll('.fshape');
+    shapes.forEach(function(sh, i) {
+        setTimeout(function() {
+            sh.style.transform = 'scale(0)';
+            requestAnimationFrame(function() {
+                sh.style.transition = [
+                    'transform 0.65s cubic-bezier(0.34,1.56,0.64,1)',
+                    'opacity 0.45s ease'
+                ].join(',');
+                sh.style.transform = '';
+                sh.style.opacity   = '1';
+            });
+        }, 490 + i * 75);
+    });
+
+    /* ── 5. OVERLAY CONTENT ── */
+    var ov = document.getElementById('ov-inner');
+    if (ov) {
+        var k = ov.children;
+
+        /* Logo: 3D coin flip */
+        if (k[0]) { k[0].style.opacity='0'; anim(k[0], 'coinFlip',  0.78, 360); }
+
+        /* H1 title: barrel roll from below */
+        if (k[1]) { k[1].style.opacity='0'; anim(k[1], 'barrelUp',  0.68, 520); }
+
+        /* Subtitle: blur-to-sharp focus pull */
+        if (k[2]) { k[2].style.opacity='0'; anim(k[2], 'focusPull', 0.72, 660, 'ease'); }
+
+        /* Stats: each stat number drops in with spin */
+        if (k[3]) {
+            k[3].style.opacity = '0';
+            setTimeout(function() {
+                k[3].style.opacity = '1';
+                var statNums = k[3].querySelectorAll('[class*="font-bold"],[class*="font-extrabold"]');
+                statNums.forEach(function(sn, si) {
+                    sn.style.display = 'inline-block';
+                    sn.style.animation = 'statDrop 0.72s cubic-bezier(0.22,1,0.36,1) ' + (si*115) + 'ms both';
+                });
+            }, 790);
+        }
+
+        /* Feature items: 3D depth-slide with blur */
+        if (k[4]) {
+            var feats = k[4].children;
+            for (var fi=0; fi<feats.length; fi++) {
+                (function(f, idx) {
+                    f.style.opacity = '0';
+                    anim(f, 'depthSlide', 0.7, 910 + idx*125);
+                })(feats[fi], fi);
+            }
+        }
+    }
+
+    /* ── 6. ACTIVE FORM PANEL — delegate to shared runFormEntrance ── */
+    if (activeZone) runFormEntrance(activeZone, 160);
+}
+
+/* ── SHARED FORM ENTRANCE — used on page load AND after doSwitch ──────────
+   zone      : the #zone-login or #zone-register element
+   baseDelay : ms offset added to every timing (160 on load, 0 on switch)  */
+function runFormEntrance(zone, baseDelay) {
+    var d     = baseDelay || 0;
+    var inner = zone.querySelector('.form-inner');
+    if (!inner) return;
+
+    var hdr = inner.children[0];
+
+    /* — Reset helper: clear old animation/state so we can re-animate — */
+    function rst(el) {
+        if (!el) return;
+        el.style.animation  = 'none';
+        el.style.opacity    = '0';
+        el.style.clipPath   = '';
+        el.style.transform  = '';
+        el.style.filter     = '';
+        el.offsetHeight;           /* force reflow */
+        el.style.animation  = '';
+    }
+
+    /* Reset all targets first */
+    if (hdr) { rst(hdr.children[0]); rst(hdr.children[1]); rst(hdr.children[2]); }
+    var form = inner.querySelector('form');
+    if (form) {
+        var fw = form.querySelector('div');
+        if (fw) {
+            for (var ri=0; ri<fw.children.length; ri++) rst(fw.children[ri]);
+            rst(form.querySelector('button[type=submit]'));
+        }
+    }
+    rst(inner.lastElementChild !== hdr ? inner.lastElementChild : null);
+
+    /* — Animate — */
+    if (hdr) {
+        var hk = hdr.children;
+
+        /* Logo: elastic pop → 3× glow pulse */
+        if (hk[0]) {
+            anim(hk[0], 'elasticPop', 0.82, d, 'cubic-bezier(0.34,1.56,0.64,1)', function() {
+                hk[0].style.opacity = '1';
+                hk[0].style.animation = 'glowPulse 1.9s ease 3';
+                setTimeout(function() { hk[0].style.animation = ''; }, 1.9*3*1000+50);
+            });
+        }
+        if (hk[1]) anim(hk[1], 'barrelUp',  0.65, d + 140);
+        if (hk[2]) anim(hk[2], 'focusPull', 0.68, d + 270, 'ease');
+    }
+
+    if (form) {
+        var fw2 = form.querySelector('div');
+        if (fw2) {
+            var fields = fw2.children;
+            for (var i=0; i<fields.length; i++) {
+                (function(field, idx) {
+                    anim(field, 'wipeIn', 0.58, d + 350 + idx*90, 'cubic-bezier(0.22,1,0.36,1)', function() {
+                        var inp = field.querySelector('input');
+                        if (inp) {
+                            inp.style.transition = 'box-shadow 0.12s ease';
+                            inp.style.boxShadow  = '0 0 0 5px rgba(99,102,241,.18),inset 0 0 0 1px rgba(99,102,241,.3)';
+                            setTimeout(function() {
+                                inp.style.boxShadow  = '';
+                                inp.style.transition = '';
+                            }, 380);
+                        }
+                    });
+                })(fields[i], i);
+            }
+
+            var btn = form.querySelector('button[type=submit]');
+            if (btn) anim(btn, 'neonBurst', 0.75, d + 350 + fields.length*90 + 40);
+        }
+    }
+
+    var footer = inner.lastElementChild;
+    if (footer && hdr && footer !== hdr) {
+        anim(footer, 'focusPull', 0.6, d + 900, 'ease');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(runPageEntrance, 50);
+});
+
+/* ── Post-Register Redirect Animation ── */
+(function() {
+    var POST_REGISTER = {{ 'true' if post_register is defined and post_register else 'false' }};
+    if (!POST_REGISTER) return;
+
+    var overlay  = document.getElementById('redirect-overlay');
+    var bar      = document.getElementById('redirect-bar');
+    var counter  = document.getElementById('redirect-counter');
+    var DURATION = 3000;
+    var secs     = Math.ceil(DURATION / 1000);
+
+    requestAnimationFrame(function() {
+        overlay.classList.add('visible');
+
+        requestAnimationFrame(function() {
+            bar.style.transitionDuration = DURATION + 'ms';
+            bar.style.width = '100%';
+        });
+    });
+
+    var tick = setInterval(function() {
+        secs--;
+        if (secs > 0) {
+            counter.textContent = 'Mohon tunggu ' + secs + ' detik...';
+        } else {
+            counter.textContent = 'Memuat halaman login...';
+            clearInterval(tick);
+        }
+    }, 1000);
+
+    setTimeout(function() {
+        overlay.classList.add('fade-out');
+        overlay.classList.remove('visible');
+        setTimeout(function() {
+            overlay.style.display = 'none';
+        }, 450);
+    }, DURATION);
+})();
+</script>
+</body>
+</html>

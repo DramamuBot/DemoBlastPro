@@ -1,0 +1,1228 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Broadcast Pesan{% endblock %}
+
+{% block content %}
+<div class="broadcast-page max-w-7xl mx-auto animate-fade-in pb-28 relative z-10">
+
+    <div class="dp-page-header mb-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pl-2">
+            <div>
+                <div class="flex items-center gap-3 mb-2">
+                    <i class="fa-solid fa-chart-bar flex-shrink-0" style="color: var(--accent); font-size: 4rem;"></i>
+                    <div>
+                        <p class="text-[10px] font-bold uppercase tracking-widest leading-none mb-0.5" style="color: var(--accent); opacity: 0.75">Broadcast Real-Time</p>
+                        <h1 class="text-2xl font-extrabold tracking-tight text-slate-800 sm:text-3xl leading-tight">Broadcast ke Ratusan Grup</h1>
+                    </div>
+                </div>
+                <p class="mt-1.5 text-sm text-slate-500">Kirim pesan massal secara real-time. Pilih pengirim, target, dan pantau log pengiriman secara langsung.</p>
+            </div>
+            <div class="flex gap-3 shrink-0">
+                <div class="dp-stat-card purple" style="padding:0.875rem 1.25rem;min-width:100px;text-align:center;cursor:default">
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Akun Aktif</p>
+                    <p class="text-2xl font-black text-slate-800 mt-0.5">{{ accounts|length }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-12 gap-5 sm:gap-7 items-start">
+        
+        <div class="xl:col-span-7 space-y-5 sm:space-y-6">
+            
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden relative">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50/40 rounded-bl-full pointer-events-none"></div>
+                <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center relative z-10">
+                    <h3 class="text-xs font-black text-slate-600 uppercase tracking-widest flex items-center gap-2.5">
+                        <span class="broadcast-step-badge">1</span>
+                        Pilih Pengirim
+                    </h3>
+                </div>
+                <div class="p-6 relative z-10">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <label class="cursor-pointer relative group h-full">
+                            <input type="radio" name="sender_phone" value="auto" class="peer sr-only" checked>
+                            <div class="p-4 rounded-2xl border-2 border-slate-200 hover:border-violet-300 peer-checked:border-violet-500 peer-checked:shadow-md transition-all text-center h-full flex flex-col items-center justify-center gap-3" style="peer-checked:background:rgba(124,58,237,0.04)">
+                                <i class="fa-solid fa-robot text-2xl text-slate-400 peer-checked:text-violet-600 group-hover:scale-110 transition duration-300" style="transition:transform 0.25s,color 0.2s"></i>
+                                <div class="flex flex-col">
+                                    <span class="text-sm font-bold text-gray-800">Otomatis</span>
+                                    <span class="text-[10px] text-gray-400 font-medium">Rotasi Semua Akun</span>
+                                </div>
+                            </div>
+                            <div class="absolute top-3 right-3 opacity-0 peer-checked:opacity-100 transition transform peer-checked:scale-110 drop-shadow-md" style="color:#7c3aed">
+                                <i class="fa-solid fa-circle-check text-lg"></i>
+                            </div>
+                        </label>
+
+                        {% for acc in accounts %}
+                        <label class="cursor-pointer relative group h-full">
+                            <input type="radio" name="sender_phone" value="{{ acc.phone_number }}" class="peer sr-only">
+                            <div class="user-sender-card p-4 rounded-2xl border-2 border-slate-200 hover:border-blue-300 peer-checked:border-blue-500 peer-checked:shadow-md transition-all text-center h-full flex flex-col items-center justify-center gap-3">
+                                <i class="user-sender-icon fa-brands fa-telegram text-2xl text-slate-400 group-hover:scale-110 transition duration-300" style="transition:transform 0.25s,color 0.2s"></i>
+                                <div class="flex flex-col w-full px-2">
+                                    <span class="text-sm font-bold text-gray-800 truncate" title="{{ acc.first_name }}">{{ acc.first_name }}</span>
+                                    <span class="user-sender-phone text-[10px] text-gray-400 truncate font-mono mt-0.5">{{ acc.phone_number }}</span>
+                                </div>
+                            </div>
+                            <div class="absolute top-3 right-3 text-blue-500 opacity-0 peer-checked:opacity-100 transition transform peer-checked:scale-110 drop-shadow-md">
+                                <i class="fa-solid fa-circle-check text-lg"></i>
+                            </div>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden relative">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50/40 rounded-bl-full pointer-events-none"></div>
+                <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center relative z-10">
+                    <h3 class="text-xs font-black text-slate-600 uppercase tracking-widest flex items-center gap-2.5">
+                        <span class="broadcast-step-badge">2</span>
+                        Target Penerima
+                    </h3>
+                </div>
+                <div class="p-6 space-y-5 relative z-10">
+                    <div class="dp-select-wrapper">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10" style="color:#7c3aed">
+                            <i class="fa-solid fa-crosshairs text-sm"></i>
+                        </div>
+                        <select id="targetType" onchange="toggleTargetMode()" class="dp-select" style="padding-left:2.75rem">
+                            <option value="all">🌍 Semua Database (Global Blast)</option>
+                            <option value="manual" {% if selected_ids %}selected{% endif %}>🎯 Pilih Manual (Centang User)</option>
+                        </select>
+                    </div>
+
+                    <div id="manualSelectionBox" class="{% if not selected_ids %}hidden{% endif %} transition-all duration-300">
+                        <div class="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-5 flex justify-between items-center shadow-inner">
+                            <div class="flex items-center gap-4">
+                                <i class="fa-solid fa-users-viewfinder text-xl text-amber-600"></i>
+                                <div>
+                                    <span class="text-xs font-bold text-amber-800 uppercase tracking-wider block mb-0.5">Target Terpilih</span>
+                                    <div class="flex items-baseline gap-1">
+                                        <span class="text-2xl font-black text-gray-900 leading-none" id="selectedCountDisplay">{{ count_selected if count_selected else 0 }}</span>
+                                        <span class="text-xs font-bold text-gray-500">Kontak</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" onclick="openDatabaseModal()" class="dp-btn dp-btn-amber dp-btn-sm group">
+                                <i class="fa-solid fa-list-check group-hover:animate-bounce"></i> 
+                                <span class="hidden sm:inline">Buka Database</span>
+                                <span class="sm:hidden">Buka</span>
+                            </button>
+                        </div>
+                        <input type="hidden" id="selectedIdsInput" name="selected_ids" value="{{ selected_ids if selected_ids else '' }}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden relative">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50/40 rounded-bl-full pointer-events-none"></div>
+                <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 relative z-10">
+                    <h3 class="text-xs font-black text-slate-600 uppercase tracking-widest flex items-center gap-2.5">
+                        <span class="broadcast-step-badge">3</span>
+                        Konten Pesan
+                    </h3>
+                    
+                    <div class="broadcast-tab-switcher flex bg-slate-100 rounded-xl p-1 gap-1 shadow-inner w-full sm:w-auto border border-slate-200">
+                        <button type="button" onclick="setMode('manual')" id="btnTabManual"
+                            class="broadcast-tab-btn flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 text-xs font-bold rounded-lg transition-all duration-200 broadcast-tab-active">
+                            <i class="fa-solid fa-pen-nib text-[11px]"></i>
+                            <span>Tulis Manual</span>
+                        </button>
+                        <button type="button" onclick="setMode('fetch')" id="btnTabFetch"
+                            class="broadcast-tab-btn flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 text-xs font-bold rounded-lg transition-all duration-200 broadcast-tab-inactive">
+                            <i class="fa-solid fa-link text-[11px]"></i>
+                            <span>Ambil Link</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="p-6 space-y-5 relative z-10">
+                    
+                    <div id="fetchSection" class="hidden space-y-3 bg-blue-50/50 p-5 rounded-2xl border border-blue-100 transition-all">
+                        <label class="text-xs font-bold text-blue-800 uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-link"></i> Link Pesan Telegram
+                        </label>
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <input type="text" id="teleLinkInput" placeholder="https://t.me/channel_anda/123" class="dp-input flex-1 font-medium">
+                            <button type="button" onclick="fetchContent()" id="btnFetch" class="dp-btn dp-btn-sky whitespace-nowrap min-w-[120px]">
+                                <i class="fa-solid fa-cloud-arrow-down"></i> TARIK
+                            </button>
+                        </div>
+                        <p class="text-[10px] text-blue-500 font-medium">*Teks dan Media akan otomatis ditarik dan mengisi editor di bawah.</p>
+                    </div>
+
+                    <input type="hidden" id="sourceChatId">
+                    <input type="hidden" id="sourceMessageId">
+
+                    <div class="dp-select-wrapper">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10" style="color:#7c3aed">
+                            <i class="fa-solid fa-quote-left text-sm"></i>
+                        </div>
+                        <select id="templateSelect" onchange="loadTemplate()" class="dp-select" style="padding-left:2.75rem">
+                            <option value="">-- Gunakan Template Tersimpan (Opsional) --</option>
+                            {% for t in templates %}
+                            <option value="{{ t.id }}" data-msg="{{ t.message_text }}" data-chat="{{ t.source_chat_id }}" data-msgid="{{ t.source_message_id }}">{{ t.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div id="fetchStatus" class="hidden bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center gap-4 shadow-sm animate-fade-in-up">
+                        <i class="fa-solid fa-cloud-bolt text-emerald-600 text-xl shrink-0"></i>
+                        <div class="flex-1">
+                            <span class="text-sm font-black text-emerald-800 block">Cloud Media Ready</span>
+                            <span class="text-xs text-emerald-600 font-medium">Gambar/Video akan otomatis dikirim dari Telegram.</span>
+                        </div>
+                        <button type="button" onclick="resetFetch()" class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-500 hover:bg-red-100 hover:text-red-500 transition flex items-center justify-center shrink-0" title="Batal Gunakan Media">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+
+                    <div class="relative rounded-xl shadow-sm">
+                        <textarea id="messageInput" rows="7" class="dp-input font-mono text-sm resize-y leading-relaxed" style="padding:1.25rem;" placeholder="Halo {name}, tulis pesan broadcast Anda di sini..." oninput="updatePreview()"></textarea>
+                        
+                        <div class="absolute bottom-4 right-4 flex gap-2">
+                            <button type="button" onclick="insertTag('{name}')" class="bc-tag-btn text-xs border px-3 py-1.5 rounded-lg transition font-bold shadow-sm flex items-center gap-1 tooltip-trigger" title="Sisipkan Nama Target">
+                                <i class="fa-solid fa-user-tag text-[10px]"></i> + Nama
+                            </button>
+                            <button type="button" onclick="insertTag('**text**')" class="text-xs bg-gray-100 border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-800 hover:text-white transition font-bold text-gray-600 shadow-sm tooltip-trigger" title="Teks Tebal">
+                                <i class="fa-solid fa-bold text-[10px]"></i>
+                            </button>
+                            <button type="button" onclick="insertTag('__text__')" class="text-xs bg-gray-100 border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-800 hover:text-white transition font-bold text-gray-600 shadow-sm tooltip-trigger" title="Teks Miring">
+                                <i class="fa-solid fa-italic text-[10px]"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="imageUploadSection" class="transition-all">
+                        <label class="image-upload-area relative flex items-center gap-4 p-4 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-violet-50/30 hover:border-violet-400 transition group overflow-hidden bg-white">
+                            <i class="fa-regular fa-image text-2xl text-gray-400 group-hover:text-violet-500 transition shrink-0"></i>
+                            <div class="flex-1 min-w-0">
+                                <span class="text-sm font-bold text-gray-700 block truncate" id="fileLabel">Upload Gambar (Opsional)</span>
+                                <span class="text-xs text-gray-400 mt-0.5 block">Format JPG, PNG (Maks 5MB)</span>
+                            </div>
+                            <i class="fa-solid fa-arrow-up-from-bracket text-xs text-gray-400 group-hover:text-indigo-500 transition shrink-0"></i>
+                            <input type="file" id="imageInput" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/*" onchange="previewImage(event)">
+                        </label>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="flex gap-4">
+                <button type="button" onclick="startBroadcast()" id="btnBlast" class="dp-btn dp-btn-primary flex-1 group outline-none focus:ring-4 focus:ring-violet-300" style="padding:1rem;font-size:1.125rem;font-weight:900;letter-spacing:0.025em">
+                    <i class="fa-solid fa-rocket animate-pulse"></i> 
+                    <span>EKSEKUSI BROADCAST</span>
+                </button>
+                
+                <button type="button" onclick="stopBroadcast()" id="btnStop" disabled class="dp-btn dp-btn-danger tooltip-trigger disabled:opacity-50 disabled:cursor-not-allowed" style="width:5rem;padding:1rem" title="Hentikan Paksa">
+                    <i class="fa-solid fa-stop text-xl"></i>
+                </button>
+            </div>
+
+        </div>
+
+        <div class="xl:col-span-5 space-y-5 sm:space-y-6 xl:sticky xl:top-6">
+
+            <div class="flex justify-center animate-fade-in">
+                <div class="relative">
+                    <!-- Side buttons -->
+                    <div class="absolute -left-[5px] top-20 w-[4px] h-8 bg-gray-700 rounded-l-full shadow-inner"></div>
+                    <div class="absolute -left-[5px] top-32 w-[4px] h-10 bg-gray-700 rounded-l-full shadow-inner"></div>
+                    <div class="absolute -left-[5px] top-44 w-[4px] h-10 bg-gray-700 rounded-l-full shadow-inner"></div>
+                    <div class="absolute -right-[5px] top-28 w-[4px] h-14 bg-gray-700 rounded-r-full shadow-inner"></div>
+
+                    <!-- Phone frame -->
+                    <div class="w-[280px] sm:w-[300px] bg-gray-950 rounded-[2.6rem] p-[9px] shadow-[0_30px_60px_-10px_rgba(0,0,0,0.4),0_0_0_1px_rgba(255,255,255,0.05)] ring-1 ring-white/10">
+                        <div class="phone-screen-bg bg-white rounded-[2.1rem] overflow-hidden flex flex-col relative" style="height: clamp(340px, calc(100vh - 34rem), 460px);">
+
+                            <!-- Status bar (iOS style with dynamic island) -->
+                            <div class="chat-status-bar bg-[#2481cc] shrink-0" style="background:var(--tg-header-color,#2481cc)">
+                                <!-- Dynamic island row -->
+                                <div class="relative flex items-center justify-between px-5 pt-2.5 pb-0.5">
+                                    <span class="text-[10px] font-semibold text-white/95 tracking-wide" style="font-variant-numeric:tabular-nums">9:41</span>
+                                    <!-- Dynamic island pill -->
+                                    <div class="absolute left-1/2 -translate-x-1/2 top-1.5 w-[72px] h-[18px] bg-black rounded-full z-30 flex items-center justify-center gap-1.5 shadow-inner">
+                                        <div class="w-1.5 h-1.5 bg-[#2a2a2a] rounded-full"></div>
+                                        <div class="w-6 h-[3px] bg-[#1a1a1a] rounded-full"></div>
+                                    </div>
+                                    <div class="flex items-center gap-1.5">
+                                        <!-- Signal bars -->
+                                        <div class="flex items-end gap-px">
+                                            <div class="w-[3px] h-[5px] bg-white/90 rounded-sm"></div>
+                                            <div class="w-[3px] h-[7px] bg-white/90 rounded-sm"></div>
+                                            <div class="w-[3px] h-[9px] bg-white/90 rounded-sm"></div>
+                                            <div class="w-[3px] h-[11px] bg-white/90 rounded-sm"></div>
+                                        </div>
+                                        <i class="fa-solid fa-wifi text-white/90 text-[9px]"></i>
+                                        <!-- Battery -->
+                                        <div class="flex items-center gap-px">
+                                            <div class="w-[18px] h-[9px] border border-white/80 rounded-[2px] p-px flex items-center">
+                                                <div class="h-full w-[80%] bg-white/90 rounded-[1px]"></div>
+                                            </div>
+                                            <div class="w-[2px] h-[5px] bg-white/60 rounded-r-sm"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Chat header (Telegram style) -->
+                            <div class="chat-header-bar px-3 pt-1.5 pb-2.5 flex items-center gap-2 text-white shrink-0" style="background:var(--tg-header-color,#2481cc);box-shadow:0 1px 3px rgba(0,0,0,0.15)">
+                                <button class="w-7 h-7 flex items-center justify-center rounded-full transition">
+                                    <i class="fa-solid fa-chevron-left text-sm text-white/90"></i>
+                                </button>
+                                <div class="relative shrink-0">
+                                    <div class="w-9 h-9 bg-gradient-to-br from-violet-500 to-purple-600 rounded-full flex items-center justify-center shadow-md">
+                                        <i class="fa-solid fa-paper-plane text-white text-[11px]"></i>
+                                    </div>
+                                    <div class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#4dcd5a] rounded-full border-[1.5px]" style="border-color:var(--tg-header-color,#2481cc)"></div>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-1 leading-tight">
+                                        <h4 class="font-semibold text-[13px] truncate">Pelanggan</h4>
+                                        <svg class="w-3 h-3 text-white/80 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                                    </div>
+                                    <p class="text-[10px] text-white/70 leading-none mt-0.5">online</p>
+                                </div>
+                                <div class="flex items-center gap-0.5 shrink-0">
+                                    <button class="w-7 h-7 flex items-center justify-center rounded-full transition">
+                                        <i class="fa-solid fa-phone text-[11px] text-white/90"></i>
+                                    </button>
+                                    <button class="w-7 h-7 flex items-center justify-center rounded-full transition">
+                                        <i class="fa-solid fa-ellipsis-vertical text-sm text-white/90"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Chat body -->
+                            <div id="chatBodyPreview" class="flex-1 overflow-y-auto overflow-x-hidden flex flex-col px-3 py-3 gap-2 custom-scrollbar"
+                                 style="background-color: #abbbc2; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-size: cover; background-position: center;">
+
+                                <!-- Date label -->
+                                <div class="flex justify-center my-1">
+                                    <span class="chat-date-badge bg-white/70 text-gray-500 text-[9px] font-medium px-3 py-0.5 rounded-full shadow-sm backdrop-blur-sm">Hari ini</span>
+                                </div>
+
+                                <div class="flex-1"></div>
+
+                                <!-- Incoming message bubble -->
+                                <div class="flex items-end gap-1.5 max-w-[88%] self-start animate-enter-bottom">
+                                    <div class="w-5 h-5 bg-gradient-to-br from-violet-500 to-indigo-600 rounded-full flex items-center justify-center shrink-0 mb-1 shadow-sm">
+                                        <i class="fa-solid fa-paper-plane text-white text-[7px]"></i>
+                                    </div>
+                                    <div class="relative">
+                                        <!-- Bubble tail -->
+                                        <svg class="chat-bubble-tail absolute -left-[6px] bottom-3 text-white" width="8" height="12" viewBox="0 0 8 12"><path fill="currentColor" d="M0 12C0 4 8 0 8 0v12z"/></svg>
+
+                                        <div class="chat-bubble-preview bg-white rounded-2xl rounded-bl-sm shadow-sm overflow-hidden">
+                                            <div id="previewImageContainer" class="hidden rounded-t-2xl overflow-hidden relative bg-gray-100 min-h-[120px] flex items-center justify-center">
+                                                <img id="previewImg" src="" class="w-full h-auto object-cover max-h-52 z-10 relative">
+                                            </div>
+
+                                            <div id="mockupCloudMedia" class="hidden w-full h-20 bg-gradient-to-br from-indigo-50 to-violet-50 flex-col items-center justify-center text-indigo-400 border-b border-indigo-100/50">
+                                                <i class="fa-brands fa-telegram text-2xl mb-1 opacity-60"></i>
+                                                <span class="text-[8px] font-black uppercase tracking-widest opacity-60">Media</span>
+                                            </div>
+
+                                            <div class="px-2 pt-2 pb-1">
+                                                <p id="previewText" class="chat-bubble-text text-[13px] text-gray-800 whitespace-pre-wrap leading-relaxed font-sans break-words">Halo <span class="bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-md text-[11px] font-bold mx-0.5 border border-amber-200">Nama</span>, tulis pesanmu...</p>
+                                            </div>
+
+                                            <div class="flex justify-end items-center gap-1 px-2 pb-2 pt-0.5">
+                                                <span class="chat-timestamp text-[9px] text-gray-400">09:41</span>
+                                                <svg class="w-3.5 h-3.5 text-blue-500" viewBox="0 0 16 11" fill="currentColor"><path d="M11.071.653a.75.75 0 0 1 .976 1.136L5.56 9.26a.75.75 0 0 1-1.073.043L.964 5.9a.75.75 0 0 1 1.072-1.05l3.037 3.1 5.998-7.297ZM15.07.653a.75.75 0 0 1 .976 1.136L9.56 9.26a.75.75 0 0 1-1.01.056l.937-.953 5.583-7.71Z"/></svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Input bar (Telegram style) -->
+                            <div class="chat-input-bar bg-white border-t border-gray-100 px-2 py-2 shrink-0 flex items-center gap-1.5">
+                                <button class="w-8 h-8 flex items-center justify-center text-gray-400 shrink-0">
+                                    <i class="fa-regular fa-face-smile text-[17px]"></i>
+                                </button>
+                                <div class="chat-input-field flex-1 bg-[#f4f4f5] rounded-2xl h-9 px-3 flex items-center border border-gray-200/60">
+                                    <span class="chat-input-placeholder text-[12px] text-gray-400 flex-1">Tulis pesan...</span>
+                                    <button class="w-5 h-5 flex items-center justify-center text-gray-400 shrink-0">
+                                        <i class="fa-solid fa-paperclip text-[11px]"></i>
+                                    </button>
+                                </div>
+                                <div class="w-9 h-9 rounded-full flex items-center justify-center text-white shrink-0 shadow-sm" style="background:#2481cc">
+                                    <i class="fa-solid fa-microphone text-sm"></i>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-[#0D1117] rounded-2xl overflow-hidden shadow-2xl border border-gray-800 flex flex-col h-52 relative animate-fade-in-up" style="animation-delay: 0.1s;">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-bl-full pointer-events-none blur-xl"></div>
+                <div class="bg-[#161B22] px-4 py-2.5 flex justify-between items-center border-b border-gray-800 relative z-10">
+                    <div class="flex items-center gap-3">
+                        <div class="flex gap-1.5">
+                            <div class="w-3 h-3 rounded-full bg-[#FF5F56] shadow-sm"></div>
+                            <div class="w-3 h-3 rounded-full bg-[#FFBD2E] shadow-sm"></div>
+                            <div class="w-3 h-3 rounded-full bg-[#27C93F] shadow-sm"></div>
+                        </div>
+                        <span class="text-gray-400 font-mono text-[11px] font-bold tracking-wider ml-1 flex items-center gap-2">
+                            <i class="fa-solid fa-terminal text-gray-500"></i> SYSTEM LOG
+                        </span>
+                    </div>
+                    <button type="button" onclick="clearLog()" class="text-[10px] text-gray-500 hover:text-white bg-gray-800 hover:bg-gray-700 px-2 py-1 rounded transition border border-gray-700 flex items-center gap-1">
+                        <i class="fa-solid fa-broom"></i> Clear
+                    </button>
+                </div>
+                <div id="logContent" class="flex-1 p-5 font-mono text-xs overflow-y-auto custom-scrollbar-dark text-gray-300 space-y-1.5 relative z-10 leading-relaxed">
+                    <div class="text-gray-500 italic">> BlastPro Engine v4.0 Standby...</div>
+                    <div class="text-gray-500 italic">> Waiting for command...</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div id="databaseModal" class="fixed inset-0 z-[100] hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-gray-900/80 backdrop-blur-md transition-opacity opacity-0" id="dbBackdrop" onclick="closeDatabaseModal()"></div>
+    <div class="fixed inset-0 z-10 flex items-center justify-center p-4 sm:p-6">
+        <div class="bg-white w-full max-w-5xl rounded-[2rem] shadow-2xl overflow-hidden h-[85vh] flex flex-col transform transition-all duration-300 scale-95 opacity-0" id="dbModalPanel">
+            
+            <div class="px-6 py-5 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4 bg-gray-900 text-white relative overflow-hidden shrink-0">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
+                
+                <div class="relative z-10 flex items-center gap-4 w-full sm:w-auto">
+                    <i class="fa-solid fa-users-viewfinder text-xl text-indigo-400"></i>
+                    <div>
+                        <h3 class="font-bold text-lg tracking-tight">Pilih Target Manual</h3>
+                        <p class="text-[11px] text-gray-400 mt-0.5">Centang kontak yang ingin dikirimi pesan.</p>
+                    </div>
+                </div>
+
+                <div class="relative z-10 flex items-center gap-3 w-full sm:w-auto">
+                    <div class="relative flex-1 sm:w-64">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                            <i class="fa-solid fa-search"></i>
+                        </div>
+                        <input type="text" id="apiSearchInput" placeholder="Cari Nama/Username..." class="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm outline-none transition" style="background:#1e293b;border:1px solid #334155;color:#e2e8f0;font-family:inherit">
+                    </div>
+                    <button type="button" onclick="closeDatabaseModal()" class="btn-close-on-dark">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 border-b border-gray-200 px-6 py-3 flex justify-between items-center shrink-0">
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Filter Folder:</span>
+                    <select id="apiFolderSelect" onchange="fetchCrmData()" class="dp-select" style="padding:0.35rem 2.25rem 0.35rem 0.75rem;font-size:0.75rem;border-radius:999px;font-weight:700">
+                        <option value="all">Semua Database</option>
+                        {% for acc in accounts %}
+                        <option value="{{ acc.phone_number }}">{{ acc.first_name }} ({{ acc.phone_number }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="text-xs font-bold text-gray-600 bg-white px-3 py-1.5 rounded-lg border border-gray-200 shadow-sm">
+                    Terpilih: <span id="modalSelectedCount" class="text-indigo-600 font-black ml-1">0</span>
+                </div>
+            </div>
+
+            <div class="flex-1 overflow-auto relative bg-white custom-scrollbar">
+                
+                <div id="apiLoadingState" class="absolute inset-0 z-20 flex flex-col items-center justify-center hidden">
+                    <i class="fa-solid fa-circle-notch fa-spin text-4xl text-indigo-500 mb-3"></i>
+                    <p class="text-sm font-bold text-gray-500 animate-pulse">Mengambil data...</p>
+                </div>
+
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-white sticky top-0 z-10 shadow-sm">
+                        <tr class="text-gray-400 text-[10px] uppercase tracking-wider border-b border-gray-100">
+                            <th class="p-4 w-12 text-center">
+                                <input type="checkbox" id="apiSelectAll" onchange="toggleApiSelectAll()" class="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+                            </th>
+                            <th class="p-4 font-extrabold">Profil Kontak</th>
+                            <th class="p-4 font-extrabold">Username</th>
+                            <th class="p-4 font-extrabold text-right">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="apiTableBody" class="divide-y divide-gray-50">
+                        </tbody>
+                </table>
+            </div>
+
+            <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3 shrink-0">
+                <button type="button" onclick="closeDatabaseModal()" class="dp-btn dp-btn-ghost dp-btn-sm">Batal</button>
+                <button type="button" onclick="applySelection()" class="dp-btn dp-btn-dark dp-btn-sm">
+                    <i class="fa-solid fa-check"></i> Gunakan Kontak Terpilih
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="toastContainer" class="fixed top-5 right-5 z-[9999] flex flex-col gap-3 pointer-events-none"></div>
+
+<style>
+    .bc-tag-btn { background: rgba(124,58,237,0.08); border-color: #ddd6fe; color: #6d28d9; }
+    .bc-tag-btn:hover { background: #7c3aed; border-color: #7c3aed; color: #ffffff; }
+    html[data-theme='dark'] .bc-tag-btn { background: rgba(124,58,237,0.18) !important; border-color: rgba(167,139,250,0.3) !important; color: #c4b5fd !important; }
+    html[data-theme='dark'] .bc-tag-btn:hover { background: #7c3aed !important; border-color: #7c3aed !important; color: #ffffff !important; }
+
+    .broadcast-page { color: var(--text-primary); }
+    .broadcast-page .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+    .broadcast-page .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .broadcast-page .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    .broadcast-page .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    .custom-scrollbar-dark::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar-dark::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar-dark::-webkit-scrollbar-thumb { background: #30363d; border-radius: 10px; }
+    .custom-scrollbar-dark::-webkit-scrollbar-thumb:hover { background: #484f58; }
+
+    .broadcast-page .tooltip-trigger { position: relative; }
+    .broadcast-page .tooltip-trigger:hover::before { content: attr(title); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); margin-bottom: 8px; background: #1f2937; color: white; font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 6px; white-space: nowrap; pointer-events: none; z-index: 50; opacity: 0; animation: fadeInTooltip 0.2s forwards; }
+    @keyframes fadeInTooltip { to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+    .animate-enter-bottom { animation: enterBottom 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    @keyframes enterBottom { from { opacity: 0; transform: translateY(10px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+    .broadcast-page .bg-white,
+    .broadcast-page .bg-gray-50,
+    .broadcast-page .bg-gray-50\/80,
+    .broadcast-page .bg-gray-50\/90,
+    .broadcast-page .bg-gray-100,
+    .broadcast-page .bg-gray-200\/80 { transition: background-color .2s ease, border-color .2s ease, color .2s ease; }
+
+    .broadcast-page input,
+    .broadcast-page textarea,
+    .broadcast-page select { font-size: 14px; }
+
+    @media (max-width: 640px) {
+        .broadcast-page h1 { font-size: 1.5rem !important; }
+        .broadcast-page .rounded-\[2rem\] { border-radius: 1.2rem; }
+    }
+
+    html[data-theme='dark'] .broadcast-page .text-gray-900,
+    html[data-theme='dark'] .broadcast-page .text-gray-800,
+    html[data-theme='dark'] .broadcast-page .text-gray-700 { color: var(--text-primary) !important; }
+    html[data-theme='dark'] .broadcast-page .text-gray-600,
+    html[data-theme='dark'] .broadcast-page .text-gray-500,
+    html[data-theme='dark'] .broadcast-page .text-gray-400,
+    html[data-theme='dark'] .broadcast-page .text-gray-300,
+    html[data-theme='dark'] .broadcast-page .text-gray-200 { color: var(--text-muted) !important; }
+
+    html[data-theme='dark'] .broadcast-page .bg-white,
+    html[data-theme='dark'] .broadcast-page .bg-gray-50,
+    html[data-theme='dark'] .broadcast-page .bg-gray-50\/80,
+    html[data-theme='dark'] .broadcast-page .bg-gray-50\/90,
+    html[data-theme='dark'] .broadcast-page .bg-gray-100,
+    html[data-theme='dark'] .broadcast-page .bg-gray-200\/80,
+    html[data-theme='dark'] #databaseModal #dbModalPanel,
+    html[data-theme='dark'] #databaseModal .bg-white\/80 { background: var(--panel-bg) !important; }
+
+    html[data-theme='dark'] .broadcast-page .border-gray-50,
+    html[data-theme='dark'] .broadcast-page .border-gray-100,
+    html[data-theme='dark'] .broadcast-page .border-gray-200,
+    html[data-theme='dark'] .broadcast-page .border-gray-300,
+    html[data-theme='dark'] .broadcast-page .border-indigo-100,
+    html[data-theme='dark'] .broadcast-page .border-blue-100,
+    html[data-theme='dark'] .broadcast-page .border-amber-200,
+    html[data-theme='dark'] #databaseModal .border-gray-200 { border-color: var(--border-color) !important; }
+
+    html[data-theme='dark'] .broadcast-page .from-amber-50,
+    html[data-theme='dark'] .broadcast-page .to-orange-50,
+    html[data-theme='dark'] .broadcast-page .from-blue-50,
+    html[data-theme='dark'] .broadcast-page .to-indigo-50,
+    html[data-theme='dark'] .broadcast-page .bg-blue-50\/50,
+    html[data-theme='dark'] .broadcast-page .bg-indigo-50\/30,
+    html[data-theme='dark'] .broadcast-page .bg-blue-50\/30,
+    html[data-theme='dark'] .broadcast-page .bg-purple-50\/50,
+    html[data-theme='dark'] .broadcast-page .bg-green-50\/50 { background: rgba(37, 99, 235, 0.12) !important; }
+
+    html[data-theme='dark'] .broadcast-page #messageInput,
+    html[data-theme='dark'] .broadcast-page #targetType,
+    html[data-theme='dark'] .broadcast-page #teleLinkInput,
+    html[data-theme='dark'] .broadcast-page #templateSelect,
+    html[data-theme='dark'] #databaseModal #apiSearchInput,
+    html[data-theme='dark'] #databaseModal #apiFolderSelect {
+        background-color: var(--panel-muted) !important;
+        border-color: var(--border-color) !important;
+        color: var(--text-primary) !important;
+    }
+
+    html[data-theme='dark'] .broadcast-page #btnStop { background: var(--panel-bg) !important; color: #fca5a5 !important; border-color: #7f1d1d !important; }
+
+    /* === User Sender Card Dark Mode === */
+    html[data-theme='dark'] .broadcast-page .user-sender-card {
+        background-color: var(--panel-muted) !important;
+        border-color: rgba(37, 99, 235, 0.25) !important;
+    }
+    html[data-theme='dark'] .broadcast-page label:has(.peer:checked) .user-sender-card {
+        background: linear-gradient(135deg, rgba(37,99,235,0.18) 0%, rgba(96,165,250,0.10) 100%) !important;
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 0 2px rgba(59,130,246,0.25), 0 4px 16px rgba(37,99,235,0.18) !important;
+    }
+    html[data-theme='dark'] .broadcast-page label:hover .user-sender-card {
+        border-color: rgba(96, 165, 250, 0.5) !important;
+        background-color: rgba(30, 58, 110, 0.6) !important;
+    }
+    html[data-theme='dark'] .broadcast-page .user-sender-icon {
+        color: #60a5fa !important;
+    }
+    html[data-theme='dark'] .broadcast-page label:has(.peer:checked) .user-sender-icon {
+        color: #93c5fd !important;
+    }
+    html[data-theme='dark'] .broadcast-page .user-sender-phone {
+        color: #60a5fa !important;
+        opacity: 0.75;
+    }
+    html[data-theme='dark'] .broadcast-page label:has(.peer:checked) > div.absolute .fa-circle-check {
+        color: #60a5fa !important;
+        filter: drop-shadow(0 0 6px rgba(96,165,250,0.6));
+    }
+
+    /* === Phone Preview Mockup — CSS variables === */
+    :root {
+        --tg-header-color: #2481cc;
+        --chat-bubble-bg: #ffffff;
+        --chat-body-bg: #dfe4ea;
+    }
+
+    /* === Phone Preview Mockup Dark Mode === */
+    html[data-theme='dark'] {
+        --tg-header-color: #1c2b3a;
+        --chat-bubble-bg: #1e2d3e;
+        --chat-body-bg: #0d1a2a;
+    }
+    html[data-theme='dark'] .broadcast-page .phone-screen-bg {
+        background-color: #0d1a2a !important;
+    }
+    html[data-theme='dark'] .broadcast-page .chat-status-bar {
+        background: #1c2b3a !important;
+    }
+    html[data-theme='dark'] .broadcast-page .chat-header-bar {
+        background: #1c2b3a !important;
+        box-shadow: 0 1px 0 rgba(255,255,255,0.05) !important;
+    }
+    html[data-theme='dark'] .broadcast-page #chatBodyPreview {
+        background-color: #17212b !important;
+        background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png') !important;
+        background-size: cover !important;
+        background-position: center !important;
+        background-blend-mode: multiply !important;
+    }
+    html[data-theme='dark'] .broadcast-page .chat-date-badge {
+        background: rgba(28, 43, 58, 0.9) !important;
+        color: #7fb3d3 !important;
+    }
+    html[data-theme='dark'] .broadcast-page .chat-bubble-preview {
+        background-color: var(--chat-bubble-bg) !important;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.4) !important;
+    }
+    html[data-theme='dark'] .broadcast-page .chat-bubble-tail {
+        color: var(--chat-bubble-bg) !important;
+    }
+    html[data-theme='dark'] .broadcast-page .chat-bubble-tail path {
+        fill: var(--chat-bubble-bg) !important;
+    }
+    html[data-theme='dark'] .broadcast-page .chat-bubble-text {
+        color: #dde6ee !important;
+    }
+    html[data-theme='dark'] .broadcast-page .chat-timestamp {
+        color: #7fb3d3 !important;
+    }
+    html[data-theme='dark'] .broadcast-page .chat-input-bar {
+        background-color: #17212b !important;
+        border-color: #0d1a2a !important;
+    }
+    html[data-theme='dark'] .broadcast-page .chat-input-field {
+        background-color: #242f3d !important;
+        border-color: #1e3a5f !important;
+    }
+    html[data-theme='dark'] .broadcast-page .chat-input-placeholder {
+        color: #4d6070 !important;
+    }
+
+    /* === Fetch Link Section Dark Mode === */
+    html[data-theme='dark'] .broadcast-page #fetchSection {
+        background-color: rgba(37, 99, 235, 0.08) !important;
+        border-color: rgba(37, 99, 235, 0.2) !important;
+    }
+    html[data-theme='dark'] .broadcast-page #fetchSection label {
+        color: #93c5fd !important;
+    }
+    html[data-theme='dark'] .broadcast-page #fetchSection p {
+        color: #60a5fa !important;
+    }
+    html[data-theme='dark'] .broadcast-page #fetchStatus {
+        background-color: rgba(16, 185, 129, 0.1) !important;
+        border-color: rgba(16, 185, 129, 0.2) !important;
+    }
+    html[data-theme='dark'] .broadcast-page #fetchStatus .text-emerald-800 { color: #34d399 !important; }
+    html[data-theme='dark'] .broadcast-page #fetchStatus .text-emerald-600 { color: #6ee7b7 !important; }
+
+    /* === Image Upload Area Dark Mode === */
+    html[data-theme='dark'] .broadcast-page .image-upload-area {
+        background-color: var(--panel-muted) !important;
+        border-color: rgba(30, 58, 110, 0.6) !important;
+    }
+    html[data-theme='dark'] .broadcast-page .image-upload-area:hover {
+        background-color: rgba(109, 40, 217, 0.1) !important;
+        border-color: rgba(124, 58, 237, 0.4) !important;
+    }
+    html[data-theme='dark'] .broadcast-page .image-upload-area .text-gray-700 { color: var(--text-primary) !important; }
+
+    /* === Format Buttons Dark Mode === */
+    html[data-theme='dark'] .broadcast-page .bg-gray-100.border-gray-200 {
+        background-color: rgba(30, 58, 110, 0.5) !important;
+        border-color: rgba(30, 58, 110, 0.8) !important;
+        color: #93c5fd !important;
+    }
+    html[data-theme='dark'] .broadcast-page .bg-gray-100.border-gray-200:hover {
+        background-color: #1e293b !important;
+    }
+
+    /* === Step Number Badge === */
+    .broadcast-step-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.75rem;
+        height: 1.75rem;
+        border-radius: 0.5rem;
+        background: #2563eb;
+        color: #ffffff;
+        font-size: 0.75rem;
+        font-weight: 900;
+        flex-shrink: 0;
+        box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
+        letter-spacing: 0;
+    }
+    html[data-theme='dark'] .broadcast-page .broadcast-step-badge {
+        background: #2563eb !important;
+        color: #fff !important;
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.5) !important;
+    }
+
+    /* === Tab Switcher (Tulis Manual / Ambil Link) === */
+    .broadcast-tab-active {
+        background: #2563eb;
+        color: #ffffff;
+        box-shadow: 0 2px 8px rgba(37,99,235,0.35);
+    }
+    .broadcast-tab-inactive {
+        background: transparent;
+        color: #64748b;
+    }
+    .broadcast-tab-inactive:hover {
+        background: rgba(37,99,235,0.07);
+        color: #2563eb;
+    }
+    html[data-theme='dark'] .broadcast-page .broadcast-tab-switcher {
+        background-color: rgba(15, 28, 53, 0.85) !important;
+        border-color: rgba(37, 99, 235, 0.2) !important;
+    }
+    html[data-theme='dark'] .broadcast-page .broadcast-tab-active {
+        background: #2563eb !important;
+        color: #ffffff !important;
+        box-shadow: 0 2px 10px rgba(37,99,235,0.4) !important;
+    }
+    html[data-theme='dark'] .broadcast-page .broadcast-tab-inactive {
+        background: transparent !important;
+        color: var(--text-muted) !important;
+    }
+    html[data-theme='dark'] .broadcast-page .broadcast-tab-inactive:hover {
+        background: rgba(37,99,235,0.12) !important;
+        color: #60a5fa !important;
+    }
+</style>
+
+<script>
+    // --- 0. SUPER SAFE SETUP (Mencegah SyntaxError di SPA/Turbo) ---
+    // Kita gunakan 'var' bukan 'const' atau 'let' agar memori aman meski direfresh secara asinkronus
+    var modalSelectionState = window.modalSelectionState || new Set();
+    var searchTimeout = window.searchTimeout || null;
+
+    // --- 1. EDITOR & PREVIEW LOGIC ---
+    function updatePreview() {
+        var msgInput = document.getElementById('messageInput');
+        var prevText = document.getElementById('previewText');
+        if(!msgInput || !prevText) return;
+
+        var val = msgInput.value;
+        if (!val) val = "Halo {name}, tulis pesanmu...";
+        
+        val = val.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+        val = val.replace(/__(.*?)__/g, '<i>$1</i>');
+        val = val.replace(/\n/g, '<br>');
+        val = val.replace(/{name}/g, '<span class="bg-yellow-200 text-yellow-800 px-1 rounded text-[9px] font-bold mx-0.5">Nama</span>');
+        
+        prevText.innerHTML = val;
+    }
+
+    function insertTag(tag) {
+        var msgInput = document.getElementById('messageInput');
+        var start = msgInput.selectionStart;
+        var end = msgInput.selectionEnd;
+        var text = msgInput.value;
+        msgInput.value = text.substring(0, start) + tag + text.substring(end);
+        msgInput.focus();
+        updatePreview();
+    }
+
+    function previewImage(event) {
+        var file = event.target.files[0];
+        if(file) {
+            document.getElementById('fileLabel').innerText = file.name;
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('previewImg').src = e.target.result;
+                document.getElementById('previewImageContainer').classList.remove('hidden');
+                document.getElementById('mockupCloudMedia').classList.add('hidden'); // Hide cloud
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+
+    // --- 2. TEMPLATE & FETCH LOGIC (FIXED) ---
+    function setMode(mode) {
+        var fetchSec = document.getElementById('fetchSection');
+        var btnM = document.getElementById('btnTabManual');
+        var btnF = document.getElementById('btnTabFetch');
+        
+        if(mode === 'fetch') {
+            fetchSec.classList.remove('hidden');
+            btnF.classList.add('broadcast-tab-active');
+            btnF.classList.remove('broadcast-tab-inactive');
+            btnM.classList.add('broadcast-tab-inactive');
+            btnM.classList.remove('broadcast-tab-active');
+        } else {
+            fetchSec.classList.add('hidden');
+            btnM.classList.add('broadcast-tab-active');
+            btnM.classList.remove('broadcast-tab-inactive');
+            btnF.classList.add('broadcast-tab-inactive');
+            btnF.classList.remove('broadcast-tab-active');
+        }
+    }
+
+    async function fetchContent() {
+        var link = document.getElementById('teleLinkInput').value;
+        var btn = document.getElementById('btnFetch');
+        if(!link) return showAlert({ title: 'Link Kosong', message: 'Masukkan link Telegram terlebih dahulu!', icon: 'fa-link', iconColor: 'text-amber-400', iconBg: 'bg-amber-500/20', glowColor: 'bg-amber-500' });
+        
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>'; 
+        btn.disabled = true;
+        try {
+            var res = await fetch('/api/fetch_message', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({link: link})
+            });
+            var data = await res.json();
+            if(data.status === 'success') {
+                document.getElementById('messageInput').value = data.text;
+                document.getElementById('sourceChatId').value = data.source_chat_id;
+                document.getElementById('sourceMessageId').value = data.source_message_id;
+                
+                if(data.has_media) {
+                    document.getElementById('imageUploadSection').classList.add('hidden');
+                    document.getElementById('fetchStatus').classList.remove('hidden');
+                    document.getElementById('previewImageContainer').classList.add('hidden');
+                    document.getElementById('mockupCloudMedia').classList.remove('hidden');
+                    document.getElementById('mockupCloudMedia').classList.add('flex');
+                }
+                updatePreview();
+                showToast('Konten berhasil ditarik!', 'success');
+            } else { showToast("Gagal: " + data.message, 'error'); }
+        } catch(e) { showToast("Error koneksi API", 'error'); }
+        finally { btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-down"></i> TARIK'; btn.disabled = false; }
+    }
+
+    function loadTemplate() {
+        var select = document.getElementById('templateSelect');
+        var opt = select.options[select.selectedIndex];
+        if(opt.value) {
+            document.getElementById('messageInput').value = opt.getAttribute('data-msg');
+            var chat = opt.getAttribute('data-chat');
+            var msgid = opt.getAttribute('data-msgid');
+            
+            if(chat && msgid && chat !== 'None') {
+                document.getElementById('sourceChatId').value = chat;
+                document.getElementById('sourceMessageId').value = msgid;
+                document.getElementById('imageUploadSection').classList.add('hidden');
+                document.getElementById('fetchStatus').classList.remove('hidden');
+                document.getElementById('mockupCloudMedia').classList.remove('hidden');
+                document.getElementById('mockupCloudMedia').classList.add('flex');
+            } else {
+                resetFetch();
+            }
+            updatePreview();
+        }
+    }
+
+    function resetFetch() {
+        document.getElementById('sourceChatId').value = "";
+        document.getElementById('sourceMessageId').value = "";
+        document.getElementById('fetchStatus').classList.add('hidden');
+        document.getElementById('imageUploadSection').classList.remove('hidden');
+        document.getElementById('mockupCloudMedia').classList.add('hidden');
+        document.getElementById('mockupCloudMedia').classList.remove('flex');
+    }
+
+    // --- 3. BROADCAST CONTROL ---
+    // [UPGRADE UX] Fitur auto open modal
+    function toggleTargetMode() {
+        var mode = document.getElementById('targetType').value;
+        var box = document.getElementById('manualSelectionBox');
+        if(mode === 'manual') {
+            box.classList.remove('hidden');
+            // Cek apakah sudah ada user yang dipilih
+            var curIds = document.getElementById('selectedIdsInput').value;
+            if(!curIds || curIds.trim() === '') {
+                // Jika masih 0 kontak, otomatis buka modal
+                openDatabaseModal();
+            }
+        }
+        else {
+            box.classList.add('hidden');
+        }
+    }
+
+    function clearLog() {
+        document.getElementById('logContent').innerHTML = '<div class="text-gray-500 italic">> Log cleared.</div>';
+    }
+
+    async function stopBroadcast() {
+        showConfirm({
+            title: 'Hentikan Broadcast',
+            message: 'Yakin ingin menghentikan broadcast? Semua pesan yang masih antre akan dibatalkan.',
+            icon: 'fa-circle-stop',
+            iconColor: 'text-red-400',
+            iconBg: 'bg-red-500/20',
+            glowColor: 'bg-red-500',
+            confirmText: 'Ya, Hentikan',
+            confirmCls: 'bg-red-600 hover:bg-red-500 shadow-red-500/30',
+            onConfirm: async function() {
+                try {
+                    await fetch('/api/broadcast/stop', {method: 'POST'});
+                    document.getElementById('logContent').innerHTML += '<div class="text-red-500 font-bold border-t border-gray-800 mt-2 pt-2">> STOP COMMAND RECEIVED. Stopping...</div>';
+                    document.getElementById('btnStop').disabled = true;
+                } catch(e) { showToast("Gagal stop broadcast", "error"); }
+            }
+        });
+    }
+
+    async function startBroadcast() {
+        var msg = document.getElementById('messageInput').value;
+        if(!msg) return showToast("Pesan tidak boleh kosong!", "error");
+
+        var btn = document.getElementById('btnBlast');
+        var btnStop = document.getElementById('btnStop');
+        var logContent = document.getElementById('logContent');
+
+        btn.disabled = true;
+        btn.innerHTML = '<div class="absolute inset-0 opacity-100 transition-opacity duration-500" style="background:linear-gradient(135deg,#5b21b6,#6d28d9)"></div><div class="relative flex items-center gap-3"><i class="fa-solid fa-circle-notch fa-spin"></i><span>BLASTING...</span></div>';
+        btnStop.disabled = false;
+        
+        logContent.innerHTML = '<div class="text-blue-400 font-bold">> Initializing Broadcast Engine v4.0...</div>';
+
+        var formData = new FormData();
+        formData.append('message', msg);
+        
+        var sender = document.querySelector('input[name="sender_phone"]:checked');
+        if(!sender) {
+            btn.disabled = false;
+            btn.innerHTML = '<div class="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div><div class="relative flex items-center gap-3"><i class="fa-solid fa-rocket animate-pulse"></i><span>EKSEKUSI BROADCAST</span></div>';
+            return showToast("Pilih akun pengirim!", "error");
+        }
+        formData.append('sender_phone', sender.value);
+        
+        var targetType = document.getElementById('targetType').value;
+        if(targetType === 'manual') {
+            var selectedIds = document.getElementById('selectedIdsInput').value;
+            if (!selectedIds) {
+                btn.disabled = false;
+                btn.innerHTML = '<div class="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div><div class="relative flex items-center gap-3"><i class="fa-solid fa-rocket animate-pulse"></i><span>EKSEKUSI BROADCAST</span></div>';
+                return showToast("Anda belum memilih kontak satupun!", "error");
+            }
+            formData.append('target_option', 'selected');
+            formData.append('selected_ids', selectedIds);
+        } else {
+            formData.append('target_option', 'all');
+        }
+
+        formData.append('template_id', document.getElementById('templateSelect').value);
+
+        var img = document.getElementById('imageInput').files[0];
+        if(img) formData.append('image', img);
+
+        try {
+            var response = await fetch('/start_broadcast', {
+                method: 'POST',
+                body: formData
+            });
+
+            var reader = response.body.getReader();
+            var decoder = new TextDecoder();
+
+            while (true) {
+                var { value, done } = await reader.read();
+                if (done) break;
+                
+                var chunk = decoder.decode(value, {stream: true});
+                var lines = chunk.split('\n');
+                
+                for (var line of lines) {
+                    if (!line.trim()) continue;
+                    try {
+                        var data = JSON.parse(line);
+                        
+                        if (data.type === 'progress') {
+                            var color = data.status === 'success' ? 'text-[#27C93F]' : 'text-[#FF5F56]';
+                            var icon = data.status === 'success' ? '✓' : '✗';
+                            logContent.innerHTML += `<div class="${color} font-mono">> ${icon} ${data.log}</div>`;
+                        } else if (data.type === 'start') {
+                            logContent.innerHTML += `<div class="text-[#FFBD2E] font-bold">> Target Found: ${data.total}. Executing...</div>`;
+                        } else if (data.type === 'done') {
+                            logContent.innerHTML += `<div class="text-indigo-400 font-bold border-t border-gray-800 mt-2 pt-2">> DONE! Success: ${data.success}, Failed: ${data.failed}</div>`;
+                            btn.disabled = false;
+                            btn.innerHTML = '<div class="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div><div class="relative flex items-center gap-3"><i class="fa-solid fa-rocket animate-pulse"></i><span>EKSEKUSI BROADCAST</span></div>';
+                            btnStop.disabled = true;
+                            showToast("Broadcast Selesai!", "success");
+                        } else if (data.type === 'error') {
+                             logContent.innerHTML += `<div class="text-red-500 font-bold border-t border-gray-800 mt-2">> FATAL ERROR: ${data.msg}</div>`;
+                        }
+                        
+                        logContent.scrollTop = logContent.scrollHeight;
+                        
+                    } catch (e) { console.log("Parse Error", line); }
+                }
+            }
+        } catch (e) {
+            showToast("Server Error: " + e, "error");
+            btn.disabled = false;
+            btn.innerHTML = '<div class="absolute inset-0 bg-gradient-to-r from-red-600 to-orange-600 opacity-100 transition-opacity duration-500"></div><div class="relative flex items-center gap-3"><i class="fa-solid fa-rotate-right"></i><span>COBA LAGI</span></div>';
+            btnStop.disabled = true;
+        }
+    }
+
+    // --- 4. MINI CRM LOGIC (MODAL) ---
+    // Safe attaching event listener
+    var searchInputEl = document.getElementById('apiSearchInput');
+    if (searchInputEl) {
+        searchInputEl.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function() { fetchCrmData(); }, 500); 
+        });
+    }
+
+    async function fetchCrmData() {
+        var tbody = document.getElementById('apiTableBody');
+        var loading = document.getElementById('apiLoadingState');
+        var folder = document.getElementById('apiFolderSelect').value;
+        var search = document.getElementById('apiSearchInput').value;
+
+        loading.classList.remove('hidden');
+        tbody.innerHTML = '';
+
+        try {
+            var res = await fetch(`/api/get_crm_users?source=${encodeURIComponent(folder)}&q=${encodeURIComponent(search)}`);
+            var data = await res.json();
+            
+            if (data.status === 'success') {
+                renderApiTable(data.users);
+            } else {
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-10 text-red-500 font-bold">${data.message}</td></tr>`;
+            }
+        } catch (e) {
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center py-10 text-gray-400 font-bold">Gagal terhubung ke server.</td></tr>`;
+        } finally {
+            loading.classList.add('hidden');
+        }
+    }
+
+    function renderApiTable(users) {
+        var tbody = document.getElementById('apiTableBody');
+        tbody.innerHTML = '';
+
+        if (users.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="text-center py-16">
+                        <i class="fa-solid fa-folder-open text-4xl text-gray-200 mb-3 block"></i>
+                        <p class="text-gray-500 font-bold">Data Tidak Ditemukan</p>
+                    </td>
+                </tr>`;
+            return;
+        }
+
+        var html = '';
+        var allChecked = true;
+
+        users.forEach(function(u) {
+            var isChecked = modalSelectionState.has(String(u.user_id));
+            if (!isChecked) allChecked = false;
+            
+            var initial = u.first_name ? u.first_name.charAt(0).toUpperCase() : '?';
+            var usernameHtml = u.username 
+                ? `<span class="text-blue-600 font-bold text-xs bg-blue-50 px-2 py-1 rounded">@${u.username}</span>` 
+                : `<span class="text-gray-400 text-xs italic">No Username</span>`;
+
+            html += `
+            <tr class="hover:bg-indigo-50/40 transition">
+                <td class="p-4 text-center">
+                    <input type="checkbox" class="api-user-check w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" value="${u.user_id}" onchange="handleApiCheckbox(this)" ${isChecked ? 'checked' : ''}>
+                </td>
+                <td class="p-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 text-indigo-600 flex items-center justify-center text-xs font-black shadow-sm">
+                            ${initial}
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="font-bold text-gray-800 text-sm truncate max-w-[200px]" title="${u.first_name}">${u.first_name}</span>
+                            <span class="text-[9px] font-mono text-gray-400">${u.user_id}</span>
+                        </div>
+                    </div>
+                </td>
+                <td class="p-4">
+                    ${usernameHtml}
+                </td>
+                <td class="p-4 text-right">
+                    <button type="button" onclick="handleSingleSelect('${u.user_id}')" class="dp-btn dp-btn-sm ${isChecked ? 'dp-btn-primary' : 'dp-btn-ghost'}">
+                        ${isChecked ? 'Terpilih' : 'Pilih'}
+                    </button>
+                </td>
+            </tr>`;
+        });
+
+        tbody.innerHTML = html;
+        document.getElementById('apiSelectAll').checked = allChecked && users.length > 0;
+        updateModalCounter();
+    }
+
+    function toggleApiSelectAll() {
+        var master = document.getElementById('apiSelectAll');
+        var checkboxes = document.querySelectorAll('.api-user-check');
+        
+        checkboxes.forEach(function(cb) {
+            cb.checked = master.checked;
+            if (master.checked) modalSelectionState.add(cb.value);
+            else modalSelectionState.delete(cb.value);
+        });
+        updateModalCounter();
+        fetchCrmData();
+    }
+
+    function handleApiCheckbox(cb) {
+        if (cb.checked) modalSelectionState.add(cb.value);
+        else modalSelectionState.delete(cb.value);
+        updateModalCounter();
+        
+        var total = document.querySelectorAll('.api-user-check').length;
+        var checked = document.querySelectorAll('.api-user-check:checked').length;
+        document.getElementById('apiSelectAll').checked = (total === checked && total > 0);
+        
+        var btn = cb.closest('tr').querySelector('button');
+        if(cb.checked) {
+            btn.className = "text-xs bg-indigo-600 text-white hover:bg-indigo-700 hover:text-white font-bold px-3 py-1.5 rounded-lg transition shadow-sm";
+            btn.innerText = "Terpilih";
+        } else {
+            btn.className = "text-xs bg-gray-100 text-gray-600 hover:bg-indigo-700 hover:text-white font-bold px-3 py-1.5 rounded-lg transition shadow-sm";
+            btn.innerText = "Pilih";
+        }
+    }
+
+    function handleSingleSelect(userId) {
+        var cb = document.querySelector(`.api-user-check[value="${userId}"]`);
+        if(cb) {
+            cb.checked = !cb.checked;
+            handleApiCheckbox(cb);
+        }
+    }
+
+    function updateModalCounter() {
+        document.getElementById('modalSelectedCount').innerText = modalSelectionState.size;
+    }
+
+    function applySelection() {
+        if (modalSelectionState.size === 0) {
+            return showToast("Pilih minimal 1 kontak dulu!", "error");
+        }
+
+        var idString = Array.from(modalSelectionState).join(',');
+        document.getElementById('selectedIdsInput').value = idString;
+        document.getElementById('selectedCountDisplay').innerText = modalSelectionState.size;
+        
+        closeDatabaseModal();
+        showToast(`Berhasil menambahkan ${modalSelectionState.size} kontak!`, 'success');
+    }
+
+    function openDatabaseModal() {
+        var exist = document.getElementById('selectedIdsInput').value;
+        if(exist && exist.trim() !== "" && exist !== "None") {
+            window.modalSelectionState = new Set(exist.split(',').filter(x => x));
+        } else {
+            window.modalSelectionState.clear();
+        }
+        updateModalCounter();
+        
+        var modal = document.getElementById('databaseModal');
+        var panel = document.getElementById('dbModalPanel');
+        var backdrop = document.getElementById('dbBackdrop');
+        
+        modal.classList.remove('hidden');
+        lockScroll();
+        setTimeout(() => { 
+            backdrop.classList.remove('opacity-0'); 
+            panel.classList.remove('opacity-0', 'scale-95'); 
+            panel.classList.add('opacity-100', 'scale-100'); 
+        }, 10);
+
+        fetchCrmData();
+    }
+
+    function closeDatabaseModal() {
+        var modal = document.getElementById('databaseModal');
+        var panel = document.getElementById('dbModalPanel');
+        var backdrop = document.getElementById('dbBackdrop');
+        backdrop.classList.add('opacity-0'); 
+        panel.classList.remove('opacity-100', 'scale-100'); 
+        panel.classList.add('opacity-0', 'scale-95');
+        setTimeout(() => { modal.classList.add('hidden'); unlockScroll(); }, 300);
+    }
+    
+    function showToast(message, type = 'success') {
+        var container = document.getElementById('toastContainer');
+        var toast = document.createElement('div');
+        var bgClass, iconClass, iconBg;
+        
+        if (type === 'success') {
+            bgClass = 'bg-gray-900 border-gray-700';
+            iconBg = 'bg-emerald-500/20 text-emerald-400';
+            iconClass = 'fa-solid fa-circle-check';
+        } else if (type === 'error') {
+            bgClass = 'bg-red-900 border-red-800';
+            iconBg = 'bg-red-500/20 text-red-300';
+            iconClass = 'fa-solid fa-circle-exclamation';
+        } else {
+            bgClass = 'bg-gray-900 border-gray-700';
+            iconBg = 'bg-blue-500/20 text-blue-400';
+            iconClass = 'fa-solid fa-circle-info';
+        }
+
+        toast.className = `transform transition-all duration-500 ease-out translate-x-full opacity-0 pointer-events-auto flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl border ${bgClass}`;
+        toast.innerHTML = `
+            <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${iconBg}"><i class="${iconClass}"></i></div>
+            <p class="text-sm font-bold text-white mr-4">${message}</p>
+            <button onclick="this.parentElement.remove()" class="btn-close-on-dark ml-auto"><i class="fa-solid fa-xmark text-lg"></i></button>
+        `;
+        container.appendChild(toast);
+        setTimeout(() => toast.classList.remove('translate-x-full', 'opacity-0'), 10);
+        setTimeout(() => {
+            toast.classList.add('translate-x-full', 'opacity-0');
+            setTimeout(() => toast.remove(), 500);
+        }, 4000);
+    }
+</script>
+{% endblock %}

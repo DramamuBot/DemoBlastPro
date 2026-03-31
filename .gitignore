@@ -1,0 +1,41 @@
+# === Replit (tidak perlu di-push) ===
+.replit
+replit.md
+.upm/
+.cache/
+.pythonlibs/
+.agents/
+.local/
+generated-icon.png
+.gitattributes
+
+# === Asset & file sensitif ===
+attached_assets/
+.env
+.env.example
+
+# === Python ===
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# === Database lokal ===
+*.db
+*.sqlite
+
+# === File sesi Telethon ===
+*.session
+*.session-journal
+
+# === Upload user ===
+static/uploads/
+
+# === File lokal tidak di-push ===
+file yang tidak di push ke github/
+
+# === Lain-lain ===
+node_modules/
+dist/
+.DS_Store
+*.tar.gz

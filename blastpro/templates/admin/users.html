@@ -1,0 +1,147 @@
+{% extends "admin/base.html" %}
+{% block title %}Manage Users{% endblock %}
+
+{% block content %}
+<div class="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-4">
+    <div>
+        <h1 class="text-2xl font-bold text-white">Database Pengguna</h1>
+        <p class="text-gray-400 text-sm mt-1">
+            Total: <span class="text-blue-400 font-mono font-bold">{{ total_count }}</span> pengguna
+            {% if search_q %} &mdash; hasil pencarian untuk "<span class="text-yellow-400">{{ search_q }}</span>"{% endif %}
+        </p>
+    </div>
+    <form method="GET" action="{{ url_for('admin.users') }}" class="flex gap-2">
+        <input type="text" name="q" value="{{ search_q }}" placeholder="Cari email / username..."
+               class="bg-gray-800 border border-gray-700 text-white text-sm rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none w-64">
+        <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-bold transition">
+            <i class="fa-solid fa-search"></i>
+        </button>
+        {% if search_q %}
+        <a href="{{ url_for('admin.users') }}" class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-lg text-sm transition" title="Reset Pencarian">
+            <i class="fa-solid fa-xmark"></i>
+        </a>
+        {% endif %}
+    </form>
+</div>
+
+<div class="glass-panel rounded-xl overflow-hidden shadow-2xl">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm admin-table">
+            <thead>
+                <tr class="bg-gray-900/50 text-gray-400 border-b border-gray-700 uppercase text-xs tracking-wider">
+                    <th class="px-6 py-4">User Info</th>
+                    <th class="px-6 py-4">Paket (Plan)</th>
+                    <th class="px-6 py-4">Bot Status</th>
+                    <th class="px-6 py-4">Status Akun</th>
+                    <th class="px-6 py-4 text-right">Kontrol</th>
+                </tr>
+            </thead>
+            <tbody class="text-gray-300 divide-y divide-gray-800">
+                {% for user in users %}
+                <tr class="hover:bg-gray-800/50 transition group">
+                    <td class="px-6 py-4">
+                        <div class="flex items-center">
+                            <div class="h-9 w-9 rounded-full bg-gradient-to-br from-indigo-600 to-blue-600 flex items-center justify-center text-xs font-bold text-white mr-3 shadow-lg flex-shrink-0">
+                                {{ user.email[0]|upper }}
+                            </div>
+                            <div>
+                                <div class="font-bold text-white group-hover:text-blue-400 transition">{{ user.email }}</div>
+                                <div class="text-[10px] text-gray-500 font-mono">ID: #{{ user.id }} &bull; @{{ user.username or '-' }}</div>
+                            </div>
+                            {% if user.is_admin %}
+                                <span class="ml-2 bg-yellow-500/20 text-yellow-400 text-[9px] px-2 py-0.5 rounded border border-yellow-500/30 uppercase font-bold tracking-wider">GOD</span>
+                            {% endif %}
+                        </div>
+                    </td>
+
+                    <td class="px-6 py-4">
+                        {% if user.plan_tier == 'Starter' %}
+                            <span class="text-gray-400 font-bold text-xs bg-gray-700/50 px-2 py-1 rounded">STARTER</span>
+                        {% elif 'PRO' in user.plan_tier|upper %}
+                            <span class="text-indigo-300 font-bold text-xs bg-indigo-900/30 border border-indigo-500/30 px-2 py-1 rounded shadow shadow-indigo-500/20">PRO</span>
+                        {% elif user.plan_tier == 'Agency' %}
+                            <span class="text-purple-300 font-bold text-xs bg-purple-900/30 border border-purple-500/30 px-2 py-1 rounded shadow shadow-purple-500/20">AGENCY</span>
+                        {% else %}
+                            <span class="text-gray-400 font-bold text-xs bg-gray-700/50 px-2 py-1 rounded">{{ user.plan_tier }}</span>
+                        {% endif %}
+                    </td>
+
+                    <td class="px-6 py-4">
+                        {% if user.telegram_account %}
+                            <div class="flex items-center gap-2">
+                                {% if user.telegram_account.is_active %}
+                                    <span class="relative flex h-2 w-2">
+                                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                      <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                                    </span>
+                                    <span class="text-green-400 text-xs font-mono">{{ user.telegram_account.phone_number }}</span>
+                                {% else %}
+                                    <span class="w-2 h-2 rounded-full bg-red-500 flex-shrink-0"></span>
+                                    <span class="text-red-400 text-xs font-mono">Offline</span>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <span class="text-gray-600 italic text-xs">Kosong</span>
+                        {% endif %}
+                    </td>
+
+                    <td class="px-6 py-4">
+                        {% if user.is_banned %}
+                            <span class="bg-red-900/50 text-red-400 px-2 py-1 rounded text-[10px] font-bold uppercase border border-red-800">BANNED</span>
+                        {% else %}
+                            <span class="bg-green-900/30 text-green-400 px-2 py-1 rounded text-[10px] font-bold uppercase border border-green-900/50">ACTIVE</span>
+                        {% endif %}
+                    </td>
+
+                    <td class="px-6 py-4 text-right">
+                        {% if not user.is_admin %}
+                            <a href="/super-admin/user/{{ user.id }}" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition shadow-lg shadow-blue-900/20 inline-flex items-center gap-2">
+                                <i class="fa-solid fa-sliders"></i> MANAGE
+                            </a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="px-6 py-16 text-center text-gray-500">
+                        <i class="fa-solid fa-ghost text-5xl mb-4 opacity-20 block"></i>
+                        <p class="font-bold">{% if search_q %}Tidak ada pengguna ditemukan untuk "{{ search_q }}"{% else %}Database pengguna masih kosong.{% endif %}</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if total_pages > 1 %}
+<div class="flex items-center justify-between mt-6">
+    <p class="text-gray-400 text-sm">
+        Halaman <span class="font-bold text-white">{{ current_page }}</span> dari <span class="font-bold text-white">{{ total_pages }}</span>
+    </p>
+    <div class="flex gap-2">
+        {% if current_page > 1 %}
+            <a href="{{ url_for('admin.users', page=current_page-1, q=search_q) }}"
+               class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition border border-gray-700">
+                <i class="fa-solid fa-chevron-left mr-1"></i> Prev
+            </a>
+        {% endif %}
+
+        {% for p in range([1, current_page-2]|max, [total_pages+1, current_page+3]|min) %}
+            <a href="{{ url_for('admin.users', page=p, q=search_q) }}"
+               class="px-3 py-2 rounded-lg text-sm font-bold transition border
+               {% if p == current_page %}bg-blue-600 border-blue-500 text-white{% else %}bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700{% endif %}">
+                {{ p }}
+            </a>
+        {% endfor %}
+
+        {% if current_page < total_pages %}
+            <a href="{{ url_for('admin.users', page=current_page+1, q=search_q) }}"
+               class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition border border-gray-700">
+                Next <i class="fa-solid fa-chevron-right ml-1"></i>
+            </a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

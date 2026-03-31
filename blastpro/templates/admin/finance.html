@@ -1,0 +1,274 @@
+{% extends "admin/base.html" %}
+{% block title %}Request & Approval{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto animate-enter">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-inbox text-blue-400"></i> Request & Approval
+            </h1>
+            <p class="text-slate-400 text-sm mt-1">Validasi pengajuan pembayaran dan aktivasi paket dari user.</p>
+        </div>
+        <div class="flex bg-slate-900/80 p-1.5 rounded-xl border border-slate-700 shadow-inner">
+            <a href="?status=all" class="px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 {{ 'bg-blue-600 text-white shadow-md' if current_filter == 'all' else 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
+                <i class="fa-solid fa-list-ul"></i> Semua
+            </a>
+            <a href="?status=pending" class="px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 {{ 'bg-amber-600 text-white shadow-md' if current_filter == 'pending' else 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
+                <i class="fa-regular fa-clock"></i> Menunggu
+            </a>
+            <a href="?status=approved" class="px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 {{ 'bg-emerald-600 text-white shadow-md' if current_filter == 'approved' else 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
+                <i class="fa-solid fa-check-double"></i> Disetujui
+            </a>
+            <a href="?status=rejected" class="px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 {{ 'bg-rose-600 text-white shadow-md' if current_filter == 'rejected' else 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
+                <i class="fa-solid fa-xmark"></i> Ditolak
+            </a>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-slate-800 border border-amber-500/20 rounded-2xl p-5">
+            <p class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Menunggu</p>
+            <h2 class="text-3xl font-black text-amber-400">{{ stats.pending }}</h2>
+            <p class="text-[10px] text-slate-500 mt-1">transaksi pending</p>
+        </div>
+        <div class="bg-slate-800 border border-emerald-500/20 rounded-2xl p-5">
+            <p class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Disetujui</p>
+            <h2 class="text-3xl font-black text-emerald-400">{{ stats.approved }}</h2>
+            <p class="text-[10px] text-slate-500 mt-1">transaksi berhasil</p>
+        </div>
+        <div class="bg-slate-800 border border-rose-500/20 rounded-2xl p-5">
+            <p class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Ditolak</p>
+            <h2 class="text-3xl font-black text-rose-400">{{ stats.rejected }}</h2>
+            <p class="text-[10px] text-slate-500 mt-1">transaksi ditolak</p>
+        </div>
+        <div class="bg-slate-800 border border-indigo-500/20 rounded-2xl p-5">
+            <p class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Total Revenue</p>
+            <h2 class="text-xl font-black text-indigo-400">Rp {{ "{:,.0f}".format(stats.revenue).replace(',', '.') }}</h2>
+            <p class="text-[10px] text-slate-500 mt-1">dari transaksi approved</p>
+        </div>
+    </div>
+
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden shadow-2xl">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-slate-300 whitespace-nowrap">
+                <thead class="bg-slate-900/80 border-b border-slate-700 text-xs uppercase tracking-wider text-slate-400 font-bold">
+                    <tr>
+                        <th class="px-5 py-4">Waktu (WIB)</th>
+                        <th class="px-5 py-4">Data User</th>
+                        <th class="px-5 py-4">Paket Tujuan</th>
+                        <th class="px-5 py-4">Metode / Bank</th>
+                        <th class="px-5 py-4">Nominal</th>
+                        <th class="px-5 py-4 text-center">Bukti</th>
+                        <th class="px-5 py-4 text-center">Status</th>
+                        <th class="px-5 py-4 text-right pr-5">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-700/50">
+                    {% for trx in transactions %}
+                    <tr class="hover:bg-slate-700/30 transition">
+                        <td class="px-5 py-4">
+                            <div class="font-mono text-slate-300 text-xs">{{ trx.created_at | wib }}</div>
+                        </td>
+                        <td class="px-5 py-4">
+                            <div class="font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-user-circle text-slate-500"></i>
+                                {{ trx.users.email.split('@')[0] if trx.users else '—' }}
+                            </div>
+                            <div class="text-[11px] text-slate-500 mt-0.5">{{ trx.users.email if trx.users else '—' }}</div>
+                        </td>
+                        <td class="px-5 py-4">
+                            {% if trx.pricing_variants and trx.pricing_variants.pricing_plans %}
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-xs font-bold text-indigo-400">
+                                    {{ trx.pricing_variants.pricing_plans.display_name }} <span class="text-indigo-600/50 mx-1">•</span> {{ trx.pricing_variants.duration_days }} Hari
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2 py-1 rounded bg-rose-500/10 border border-rose-500/20 text-[10px] font-bold text-rose-400 uppercase">
+                                    <i class="fa-solid fa-triangle-exclamation mr-1"></i> Data Invalid
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-5 py-4">
+                            {% if trx.payment_method %}
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-700 rounded-lg text-xs font-bold text-slate-300">
+                                    <i class="fa-solid fa-building-columns text-indigo-400"></i>
+                                    {{ trx.payment_method | upper }}
+                                </span>
+                            {% else %}
+                                <span class="text-slate-600 text-xs italic">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-5 py-4 font-mono font-bold text-emerald-400">
+                            Rp {{ "{:,.0f}".format(trx.amount).replace(',', '.') }}
+                        </td>
+                        <td class="px-5 py-4 text-center">
+                            {% if trx.proof_url %}
+                                <a href="{{ trx.proof_url }}" target="_blank" class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition" title="Lihat Bukti Transfer">
+                                    <i class="fa-solid fa-image"></i>
+                                </a>
+                            {% else %}
+                                <span class="text-slate-600 text-xs">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-5 py-4 text-center">
+                            {% if trx.status == 'pending' %}
+                                <span class="bg-amber-500/10 text-amber-400 px-3 py-1 rounded-full text-[10px] font-bold border border-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.2)] animate-pulse inline-flex items-center gap-1">
+                                    <i class="fa-solid fa-circle text-[8px]"></i> MENUNGGU
+                                </span>
+                            {% elif trx.status == 'approved' %}
+                                <span class="bg-emerald-500/10 text-emerald-400 px-3 py-1 rounded-full text-[10px] font-bold border border-emerald-500/20 inline-flex items-center gap-1">
+                                    <i class="fa-solid fa-check"></i> AKTIF
+                                </span>
+                            {% elif trx.status == 'rejected' %}
+                                <span class="bg-rose-500/10 text-rose-400 px-3 py-1 rounded-full text-[10px] font-bold border border-rose-500/20 inline-flex items-center gap-1">
+                                    <i class="fa-solid fa-xmark"></i> DITOLAK
+                                </span>
+                                {% if trx.admin_note %}
+                                <div class="text-[10px] text-slate-500 mt-1 max-w-[120px] truncate" title="{{ trx.admin_note }}">{{ trx.admin_note }}</div>
+                                {% endif %}
+                            {% elif trx.status == 'cancelled' %}
+                                <span class="bg-slate-500/10 text-slate-400 px-3 py-1 rounded-full text-[10px] font-bold border border-slate-500/20 inline-flex items-center gap-1">
+                                    <i class="fa-solid fa-ban"></i> BATAL
+                                </span>
+                            {% else %}
+                                <span class="bg-slate-700 text-slate-300 px-3 py-1 rounded-full text-[10px] font-bold">{{ trx.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-5 py-4 text-right pr-5">
+                            {% if trx.status == 'pending' %}
+                            <div class="flex justify-end gap-2">
+                                <button onclick="openApproveModal('{{ trx.id }}')"
+                                    class="bg-emerald-600 hover:bg-emerald-500 text-white w-9 h-9 flex items-center justify-center rounded-lg transition shadow-lg shadow-emerald-500/20" title="Setujui">
+                                    <i class="fa-solid fa-check"></i>
+                                </button>
+                                <button onclick="openRejectModal('{{ trx.id }}')"
+                                    class="bg-rose-600 hover:bg-rose-500 text-white w-9 h-9 flex items-center justify-center rounded-lg transition shadow-lg shadow-rose-500/20" title="Tolak">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+                            {% else %}
+                            <span class="text-[10px] text-slate-500 italic"><i class="fa-solid fa-lock text-slate-600 mr-1"></i> Tereksekusi</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="py-16 text-center">
+                            <div class="flex flex-col items-center justify-center text-slate-500">
+                                <i class="fa-solid fa-box-open text-4xl mb-3 opacity-50"></i>
+                                <p class="font-medium">Belum ada request yang masuk.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if total_pages > 1 %}
+    <div class="flex justify-center gap-2 mt-6">
+        {% for p in range(1, total_pages + 1) %}
+            <a href="?status={{ current_filter }}&page={{ p }}"
+               class="w-9 h-9 flex items-center justify-center rounded-lg text-sm font-bold transition
+               {{ 'bg-indigo-600 text-white' if p == current_page else 'bg-slate-800 text-slate-400 hover:bg-slate-700 border border-slate-700' }}">
+                {{ p }}
+            </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal Approve -->
+<div id="approveModal" class="fixed inset-0 z-50 hidden bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-md shadow-2xl transform scale-95 opacity-0 transition-all" id="approveModalPanel">
+        <div class="p-5 border-b border-slate-700 flex justify-between items-center bg-slate-900/50">
+            <h3 class="font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-check-circle text-emerald-400"></i> Konfirmasi Approve
+            </h3>
+            <button onclick="closeApproveModal()" class="btn-close-on-dark"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form id="approveForm" method="POST" class="p-5 space-y-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <p class="text-sm text-slate-300">Approve transaksi ini? Paket user akan langsung aktif dan saldo bank bertambah otomatis.</p>
+            <div>
+                <label class="text-xs text-slate-400 font-bold uppercase mb-2 block">Catatan Admin (Opsional)</label>
+                <input type="text" name="admin_note"
+                    placeholder="Contoh: REF-BCA-2903 / Sudah sesuai"
+                    class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-4 py-3 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none">
+            </div>
+            <div class="flex gap-3 pt-2">
+                <button type="button" onclick="closeApproveModal()" class="flex-1 bg-slate-700 text-white py-3 rounded-xl font-bold hover:bg-slate-600 transition">Batal</button>
+                <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-xl font-bold transition">Approve & Aktifkan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Reject -->
+<div id="rejectModal" class="fixed inset-0 z-50 hidden bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-md shadow-2xl transform scale-95 opacity-0 transition-all" id="rejectModalPanel">
+        <div class="p-5 border-b border-slate-700 flex justify-between items-center bg-slate-900/50">
+            <h3 class="font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-xmark-circle text-rose-400"></i> Tolak Transaksi
+            </h3>
+            <button onclick="closeRejectModal()" class="btn-close-on-dark"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form id="rejectForm" method="POST" class="p-5 space-y-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <p class="text-sm text-slate-400">Masukkan alasan penolakan. Alasan ini akan dikirimkan ke user via notifikasi.</p>
+            <div>
+                <label class="text-xs text-slate-400 font-bold uppercase mb-2 block">Alasan Penolakan <span class="text-rose-400">*</span></label>
+                <textarea name="reason" rows="3" required
+                    placeholder="Contoh: Bukti transfer tidak jelas / Nominal tidak sesuai / Rekening pengirim berbeda"
+                    class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-4 py-3 text-sm focus:border-rose-500 focus:ring-1 focus:ring-rose-500 outline-none resize-none"></textarea>
+            </div>
+            <div class="flex gap-3 pt-2">
+                <button type="button" onclick="closeRejectModal()" class="flex-1 bg-slate-700 text-white py-3 rounded-xl font-bold hover:bg-slate-600 transition">Batal</button>
+                <button type="submit" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white py-3 rounded-xl font-bold transition">Tolak & Kirim Notif</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openApproveModal(trxId) {
+    document.getElementById('approveForm').action = `/super-admin/finance/approve/${trxId}`;
+    document.getElementById('approveModal').classList.remove('hidden');
+    lockScroll();
+    setTimeout(() => {
+        document.getElementById('approveModalPanel').classList.remove('scale-95', 'opacity-0');
+    }, 10);
+}
+function closeApproveModal() {
+    document.getElementById('approveModalPanel').classList.add('scale-95', 'opacity-0');
+    setTimeout(() => {
+        document.getElementById('approveModal').classList.add('hidden');
+        unlockScroll();
+    }, 200);
+}
+function openRejectModal(trxId) {
+    document.getElementById('rejectForm').action = `/super-admin/finance/reject/${trxId}`;
+    document.getElementById('rejectModal').classList.remove('hidden');
+    lockScroll();
+    setTimeout(() => {
+        document.getElementById('rejectModalPanel').classList.remove('scale-95', 'opacity-0');
+    }, 10);
+}
+function closeRejectModal() {
+    document.getElementById('rejectModalPanel').classList.add('scale-95', 'opacity-0');
+    setTimeout(() => {
+        document.getElementById('rejectModal').classList.add('hidden');
+        unlockScroll();
+    }, 200);
+}
+document.getElementById('approveModal').addEventListener('click', function(e) {
+    if (e.target === this) closeApproveModal();
+});
+document.getElementById('rejectModal').addEventListener('click', function(e) {
+    if (e.target === this) closeRejectModal();
+});
+</script>
+{% endblock %}

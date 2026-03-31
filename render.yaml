@@ -1,0 +1,45 @@
+services:
+  - type: web
+    name: blastpro
+    env: python
+    region: singapore
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn main:app --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120 --log-level info
+    healthCheckPath: /ping
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: MASTER_KEY
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: API_ID
+        sync: false
+      - key: API_HASH
+        sync: false
+      - key: SUPER_ADMIN
+        sync: false
+      - key: PASS_ADMIN
+        sync: false
+      - key: DEMO_USER
+        sync: false
+      - key: PASS_USER
+        sync: false
+      - key: NOTIF_BOT_TOKEN
+        sync: false
+      - key: NOTIF_BOT_USERNAME
+        sync: false
+      - key: ENABLE_BOT_POLLING
+        value: false
+      - key: APP_TIMEZONE
+        value: Asia/Jakarta
+      - key: RENDER_EXTERNAL_URL
+        fromService:
+          type: web
+          name: blastpro
+          property: host

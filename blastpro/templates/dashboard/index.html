@@ -1,0 +1,444 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Ringkasan{% endblock %}
+
+{% block content %}
+<style>
+    .activity-filter-form .cs-wrapper { width: auto !important; flex-shrink: 0; }
+    .activity-filter-form .cs-trigger { width: auto !important; min-width: 70px; }
+</style>
+<div class="space-y-6">
+
+    <!-- ===== PAGE HEADER ===== -->
+    <div class="dp-page-header">
+        <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div class="pl-2">
+                <div class="flex items-center gap-3 mb-2">
+                    <i class="fa-solid fa-chart-area flex-shrink-0" style="color: var(--accent); font-size: 4rem;"></i>
+                    <div>
+                        <p class="text-[10px] font-bold uppercase tracking-widest leading-none mb-0.5" style="color: var(--accent); opacity: 0.75">Dashboard Ringkasan</p>
+                        <h1 class="text-2xl font-extrabold tracking-tight text-slate-800 sm:text-3xl leading-tight">Ringkasan Aktivitas</h1>
+                    </div>
+                </div>
+                <p class="mt-1.5 text-sm text-slate-500">Pantau performa bot, target, CRM, dan histori pengiriman dalam satu tampilan.</p>
+            </div>
+            <!-- Live Clock Card -->
+            <div class="flex-shrink-0 dp-anim-scale dp-d3">
+                <div id="liveClockCard" class="rounded-2xl border border-violet-300 px-6 py-4 text-center min-w-[180px] relative overflow-hidden" style="background:#f0eeff;">
+                    <div id="liveClockDeco" class="absolute top-0 right-0 w-16 h-16 rounded-bl-full pointer-events-none" style="background:rgba(124,58,237,0.1)"></div>
+                    <p id="liveClockLabel" class="text-[10px] font-bold uppercase tracking-widest mb-1" style="color:#8b5cf6">Waktu Server (WIB)</p>
+                    <div id="liveServerTime" class="text-3xl font-black font-mono tracking-tight" style="color:#6d28d9">--:--:--</div>
+                    <div id="liveServerDate" class="mt-1 text-[11px] font-semibold font-mono" style="color:#8b5cf6"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== STAT CARDS ===== -->
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+
+        <!-- Total Log -->
+        <div class="dp-stat-card pencil">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <p class="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-2">Total Log</p>
+                    <h3 class="text-3xl font-black text-slate-800 dp-count-reveal">{{ total_logs if total_logs else logs|length }}</h3>
+                    <p class="mt-1.5 text-xs text-slate-500">Semua rekam aktivitas</p>
+                    <div class="mt-3 dp-progress" style="width:120px">
+                        <div class="dp-progress-fill" style="width:72%; background:#111111"></div>
+                    </div>
+                </div>
+                <div class="dp-icon-box dp-icon-box-lg dp-icon-box-pencil">
+                    <i class="fa-solid fa-server"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Target Grup -->
+        <div class="dp-stat-card pencil">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <p class="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-2">Target Grup</p>
+                    <h3 class="text-3xl font-black text-slate-800 dp-count-reveal">{{ targets|length }}</h3>
+                    <p class="mt-1.5 text-xs text-slate-500">Grup aktif tersimpan</p>
+                    <div class="mt-3 dp-progress" style="width:120px">
+                        <div class="dp-progress-fill" style="width:58%; background:#111111"></div>
+                    </div>
+                </div>
+                <div class="dp-icon-box dp-icon-box-lg dp-icon-box-pencil">
+                    <i class="fa-solid fa-users-viewfinder"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- CRM User -->
+        <div class="dp-stat-card pencil">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <p class="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-2">CRM User</p>
+                    <h3 class="text-3xl font-black text-slate-800 dp-count-reveal">{{ user_count }}</h3>
+                    <p class="mt-1.5 text-xs text-slate-500">Kontak yang terdata</p>
+                    <div class="mt-3 dp-progress" style="width:120px">
+                        <div class="dp-progress-fill" style="width:64%; background:#111111"></div>
+                    </div>
+                </div>
+                <div class="dp-icon-box dp-icon-box-lg dp-icon-box-pencil">
+                    <i class="fa-solid fa-address-book"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Jadwal -->
+        <div class="dp-stat-card pencil">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <p class="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-2">Jadwal</p>
+                    <h3 class="text-3xl font-black text-slate-800 dp-count-reveal">{{ schedules|length }}</h3>
+                    <p class="mt-1.5 text-xs text-slate-500">Campaign terjadwal</p>
+                    <div class="mt-3 dp-progress" style="width:120px">
+                        <div class="dp-progress-fill" style="width:40%; background:#111111"></div>
+                    </div>
+                </div>
+                <div class="dp-icon-box dp-icon-box-lg dp-icon-box-pencil">
+                    <i class="fa-solid fa-clock"></i>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ===== ACTIVITY LOG ===== -->
+    <div class="dp-card">
+        <!-- Card Header (all controls unified) -->
+        <div class="dp-card-header" style="flex-wrap:nowrap;overflow-x:auto;gap:0.5rem;padding-top:0.6rem;padding-bottom:0.6rem;justify-content:flex-start">
+            <div class="flex items-center gap-3 shrink-0">
+                <div class="dp-icon-box dp-icon-box-purple" style="width:2.75rem;height:2.75rem;border-radius:0.7rem;font-size:1.25rem">
+                    <i class="fa-solid fa-clock-rotate-left fa-flip-horizontal"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h3 class="font-bold text-slate-800 text-sm">Aktivitas Terakhir</h3>
+                        <span class="live-badge-inline">
+                            <span class="relative flex h-1.5 w-1.5">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                            </span>
+                            Live
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-500">Monitoring log pengiriman otomatis terbaru</p>
+                </div>
+            </div>
+            <!-- Unified filter form -->
+            <form action="{{ url_for('dashboard.overview') }}" method="get" class="flex items-center gap-2 flex-nowrap ml-auto activity-filter-form" style="flex:1;min-width:0">
+                <!-- Search -->
+                <div class="dp-input-group" style="flex:1;min-width:120px">
+                    <span class="dp-input-icon"><i class="fa-solid fa-magnifying-glass text-xs text-slate-400"></i></span>
+                    <input type="text" name="search_target" value="{{ search_target }}" placeholder="Cari target..." class="dp-input" style="padding-left:2.25rem;font-size:0.8125rem" onchange="this.form.submit()">
+                </div>
+                <!-- Status -->
+                <select name="status_filter" onchange="this.form.submit()" class="dp-select shrink-0" data-compact style="width:auto;min-width:90px">
+                    <option value="all" {% if status_filter == 'all' %}selected{% endif %}>Semua</option>
+                    <option value="success" {% if status_filter == 'success' %}selected{% endif %}>Berhasil</option>
+                    <option value="failed" {% if status_filter == 'failed' %}selected{% endif %}>Gagal</option>
+                </select>
+                <!-- Periode -->
+                <select name="date_filter" onchange="this.form.submit()" class="dp-select shrink-0" data-compact style="width:auto;min-width:110px">
+                    <option value="all" {% if date_filter == 'all' %}selected{% endif %}>Semua Waktu</option>
+                    <option value="today" {% if date_filter == 'today' %}selected{% endif %}>Hari Ini</option>
+                    <option value="7d" {% if date_filter == '7d' %}selected{% endif %}>7 Hari</option>
+                    <option value="30d" {% if date_filter == '30d' %}selected{% endif %}>30 Hari</option>
+                </select>
+                <!-- Akun Pengirim -->
+                {% if accounts_list %}
+                <select name="sender_filter" onchange="this.form.submit()" class="dp-select shrink-0" data-compact style="width:auto;min-width:110px">
+                    <option value="">Semua Akun</option>
+                    {% for acc in accounts_list %}
+                    <option value="{{ acc.phone_number }}" {% if sender_filter == acc.phone_number %}selected{% endif %}>{{ acc.get('first_name') or acc.phone_number }}</option>
+                    {% endfor %}
+                </select>
+                {% endif %}
+                <!-- Baris -->
+                <select name="per_page" onchange="this.form.submit()" class="dp-select shrink-0" data-compact style="width:auto;min-width:60px">
+                    <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
+                    <option value="25" {% if per_page == 25 %}selected{% endif %}>25</option>
+                    <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+                    <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
+                </select>
+                <!-- Reset (hanya muncul jika ada filter aktif) -->
+                {% if search_target or date_filter != 'all' or sender_filter or status_filter != 'all' %}
+                <a href="{{ url_for('dashboard.overview') }}" class="dp-btn dp-btn-ghost dp-btn-sm text-rose-400 shrink-0" style="padding:0.4rem 0.6rem" title="Reset semua filter">
+                    <i class="fa-solid fa-xmark text-xs"></i>
+                </a>
+                {% endif %}
+            </form>
+            <!-- Refresh -->
+            <button onclick="location.reload()" class="dp-btn dp-btn-ghost dp-btn-sm shrink-0" style="padding:0.45rem 0.6rem;border-radius:0.625rem">
+                <i class="fa-solid fa-rotate-right text-sm"></i>
+            </button>
+        </div>
+
+        <!-- Desktop Table -->
+        <div class="hidden md:block overflow-x-auto">
+            <table class="dp-table">
+                <thead>
+                    <tr>
+                        <th>Waktu (WIB)</th>
+                        <th>Target</th>
+                        <th>Status</th>
+                        <th>Pesan Sistem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td>
+                            <div class="log-time-badge">
+                                {{ log.wib_time if log.wib_time else log.created_at[11:19] }}
+                            </div>
+                            <div class="mt-1 text-[10px] font-mono log-date-muted">{{ log.wib_date if log.wib_date else log.created_at[:10] }}</div>
+                        </td>
+                        <td>
+                            <div class="flex items-center gap-3">
+                                <div class="target-avatar-wrap" title="{{ log.group_name or log.target_name }}">
+                                    <span class="target-avatar-initial">{{ (log.group_name or log.target_name or '?')[0] }}</span>
+                                    <span class="target-avatar-badge"><i class="fa-solid fa-users"></i></span>
+                                </div>
+                                <span class="max-w-[200px] truncate text-sm font-semibold log-target-name" title="{{ log.group_name or log.target_name }}">
+                                    {{ log.group_name or log.target_name }}
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            {% if log.status|lower in ['success', 'berhasil'] %}
+                            <span class="dp-badge dp-badge-success"><span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>BERHASIL</span>
+                            {% else %}
+                            <span class="dp-badge dp-badge-error"><span class="h-1.5 w-1.5 rounded-full bg-rose-500"></span>GAGAL</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if log.status|lower in ['success', 'berhasil'] %}
+                            <span class="flex items-center gap-1.5 text-slate-500 text-xs">
+                                <i class="fa-solid fa-check-double text-emerald-500"></i> Terkirim tanpa error.
+                            </span>
+                            {% else %}
+                            <span class="flex items-center gap-1.5 max-w-[300px]">
+                                <i class="fa-solid fa-circle-xmark text-rose-400 shrink-0"></i>
+                                <span class="break-words rounded-lg border border-rose-100 bg-rose-50 px-2.5 py-1.5 font-mono text-xs text-rose-500">
+                                    {{ log.error_message or 'Unknown Error' }}
+                                </span>
+                            </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4">
+                            <div class="dp-empty" style="padding:3.5rem 2rem">
+                                <div class="dp-empty-icon"><i class="fa-solid fa-inbox"></i></div>
+                                <h3>Belum Ada Aktivitas</h3>
+                                <p>Log pengiriman akan muncul di sini setelah bot mulai aktif mengirim pesan.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Mobile Cards -->
+        <div class="space-y-3 p-4 md:hidden">
+            {% for log in logs %}
+            <div class="rounded-xl border p-4 shadow-sm" style="border-color:#ede9fe; background:#faf8ff;">
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <p class="text-sm font-bold text-slate-800">{{ log.group_name or log.target_name }}</p>
+                        <p class="mt-1 text-[11px] font-mono log-mobile-time">{{ log.wib_date if log.wib_date else log.created_at[:10] }} · {{ log.wib_time if log.wib_time else log.created_at[11:19] }}</p>
+                    </div>
+                    {% if log.status|lower in ['success', 'berhasil'] %}
+                    <span class="dp-badge dp-badge-success">BERHASIL</span>
+                    {% else %}
+                    <span class="dp-badge dp-badge-error">GAGAL</span>
+                    {% endif %}
+                </div>
+                <div class="mt-3 pt-3 text-xs" style="border-top:1px solid #ede9fe;">
+                    {% if log.status|lower in ['success', 'berhasil'] %}
+                    <span class="flex items-center gap-1.5 text-slate-500"><i class="fa-solid fa-check-double text-emerald-500"></i>Terkirim tanpa error.</span>
+                    {% else %}
+                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-circle-xmark text-rose-400 shrink-0"></i><span class="block break-words rounded-lg border border-rose-100 bg-rose-50 px-2 py-1.5 font-mono text-rose-500">{{ log.error_message or 'Unknown Error' }}</span></span>
+                    {% endif %}
+                </div>
+            </div>
+            {% else %}
+            <div class="dp-empty" style="padding:3rem 1rem">
+                <div class="dp-empty-icon"><i class="fa-solid fa-inbox"></i></div>
+                <p>Belum ada aktivitas tercatat.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if total_pages > 1 %}
+        <div class="px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3" style="border-top:1px solid #ede9fe; background:#f4f0ff;">
+            <p class="text-xs" style="color:#7c3aed;">Halaman <span class="font-bold" style="color:#4c1d95;">{{ current_page }}</span> dari <span class="font-bold" style="color:#4c1d95;">{{ total_pages }}</span></p>
+            <div class="flex gap-2">
+                {% if current_page > 1 %}
+                <a href="{{ url_for('dashboard.overview', page=current_page-1, per_page=per_page) }}" class="dp-btn dp-btn-ghost dp-btn-sm">
+                    <i class="fa-solid fa-chevron-left"></i> Prev
+                </a>
+                {% endif %}
+                {% if current_page < total_pages %}
+                <a href="{{ url_for('dashboard.overview', page=current_page+1, per_page=per_page) }}" class="dp-btn dp-btn-ghost dp-btn-sm">
+                    Next <i class="fa-solid fa-chevron-right"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+    /* === Live Badge Inline (next to title) === */
+    .live-badge-inline {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 1px 7px;
+        border-radius: 99px;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        color: #15803d;
+        background: #dcfce7;
+        border: 1px solid #bbf7d0;
+        line-height: 1.5;
+    }
+    html[data-theme='dark'] .live-badge-inline {
+        color: #4ade80;
+        background: rgba(21,128,61,0.18);
+        border-color: rgba(74,222,128,0.3);
+    }
+
+    /* === Time Badge in Log Table === */
+    .log-time-badge {
+        font-family: 'JetBrains Mono', 'Courier New', monospace;
+        font-size: 11px;
+        font-weight: 700;
+        display: inline-block;
+        padding: 3px 9px;
+        border-radius: 8px;
+        letter-spacing: 0.03em;
+        color: #4c1d95;
+        background: #ede9fe;
+        border: 1px solid #c4b5fd;
+    }
+    .log-date-muted { color: #94a3b8; }
+    .log-target-name { color: #334155; }
+    .log-mobile-time { color: #7c3aed; }
+
+    html[data-theme='dark'] .log-time-badge {
+        color: #c4b5fd;
+        background: rgba(76,29,149,0.25);
+        border-color: rgba(109,40,217,0.55);
+    }
+    html[data-theme='dark'] .log-date-muted { color: #4a6fa5; }
+    html[data-theme='dark'] .log-target-name { color: #93c5fd; }
+    html[data-theme='dark'] .log-mobile-time { color: #a78bfa; }
+
+    /* === Target Group Avatar === */
+    .target-avatar-wrap {
+        position: relative;
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: #eff6ff;
+        border: 1.5px solid #bfdbfe;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: background 0.18s, border-color 0.18s;
+    }
+    /* Main element: the initial letter */
+    .target-avatar-initial {
+        font-size: 15px;
+        font-weight: 900;
+        color: #1d4ed8;
+        text-transform: uppercase;
+        line-height: 1;
+        letter-spacing: -0.02em;
+    }
+    /* Corner badge: group icon */
+    .target-avatar-badge {
+        position: absolute;
+        bottom: -6px;
+        right: -6px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #2AABEE;
+        border: 2px solid #eff6ff;
+        color: #fff;
+        font-size: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+    }
+    tr:hover .target-avatar-wrap {
+        background: #dbeafe;
+        border-color: #93c5fd;
+    }
+
+    html[data-theme='dark'] .target-avatar-wrap {
+        background: rgba(15,34,64,0.9);
+        border-color: #1e3a6e;
+    }
+    html[data-theme='dark'] .target-avatar-initial { color: #93c5fd; }
+    html[data-theme='dark'] .target-avatar-badge {
+        background: #2AABEE;
+        border-color: #0f2240;
+    }
+    html[data-theme='dark'] tr:hover .target-avatar-wrap {
+        background: rgba(30,58,110,0.6);
+        border-color: #3b82f6;
+    }
+
+    /* === Live Clock Card Dark Mode === */
+    html[data-theme='dark'] #liveClockCard {
+        background: rgba(109,40,217,0.18) !important;
+        border-color: rgba(139, 92, 246, 0.35) !important;
+        box-shadow: 0 0 0 1px rgba(139,92,246,0.15), 0 4px 20px rgba(109,40,217,0.15) !important;
+    }
+    html[data-theme='dark'] #liveClockDeco {
+        background: rgba(124, 58, 237, 0.15) !important;
+    }
+    html[data-theme='dark'] #liveClockLabel {
+        color: #a78bfa !important;
+    }
+    html[data-theme='dark'] #liveServerTime {
+        color: #e9d5ff !important;
+        text-shadow: 0 0 20px rgba(167,139,250,0.4) !important;
+    }
+    html[data-theme='dark'] #liveServerDate {
+        color: #a78bfa !important;
+    }
+</style>
+<script>
+    function updateServerClock() {
+        const now = new Date();
+        const tz = 'Asia/Jakarta';
+        const timeString = now.toLocaleTimeString('id-ID', { timeZone: tz, hour:'2-digit', minute:'2-digit', second:'2-digit', hour12: false }).replace(/\./g,':');
+        const dateString = now.toLocaleDateString('id-ID', { timeZone: tz, weekday:'short', day:'numeric', month:'short', year:'numeric' });
+        const c = document.getElementById('liveServerTime');
+        const d = document.getElementById('liveServerDate');
+        if (c) c.innerText = timeString;
+        if (d) d.innerText = dateString;
+    }
+    setInterval(updateServerClock, 1000);
+    updateServerClock();
+</script>
+{% endblock %}

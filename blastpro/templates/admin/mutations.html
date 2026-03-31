@@ -1,0 +1,182 @@
+{% extends "admin/base.html" %}
+{% block title %}Buku Besar (Mutasi){% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto animate-enter">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-book-journal-whills text-indigo-400"></i> Buku Besar (Mutasi)
+            </h1>
+            <p class="text-slate-400 text-sm mt-1">Laporan arus kas, pendapatan, dan penyesuaian saldo sistem.</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="{{ url_for('admin.mutations_export', type=filter_type, bank_id=filter_bank, date_from=filter_date_from, date_to=filter_date_to) }}"
+               class="bg-emerald-700 hover:bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-2">
+                <i class="fa-solid fa-download"></i> Export CSV
+            </a>
+            <a href="/super-admin/banks" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-2">
+                <i class="fa-solid fa-building-columns text-emerald-400"></i> Kelola Rekening
+            </a>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="bg-slate-800 border border-emerald-500/20 rounded-2xl p-5">
+            <p class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Total Masuk (Terfilter)</p>
+            <h2 class="text-2xl font-black text-emerald-400">Rp {{ "{:,.0f}".format(total_income).replace(',', '.') }}</h2>
+            <p class="text-[10px] text-slate-500 mt-1">INCOME + TRANSFER_IN</p>
+        </div>
+        <div class="bg-slate-800 border border-rose-500/20 rounded-2xl p-5">
+            <p class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Total Keluar (Terfilter)</p>
+            <h2 class="text-2xl font-black text-rose-400">Rp {{ "{:,.0f}".format(total_expense).replace(',', '.') }}</h2>
+            <p class="text-[10px] text-slate-500 mt-1">EXPENSE + TRANSFER_OUT</p>
+        </div>
+        <div class="bg-slate-800 border border-{{ 'indigo' if net >= 0 else 'amber' }}-500/20 rounded-2xl p-5">
+            <p class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Net (Masuk - Keluar)</p>
+            <h2 class="text-2xl font-black {{ 'text-indigo-400' if net >= 0 else 'text-amber-400' }}">
+                {{ '+' if net >= 0 else '' }}Rp {{ "{:,.0f}".format(net).replace(',', '.') }}
+            </h2>
+            <p class="text-[10px] text-slate-500 mt-1">selisih periode terfilter</p>
+        </div>
+    </div>
+
+    <!-- Filter Panel -->
+    <form method="GET" action="{{ url_for('admin.mutations') }}" class="bg-slate-800 border border-slate-700 rounded-2xl p-5 mb-6">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 items-end">
+            <div>
+                <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Tipe Mutasi</label>
+                <select name="type" class="admin-select w-full">
+                    <option value="">Semua Tipe</option>
+                    <option value="INCOME" {{ 'selected' if filter_type == 'INCOME' }}>INCOME (Kas Masuk)</option>
+                    <option value="EXPENSE" {{ 'selected' if filter_type == 'EXPENSE' }}>EXPENSE (Kas Keluar)</option>
+                    <option value="TRANSFER_IN" {{ 'selected' if filter_type == 'TRANSFER_IN' }}>TRANSFER_IN</option>
+                    <option value="TRANSFER_OUT" {{ 'selected' if filter_type == 'TRANSFER_OUT' }}>TRANSFER_OUT</option>
+                    <option value="ADJUSTMENT" {{ 'selected' if filter_type == 'ADJUSTMENT' }}>ADJUSTMENT</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Rekening Bank</label>
+                <select name="bank_id" class="admin-select w-full">
+                    <option value="">Semua Rekening</option>
+                    {% for b in banks %}
+                    <option value="{{ b.id }}" {{ 'selected' if filter_bank == (b.id | string) }}>{{ b.bank_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Dari Tanggal</label>
+                <input type="date" name="date_from" value="{{ filter_date_from }}"
+                    class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-4 py-2 text-sm focus:border-indigo-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Hingga Tanggal</label>
+                <input type="date" name="date_to" value="{{ filter_date_to }}"
+                    class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-4 py-2 text-sm focus:border-indigo-500 outline-none">
+            </div>
+        </div>
+        <div class="flex gap-3 mt-4">
+            <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2">
+                <i class="fa-solid fa-filter"></i> Filter
+            </button>
+            <a href="{{ url_for('admin.mutations') }}" class="bg-slate-700 hover:bg-slate-600 text-slate-300 px-5 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-2">
+                <i class="fa-solid fa-rotate-left"></i> Reset
+            </a>
+        </div>
+    </form>
+
+    <!-- Table -->
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden shadow-2xl">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse whitespace-nowrap">
+                <thead>
+                    <tr class="bg-slate-900/80 border-b border-slate-700 text-xs uppercase tracking-wider text-slate-400 font-bold">
+                        <th class="p-4 pl-6">Waktu (WIB)</th>
+                        <th class="p-4">Rekening Bank</th>
+                        <th class="p-4">Tipe</th>
+                        <th class="p-4 text-right">Nominal</th>
+                        <th class="p-4 text-right">Saldo Sebelum</th>
+                        <th class="p-4 text-right">Saldo Sesudah</th>
+                        <th class="p-4">Keterangan</th>
+                    </tr>
+                </thead>
+                <tbody class="text-sm divide-y divide-slate-700/50 text-slate-300">
+                    {% for m in mutations %}
+                    <tr class="hover:bg-slate-700/30 transition">
+                        <td class="p-4 pl-6 font-mono text-slate-400 text-xs">{{ m.created_at | wib }}</td>
+                        <td class="p-4">
+                            <span class="font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-building-columns text-slate-500 text-xs"></i>
+                                {{ m.admin_banks.bank_name if m.admin_banks else '—' }}
+                            </span>
+                        </td>
+                        <td class="p-4">
+                            {% if m.mutation_type in ['INCOME', 'TRANSFER_IN'] %}
+                                <span class="inline-flex items-center gap-1.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-1 rounded-lg text-[10px] font-black uppercase">
+                                    <i class="fa-solid fa-arrow-down"></i> {{ m.mutation_type }}
+                                </span>
+                            {% elif m.mutation_type in ['EXPENSE', 'TRANSFER_OUT'] %}
+                                <span class="inline-flex items-center gap-1.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 px-2 py-1 rounded-lg text-[10px] font-black uppercase">
+                                    <i class="fa-solid fa-arrow-up"></i> {{ m.mutation_type }}
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center gap-1.5 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2 py-1 rounded-lg text-[10px] font-black uppercase">
+                                    <i class="fa-solid fa-sliders"></i> {{ m.mutation_type }}
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="p-4 text-right font-mono font-bold
+                            {{ 'text-emerald-400' if m.mutation_type in ['INCOME', 'TRANSFER_IN'] else 'text-rose-400' if m.mutation_type in ['EXPENSE', 'TRANSFER_OUT'] else 'text-indigo-400' }}">
+                            Rp {{ "{:,.0f}".format(m.amount or 0).replace(',', '.') }}
+                        </td>
+                        <td class="p-4 text-right font-mono text-slate-500 text-xs">
+                            Rp {{ "{:,.0f}".format(m.balance_before or 0).replace(',', '.') }}
+                        </td>
+                        <td class="p-4 text-right font-mono font-bold text-white text-xs">
+                            Rp {{ "{:,.0f}".format(m.balance_after or 0).replace(',', '.') }}
+                        </td>
+                        <td class="p-4 text-slate-400 text-xs max-w-[180px] truncate" title="{{ m.description }}">{{ m.description or '—' }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="py-16 text-center">
+                            <div class="flex flex-col items-center justify-center text-slate-500">
+                                <i class="fa-solid fa-inbox text-4xl mb-3 opacity-50"></i>
+                                <p class="font-medium">Belum ada data mutasi.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if total_pages > 1 %}
+    <div class="flex justify-center gap-2 mt-6">
+        {% for p in range(1, total_pages + 1) %}
+            <a href="?type={{ filter_type }}&bank_id={{ filter_bank }}&date_from={{ filter_date_from }}&date_to={{ filter_date_to }}&page={{ p }}"
+               class="w-9 h-9 flex items-center justify-center rounded-lg text-sm font-bold transition
+               {{ 'bg-indigo-600 text-white' if p == current_page else 'bg-slate-800 text-slate-400 hover:bg-slate-700 border border-slate-700' }}">
+                {{ p }}
+            </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .admin-select {
+        background-color: #0f172a; border: 1.5px solid #334155; color: #f1f5f9;
+        font-size: 0.875rem; font-weight: 600; font-family: inherit;
+        padding: 0.6rem 2.5rem 0.6rem 1rem; border-radius: 0.75rem; outline: none;
+        cursor: pointer; appearance: none; -webkit-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a78bfa' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+        background-repeat: no-repeat; background-position: right 0.85rem center; background-size: 1rem;
+    }
+    .admin-select:focus { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.15); }
+    .admin-select option { background: #0f172a; color: #f1f5f9; }
+</style>
+{% endblock %}

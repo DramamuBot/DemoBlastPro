@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Auth{% endblock %} - BlastPro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow: hidden;
+        }
+
+        /* ===== CLOSE BUTTON (CONSISTENT) ===== */
+        .btn-close-on-dark {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 8px;
+            border: none;
+            background: rgba(255, 255, 255, 0.12);
+            color: rgba(255, 255, 255, 0.65);
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: background 0.15s ease, color 0.15s ease;
+            padding: 0;
+            line-height: 1;
+        }
+        .btn-close-on-dark:hover, .btn-close-on-dark:focus {
+            background: transparent;
+            color: #ffffff;
+            outline: none;
+        }
+        .btn-close-on-dark:active {
+            background: transparent;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* ── Page Transition ─────────────────────── */
+        #auth-container {
+            transition: transform 0.42s cubic-bezier(0.4, 0, 0.2, 1),
+                        opacity   0.42s ease;
+            will-change: transform, opacity;
+        }
+        body.exit-left  #auth-container { transform: translateX(-6%); opacity: 0; }
+        body.exit-right #auth-container { transform: translateX(6%);  opacity: 0; }
+
+        @keyframes slideInFromRight {
+            from { transform: translateX(6%); opacity: 0; }
+            to   { transform: translateX(0);  opacity: 1; }
+        }
+        @keyframes slideInFromLeft {
+            from { transform: translateX(-6%); opacity: 0; }
+            to   { transform: translateX(0);   opacity: 1; }
+        }
+        body.enter-from-right #auth-container {
+            animation: slideInFromRight 0.45s cubic-bezier(0.4, 0, 0.2, 1) both;
+        }
+        body.enter-from-left #auth-container {
+            animation: slideInFromLeft 0.45s cubic-bezier(0.4, 0, 0.2, 1) both;
+        }
+
+        /* ── Left Panel Background ───────────────── */
+        .auth-left {
+            background-color: #4338ca;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Dot grid */
+        .auth-left::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle, rgba(255,255,255,0.12) 1.5px, transparent 1.5px);
+            background-size: 26px 26px;
+            z-index: 0;
+        }
+
+        /* ── Floating Decorative Shapes ─────────── */
+        .float-shape {
+            position: absolute;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Each shape gets its own animation with natural timing */
+        .float-a {
+            animation: floatA 7s ease-in-out infinite;
+        }
+        .float-b {
+            animation: floatB 9s ease-in-out infinite;
+        }
+        .float-c {
+            animation: floatC 6s ease-in-out infinite;
+        }
+        .float-d {
+            animation: floatD 8s ease-in-out infinite;
+        }
+        .float-e {
+            animation: floatE 11s ease-in-out infinite;
+        }
+        .float-f {
+            animation: floatF 5.5s ease-in-out infinite;
+        }
+
+        @keyframes floatA {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            30%      { transform: translate(8px, -14px) rotate(6deg); }
+            60%      { transform: translate(-5px, 8px) rotate(-4deg); }
+        }
+        @keyframes floatB {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            25%      { transform: translate(-10px, -8px) rotate(-8deg); }
+            55%      { transform: translate(6px, 12px) rotate(5deg); }
+        }
+        @keyframes floatC {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            40%      { transform: translate(6px, -10px) scale(1.06); }
+            70%      { transform: translate(-4px, 6px) scale(0.95); }
+        }
+        @keyframes floatD {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            35%      { transform: translate(-8px, -12px) rotate(12deg); }
+            65%      { transform: translate(10px, 4px) rotate(-8deg); }
+        }
+        @keyframes floatE {
+            0%, 100% { transform: translate(0, 0); }
+            20%      { transform: translate(4px, -16px); }
+            50%      { transform: translate(-8px, -6px); }
+            80%      { transform: translate(6px, 8px); }
+        }
+        @keyframes floatF {
+            0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+            45%      { transform: translate(-6px, -10px) rotate(-10deg) scale(1.08); }
+        }
+
+        /* ── Left Content Slide Animation ───────── */
+        .left-content {
+            position: relative;
+            z-index: 2;
+            transition: transform 0.42s cubic-bezier(0.4, 0, 0.2, 1),
+                        opacity   0.35s ease;
+        }
+        body.exit-left  .left-content { transform: translateX(-40px); opacity: 0; }
+        body.exit-right .left-content { transform: translateX(40px);  opacity: 0; }
+
+        /* ── Stats Row ───────────────────────────── */
+        .stat-item {
+            transition: transform 0.3s ease;
+        }
+        .stat-item:hover {
+            transform: translateY(-3px);
+        }
+
+        /* ── Feature Item Cards ──────────────────── */
+        .feature-item {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+            transition: background 0.25s ease, transform 0.25s ease, border-color 0.25s ease;
+        }
+        .feature-item:hover {
+            background: rgba(255,255,255,0.14);
+            border-color: rgba(255,255,255,0.22);
+            transform: translateX(4px);
+        }
+        .feature-icon-box {
+            background: rgba(255,255,255,0.12);
+            transition: background 0.25s ease, transform 0.25s ease;
+        }
+        .feature-item:hover .feature-icon-box {
+            background: rgba(255,255,255,0.2);
+            transform: scale(1.1);
+        }
+
+        /* ── Form Slide (right panel) ────────────── */
+        .auth-right {
+            transition: none;
+        }
+
+        /* ── Right Side Form Panel ───────────────── */
+        .form-card-icon {
+            background: linear-gradient(135deg, #f0f4ff, #e8eafe);
+            border: 1px solid #dde2ff;
+        }
+
+        /* ── Input Focus ─────────────────────────── */
+        .form-input:focus {
+            box-shadow: 0 0 0 3px rgba(79,70,229,0.12);
+        }
+
+        /* Flash message animation */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.35s ease-out both;
+        }
+
+        /* Mobile scroll */
+        @media (max-width: 1023px) {
+            body { overflow: auto; }
+            .auth-right { overflow-y: auto; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex">
+
+    <div id="auth-container" class="flex w-full min-h-screen">
+
+        <!-- ════ LEFT PANEL ════ -->
+        <div class="hidden lg:flex auth-left w-[45%] xl:w-[42%] relative items-center justify-center p-10 xl:p-14">
+
+            <!-- ── Floating Decorative Shapes ── -->
+
+            <!-- Large semi-circle top-right -->
+            <div class="float-shape float-a" style="top: -60px; right: -60px;">
+                <div style="width:220px;height:220px;border-radius:50%;border:2px solid rgba(255,255,255,0.1);"></div>
+            </div>
+            <!-- Small ring inner -->
+            <div class="float-shape float-b" style="top: 30px; right: 30px;">
+                <div style="width:80px;height:80px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.15);"></div>
+            </div>
+
+            <!-- Telegram icon floating top-left -->
+            <div class="float-shape float-c" style="top: 60px; left: 40px; opacity:0.15;">
+                <i class="fa-brands fa-telegram text-white" style="font-size:52px;"></i>
+            </div>
+
+            <!-- Paper plane icon mid-right -->
+            <div class="float-shape float-d" style="bottom: 200px; right: 45px; opacity:0.12;">
+                <i class="fa-solid fa-paper-plane text-white" style="font-size:40px;"></i>
+            </div>
+
+            <!-- Small diamond shapes scattered -->
+            <div class="float-shape float-e" style="top: 45%; left: 18px; opacity:0.2;">
+                <div style="width:12px;height:12px;background:white;border-radius:2px;transform:rotate(45deg);"></div>
+            </div>
+            <div class="float-shape float-f" style="top: 25%; right: 60px; opacity:0.18;">
+                <div style="width:8px;height:8px;background:white;border-radius:1.5px;transform:rotate(45deg);"></div>
+            </div>
+
+            <!-- Robot / bot icon bottom-left -->
+            <div class="float-shape float-b" style="bottom: 80px; left: 35px; opacity:0.13;">
+                <i class="fa-solid fa-robot text-white" style="font-size:44px;"></i>
+            </div>
+
+            <!-- Calendar icon top-center -->
+            <div class="float-shape float-a" style="top: 80px; left: 50%; transform:translateX(-50%); opacity:0.1;">
+                <i class="fa-solid fa-calendar-check text-white" style="font-size:36px;"></i>
+            </div>
+
+            <!-- Dashed corner bottom-right -->
+            <div class="float-shape" style="bottom: -50px; right: -50px;">
+                <div style="width:180px;height:180px;border-radius:50%;border:2px dashed rgba(255,255,255,0.1);"></div>
+            </div>
+
+            <!-- Sparkle dots -->
+            <div class="float-shape float-c" style="bottom: 140px; right: 100px; opacity:0.25;">
+                <div style="width:6px;height:6px;background:white;border-radius:50%;"></div>
+            </div>
+            <div class="float-shape float-e" style="top: 150px; left: 120px; opacity:0.2;">
+                <div style="width:4px;height:4px;background:white;border-radius:50%;"></div>
+            </div>
+            <div class="float-shape float-d" style="bottom: 260px; left: 80px; opacity:0.22;">
+                <div style="width:5px;height:5px;background:white;border-radius:50%;"></div>
+            </div>
+
+            <!-- ── Main Left Content ── -->
+            <div class="left-content text-center text-white max-w-sm w-full">
+
+                <!-- Logo Icon -->
+                <div class="mb-8 inline-flex items-center justify-center w-16 h-16 rounded-2xl"
+                     style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.18);">
+                    <img src="{{ url_for('static', filename='img/logo-blastpro.png') }}" alt="BlastPro Logo" class="w-10 h-10 object-contain">
+                </div>
+
+                <!-- Page-specific headline -->
+                <h1 class="text-3xl xl:text-4xl font-bold mb-3 leading-tight">
+                    {% if request.path == '/register' %}
+                        Bergabung & <br>Mulai Dominasi!
+                    {% else %}
+                        Otomatisasi <br>Tanpa Batas
+                    {% endif %}
+                </h1>
+                <p class="text-indigo-200 leading-relaxed mb-8 text-sm xl:text-base">
+                    {% if request.path == '/register' %}
+                        Daftar sekarang dan mulai blast ke ratusan grup Telegram dalam hitungan menit.
+                    {% else %}
+                        Bergabung dengan ribuan UMKM yang sukses bersama BlastPro.
+                    {% endif %}
+                </p>
+
+                <!-- Stats Row -->
+                <div class="flex items-center justify-center gap-5 mb-8">
+                    <div class="stat-item text-center">
+                        <div class="text-2xl font-black text-white">500+</div>
+                        <div class="text-[11px] text-indigo-300 mt-0.5">UMKM Aktif</div>
+                    </div>
+                    <div style="width:1px;height:36px;background:rgba(255,255,255,0.2);"></div>
+                    <div class="stat-item text-center">
+                        <div class="text-2xl font-black text-white">24/7</div>
+                        <div class="text-[11px] text-indigo-300 mt-0.5">Bot Aktif</div>
+                    </div>
+                    <div style="width:1px;height:36px;background:rgba(255,255,255,0.2);"></div>
+                    <div class="stat-item text-center">
+                        <div class="text-2xl font-black text-white">100+</div>
+                        <div class="text-[11px] text-indigo-300 mt-0.5">Grup Dijangkau</div>
+                    </div>
+                </div>
+
+                <!-- Feature Items -->
+                <div class="space-y-3 text-left">
+                    <div class="feature-item rounded-xl px-4 py-3 flex items-center gap-3.5">
+                        <div class="feature-icon-box w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <i class="fa-solid fa-paper-plane text-white text-sm"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold text-white leading-tight">Broadcast ke Ratusan Grup</p>
+                            <p class="text-xs text-indigo-300">Satu klik, semua grup terjangkau</p>
+                        </div>
+                    </div>
+                    <div class="feature-item rounded-xl px-4 py-3 flex items-center gap-3.5">
+                        <div class="feature-icon-box w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <i class="fa-solid fa-robot text-white text-sm"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold text-white leading-tight">Auto Reply 24 Jam</p>
+                            <p class="text-xs text-indigo-300">Bot bekerja saat Anda istirahat</p>
+                        </div>
+                    </div>
+                    <div class="feature-item rounded-xl px-4 py-3 flex items-center gap-3.5">
+                        <div class="feature-icon-box w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <i class="fa-solid fa-calendar-check text-white text-sm"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold text-white leading-tight">Jadwal Posting Otomatis</p>
+                            <p class="text-xs text-indigo-300">Set sekali, jalan selamanya</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ════ RIGHT PANEL (FORM) ════ -->
+        <div class="auth-right w-full lg:w-[55%] xl:w-[58%] flex flex-col justify-center items-center p-8 bg-white relative min-h-screen">
+
+            <!-- Back link -->
+            <a href="/" id="back-link" class="absolute top-6 left-6 flex items-center gap-1.5 text-gray-400 hover:text-gray-700 text-sm font-medium transition-colors">
+                <i class="fa-solid fa-arrow-left text-xs"></i>
+                <span class="hidden lg:inline">Kembali ke Beranda</span>
+                <span class="lg:hidden">BlastPro</span>
+            </a>
+
+            <!-- Mobile Logo -->
+            <div class="lg:hidden absolute top-5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 font-bold text-lg text-slate-900">
+                <img src="{{ url_for('static', filename='img/logo-blastpro.png') }}" alt="BlastPro Logo" class="w-6 h-6 object-contain">
+                Blast<span class="text-indigo-600">Pro</span>
+            </div>
+
+            <div class="w-full max-w-md">
+                {% block auth_content %}{% endblock %}
+
+                <div class="mt-8 pt-5 border-t border-gray-100 text-center text-xs text-gray-400">
+                    &copy; 2026 Baba Automation. Secured & Encrypted.
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // ── Detect entry direction from sessionStorage ──
+        (function() {
+            const dir = sessionStorage.getItem('auth_dir');
+            if (dir) {
+                document.body.classList.add('enter-from-' + dir);
+                sessionStorage.removeItem('auth_dir');
+            }
+        })();
+
+        // ── Smooth navigation between login & register ──
+        function authNavigate(href, exitDir, enterDir) {
+            sessionStorage.setItem('auth_dir', enterDir);
+            document.body.classList.add('exit-' + exitDir);
+            setTimeout(function() {
+                window.location.href = href;
+            }, 380);
+        }
+
+        // ── Generic togglePassword (available for child templates) ──
+        function togglePassword(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon  = document.getElementById(iconId);
+            if (!input || !icon) return;
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+    </script>
+
+</body>
+</html>

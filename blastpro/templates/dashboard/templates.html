@@ -1,0 +1,791 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Bank Pesan{% endblock %}
+
+{% block content %}
+<style>
+    .template-surface {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+    }
+
+    html[data-theme='dark'] .template-surface {
+        background: var(--panel-bg);
+        border-color: var(--border-color);
+    }
+
+    html[data-theme='dark'] .template-card,
+    html[data-theme='dark'] .template-input,
+    html[data-theme='dark'] .template-muted {
+        border-color: var(--border-color) !important;
+        background-color: var(--panel-bg) !important;
+        color: var(--text-primary) !important;
+    }
+
+    html[data-theme='dark'] .template-soft {
+        background-color: var(--panel-muted) !important;
+        border-color: var(--border-color) !important;
+    }
+
+    html[data-theme='dark'] .template-note {
+        color: var(--text-muted) !important;
+    }
+
+    /* ==========================================================
+       TM-CARD — Template pesan card (tanpa line atas)
+    ========================================================== */
+    .tm-card {
+        position: relative;
+        border-radius: 1.5rem;
+        overflow: hidden;
+        background: #ffffff;
+        border: 1.5px solid #dbeafe;
+        box-shadow: 0 2px 10px rgba(37,99,235,.07), 0 1px 3px rgba(0,0,0,.05);
+        display: flex; flex-direction: column;
+        transition:
+            transform .32s cubic-bezier(.22,1,.36,1),
+            box-shadow .32s ease,
+            background .32s ease,
+            border-color .32s ease;
+    }
+    html[data-theme='dark'] .tm-card {
+        background: var(--panel-bg, #1e1e2e);
+        border-color: rgba(99,102,241,.2);
+        box-shadow: 0 2px 10px rgba(0,0,0,.2);
+    }
+    .tm-card:hover {
+        background: rgba(109,40,217,.05) !important;
+        border-color: #7c3aed !important;
+        border-width: 2px;
+        transform: translateY(-6px);
+        box-shadow: 0 12px 32px rgba(109,40,217,.15), 0 0 0 4px rgba(124,58,237,.08);
+    }
+    html[data-theme='dark'] .tm-card:hover {
+        background: rgba(109,40,217,.12) !important;
+        border-color: #a78bfa !important;
+    }
+
+    /* Header */
+    .tm-header {
+        display: flex; justify-content: space-between; align-items: flex-start;
+        padding: 1.25rem 1.3rem .9rem;
+    }
+    .tm-title-group { display: flex; align-items: center; gap: .7rem; min-width: 0; }
+
+    /* Type icon */
+    .tm-icon {
+        width: 2.5rem; height: 2.5rem; flex-shrink: 0;
+        border-radius: .75rem;
+        display: flex; align-items: center; justify-content: center;
+        font-size: .95rem;
+        border: 1.5px solid transparent;
+        transition: box-shadow .32s, border-color .32s;
+    }
+    .tm-icon-text   { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
+    .tm-icon-image  { background: #ede9fe; color: #7c3aed; border-color: #ddd6fe; }
+    .tm-icon-cloud  { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
+    html[data-theme='dark'] .tm-icon-text  { background: rgba(37,99,235,.15); border-color: rgba(37,99,235,.3); color: #93c5fd; }
+    html[data-theme='dark'] .tm-icon-image { background: rgba(124,58,237,.15); border-color: rgba(124,58,237,.3); color: #c4b5fd; }
+    html[data-theme='dark'] .tm-icon-cloud { background: rgba(29,78,216,.15); border-color: rgba(29,78,216,.3); color: #93c5fd; }
+    .tm-card:hover .tm-icon { box-shadow: 0 0 0 4px rgba(124,58,237,.15); border-color: #c4b5fd; }
+
+    .tm-title-info { min-width: 0; }
+    .tm-name {
+        font-size: .9375rem; font-weight: 800; line-height: 1.3;
+        color: #0f172a;
+        display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;
+        transition: color .32s ease;
+    }
+    html[data-theme='dark'] .tm-name { color: #f1f5f9; }
+    .tm-card:hover .tm-name { color: #3b0764; }
+    html[data-theme='dark'] .tm-card:hover .tm-name { color: #e9d5ff !important; }
+    .tm-type {
+        font-size: .6rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em;
+        color: #64748b; margin-top: .1rem;
+        transition: color .32s;
+    }
+    html[data-theme='dark'] .tm-type { color: #64748b; }
+    .tm-card:hover .tm-type { color: #7c3aed; }
+
+    /* Action buttons */
+    .tm-actions { display: flex; gap: .4rem; flex-shrink: 0; }
+    .tm-action-btn {
+        width: 1.9rem; height: 1.9rem;
+        border-radius: .55rem;
+        border: 1.5px solid;
+        display: flex; align-items: center; justify-content: center;
+        font-size: .7rem; cursor: pointer;
+        transition: background .25s, color .25s, border-color .25s, box-shadow .25s;
+    }
+    .tm-edit-btn { background: #eff6ff; border-color: #bfdbfe; color: #2563eb; }
+    .tm-edit-btn:hover { background: #2563eb; color: #fff; border-color: #2563eb; box-shadow: 0 3px 10px rgba(37,99,235,.35); }
+    .tm-del-btn  { background: #fff1f2; border-color: #fecdd3; color: #e11d48; }
+    .tm-del-btn:hover  { background: #e11d48; color: #fff; border-color: #e11d48; box-shadow: 0 3px 10px rgba(225,29,72,.35); }
+    html[data-theme='dark'] .tm-edit-btn { background: rgba(37,99,235,.12); border-color: rgba(37,99,235,.3); color: #93c5fd; }
+    html[data-theme='dark'] .tm-del-btn  { background: rgba(239,68,68,.1); border-color: rgba(239,68,68,.3); color: #fca5a5; }
+    .tm-card:hover .tm-edit-btn { border-color: #93c5fd; }
+    .tm-card:hover .tm-del-btn  { border-color: #fca5a5; }
+
+    /* Preview body */
+    .tm-preview {
+        flex: 1;
+        margin: 0 1.1rem;
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        border-radius: 1rem;
+        overflow: hidden;
+        transition: background .32s, border-color .32s;
+    }
+    html[data-theme='dark'] .tm-preview { background: rgba(37,99,235,.08); border-color: rgba(99,102,241,.2); }
+    .tm-card:hover .tm-preview { background: rgba(109,40,217,.07) !important; border-color: #c4b5fd !important; }
+    html[data-theme='dark'] .tm-card:hover .tm-preview { background: rgba(109,40,217,.15) !important; border-color: #7c3aed !important; }
+
+    .tm-preview-media {
+        height: 6rem; width: 100%;
+        display: flex; align-items: center; justify-content: center; flex-direction: column;
+        background: #dbeafe; border-bottom: 1px solid #bfdbfe;
+    }
+    .tm-preview-text {
+        padding: .85rem 1rem;
+        font-size: .75rem; font-family: monospace;
+        line-height: 1.65; color: #1e3a5f;
+        white-space: pre-wrap; overflow-y: auto;
+        max-height: 12rem;
+        transition: color .32s;
+    }
+    html[data-theme='dark'] .tm-preview-text { color: #93c5fd; }
+    .tm-card:hover .tm-preview-text { color: #4c1d95; }
+    html[data-theme='dark'] .tm-card:hover .tm-preview-text { color: #ddd6fe !important; }
+
+    /* Copy button */
+    .tm-copy-btn {
+        display: flex; align-items: center; justify-content: center; gap: .5rem;
+        margin: .85rem 1.1rem 1.1rem;
+        padding: .6rem;
+        border-radius: .875rem;
+        border: 1.5px solid #bfdbfe;
+        background: #eff6ff;
+        color: #2563eb;
+        font-size: .75rem; font-weight: 700;
+        cursor: pointer; width: calc(100% - 2.2rem);
+        transition: background .25s, color .25s, border-color .25s, box-shadow .25s;
+    }
+    .tm-copy-btn:hover { background: #2563eb; color: #fff; border-color: #2563eb; box-shadow: 0 3px 10px rgba(37,99,235,.3); }
+    html[data-theme='dark'] .tm-copy-btn { background: rgba(37,99,235,.1); border-color: rgba(37,99,235,.3); color: #93c5fd; }
+    html[data-theme='dark'] .tm-copy-btn:hover { background: #2563eb; color: #fff; border-color: #2563eb; }
+    .tm-card:hover .tm-copy-btn {
+        background: rgba(109,40,217,.1); border-color: #a78bfa; color: #6d28d9;
+    }
+    .tm-card:hover .tm-copy-btn:hover {
+        background: #6d28d9; color: #fff; border-color: #6d28d9;
+        box-shadow: 0 3px 10px rgba(109,40,217,.35);
+    }
+    html[data-theme='dark'] .tm-card:hover .tm-copy-btn { background: rgba(109,40,217,.2); border-color: #7c3aed; color: #ddd6fe; }
+
+    /* === Template Popup Tab Switcher (broadcast-style) === */
+    .tpl-tab-switcher {
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .tpl-tab-active {
+        background: #2563eb;
+        color: #ffffff;
+        box-shadow: 0 2px 8px rgba(37,99,235,0.35);
+    }
+    .tpl-tab-inactive {
+        background: transparent;
+        color: #64748b;
+    }
+    .tpl-tab-inactive:hover {
+        background: rgba(37,99,235,0.07);
+        color: #2563eb;
+    }
+    html[data-theme='dark'] .tpl-tab-switcher {
+        background-color: rgba(15, 28, 53, 0.85) !important;
+        border-color: rgba(37, 99, 235, 0.2) !important;
+    }
+    html[data-theme='dark'] .tpl-tab-active {
+        background: #2563eb !important;
+        color: #ffffff !important;
+        box-shadow: 0 2px 10px rgba(37,99,235,0.4) !important;
+    }
+    html[data-theme='dark'] .tpl-tab-inactive {
+        background: transparent !important;
+        color: var(--text-muted) !important;
+    }
+    html[data-theme='dark'] .tpl-tab-inactive:hover {
+        background: rgba(37,99,235,0.12) !important;
+        color: #60a5fa !important;
+    }
+
+    /* === Template Popup Phone Preview Dark Mode === */
+    html[data-theme='dark'] .template-preview .tpl-phone-screen {
+        background-color: #0d1a2a !important;
+    }
+    html[data-theme='dark'] .template-preview .tpl-status-bar {
+        background: #1c2b3a !important;
+    }
+    html[data-theme='dark'] .template-preview .tpl-header-bar {
+        background: #1c2b3a !important;
+        box-shadow: 0 1px 0 rgba(255,255,255,0.05) !important;
+    }
+    html[data-theme='dark'] .template-preview .tpl-chat-body {
+        background-color: #17212b !important;
+        background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png') !important;
+        background-size: cover !important;
+        background-position: center !important;
+        background-blend-mode: multiply !important;
+    }
+    html[data-theme='dark'] .template-preview .tpl-date-badge {
+        background: rgba(28, 43, 58, 0.9) !important;
+        color: #7fb3d3 !important;
+    }
+    html[data-theme='dark'] .template-preview .tpl-bubble {
+        background-color: #1e2d3e !important;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.4) !important;
+    }
+    html[data-theme='dark'] .template-preview .tpl-bubble-tail {
+        color: #1e2d3e !important;
+    }
+    html[data-theme='dark'] .template-preview .tpl-bubble-text {
+        color: #dde6ee !important;
+    }
+    html[data-theme='dark'] .template-preview .tpl-timestamp {
+        color: #7fb3d3 !important;
+    }
+    html[data-theme='dark'] .template-preview .tpl-input-bar {
+        background-color: #17212b !important;
+        border-color: #0d1a2a !important;
+    }
+    html[data-theme='dark'] .template-preview .tpl-input-field {
+        background-color: #242f3d !important;
+        border-color: #1e3a5f !important;
+    }
+    html[data-theme='dark'] .template-preview .tpl-input-placeholder {
+        color: #4d6070 !important;
+    }
+</style>
+
+<div class="max-w-7xl mx-auto animate-fade-in pb-20 space-y-8">
+    <div class="dp-page-header">
+        <div class="flex flex-col lg:flex-row justify-between gap-4 lg:items-center pl-2">
+            <div>
+                <div class="flex items-center gap-3 mb-2">
+                    <i class="fa-solid fa-object-group flex-shrink-0" style="color: var(--accent); font-size: 4rem;"></i>
+                    <div>
+                        <p class="text-[10px] font-bold uppercase tracking-widest leading-none mb-0.5" style="color: var(--accent); opacity: 0.75">Bank Pesan & Media</p>
+                        <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight leading-tight">Template Pesan Siap Pakai</h1>
+                    </div>
+                </div>
+                <p class="text-sm mt-1.5 text-slate-500">Buat, edit, dan kelola template promosi. Gunakan ulang untuk setiap campaign tanpa ketik ulang dari awal.</p>
+            </div>
+            <button onclick="openCreateModal()" class="dp-btn dp-btn-primary self-start lg:self-center shrink-0" style="padding:0.75rem 1.25rem">
+                <i class="fa-solid fa-plus"></i>
+                <span>Tambah Template Baru</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {% for t in templates %}
+        <article class="tm-card">
+            <!-- Header: icon + title + action buttons -->
+            <div class="tm-header">
+                <div class="tm-title-group">
+                    <div class="tm-icon {% if t.source_message_id %}tm-icon-cloud{% elif t.image_url %}tm-icon-image{% else %}tm-icon-text{% endif %}">
+                        {% if t.source_message_id %}
+                            <i class="fa-brands fa-telegram"></i>
+                        {% elif t.image_url %}
+                            <i class="fa-solid fa-image"></i>
+                        {% else %}
+                            <i class="fa-solid fa-align-left"></i>
+                        {% endif %}
+                    </div>
+                    <div class="tm-title-info">
+                        <h3 class="tm-name">{{ t.name }}</h3>
+                        {% if t.source_message_id %}
+                        <span class="dp-badge dp-badge-sky"><i class="fa-brands fa-telegram text-[10px]"></i> Cloud Media</span>
+                        {% elif t.image_url %}
+                        <span class="dp-badge dp-badge-purple"><i class="fa-solid fa-image text-[10px]"></i> Upload Gambar</span>
+                        {% else %}
+                        <span class="dp-badge dp-badge-pencil"><i class="fa-solid fa-align-left text-[10px]"></i> Teks Saja</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="tm-actions">
+                    <button onclick='openEditModal({{ t | tojson | safe }})' class="tm-action-btn tm-edit-btn" title="Edit Template">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                    <button type="button" onclick="showConfirm({ title:'Hapus Template', message:'Yakin ingin menghapus template pesan ini? Tindakan ini tidak dapat dibatalkan.', icon:'fa-trash-can', iconColor:'text-red-400', iconBg:'bg-red-500/20', glowColor:'bg-red-500', confirmText:'Ya, Hapus', confirmCls:'bg-red-600 hover:bg-red-500 shadow-red-500/30', onConfirm: function(){ window.location.href='/delete_template/{{ t.id }}'; } })" class="tm-action-btn tm-del-btn" title="Hapus Template">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Preview body -->
+            <div class="tm-preview">
+                {% if t.source_message_id %}
+                    <div class="tm-preview-media">
+                        <i class="fa-brands fa-telegram text-3xl text-blue-400 mb-1"></i>
+                        <span class="text-[10px] text-blue-500 font-bold">Media dari Telegram Cloud</span>
+                    </div>
+                {% elif t.image_url %}
+                    <div style="height:6rem;width:100%;position:relative;overflow:hidden">
+                        <img src="{{ t.image_url }}" style="width:100%;height:100%;object-fit:cover" alt="Preview {{ t.name }}">
+                        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(15,23,42,.4),transparent)"></div>
+                    </div>
+                {% endif %}
+                <div class="tm-preview-text custom-scrollbar">{{ t.message_text }}</div>
+            </div>
+
+            <!-- Copy button -->
+            <button data-msg="{{ t.message_text }}" onclick="copyText(this.dataset.msg)" class="tm-copy-btn">
+                <i class="fa-regular fa-copy"></i> Salin Isi Pesan
+            </button>
+        </article>
+        {% else %}
+        <div class="col-span-full py-20 text-center template-card bg-white border border-dashed border-slate-300 rounded-2xl">
+            <div class="mx-auto mb-5 text-slate-300">
+                <i class="fa-solid fa-layer-group text-5xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-800">Belum ada template</h3>
+            <p class="text-slate-500 mt-2 max-w-sm mx-auto template-note">Klik tombol <strong>Tambah Template Baru</strong> untuk mulai menyiapkan pesan promosi pertama Anda.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div id="templateModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm transition-opacity opacity-0" id="modalBackdrop"></div>
+    <div class="fixed inset-0 z-10 flex items-center justify-center p-3 sm:p-4 md:left-[252px]">
+        <div class="template-card relative transform overflow-hidden rounded-3xl bg-white text-left shadow-2xl transition-all sm:w-full sm:max-w-6xl opacity-0 scale-95 flex flex-col" id="modalPanel" style="max-height: 90vh">
+                <!-- Dark Header -->
+                <div class="bg-gray-900 px-6 py-5 relative overflow-hidden shrink-0 rounded-t-3xl">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-indigo-500/20 to-violet-500/20 rounded-full blur-3xl -mr-8 -mt-8 pointer-events-none"></div>
+                    <div class="relative z-10 flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-pen-to-square text-5xl text-indigo-400"></i>
+                            <div>
+                                <h3 class="font-bold text-lg text-white tracking-tight" id="modalTitle">Editor Template</h3>
+                                <p class="text-gray-400 text-xs mt-0.5">Buat atau edit template pesan broadcast.</p>
+                            </div>
+                        </div>
+                        <button onclick="closeModal()" class="btn-close-on-dark">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-12 flex-1 min-h-0">
+                    <div class="lg:col-span-7 p-5 sm:p-7 overflow-y-auto flex flex-col border-r border-slate-100 template-card">
+
+                        <form action="/save_template" method="POST" enctype="multipart/form-data" id="templateForm" class="space-y-5 flex-1">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <input type="hidden" name="id" id="templateId">
+                            <input type="hidden" name="source_chat_id" id="sourceChatId">
+                            <input type="hidden" name="source_message_id" id="sourceMessageId">
+
+                            <div class="tpl-tab-switcher flex rounded-xl p-1 gap-1 w-full">
+                                <button type="button" onclick="setTab('manual')" id="tabManual"
+                                    class="flex-1 flex items-center justify-center gap-2 px-5 py-2 text-xs font-bold rounded-lg transition-all duration-200 tpl-tab-active">
+                                    <i class="fa-solid fa-pen-nib text-[11px]"></i>
+                                    <span>Tulis Manual</span>
+                                </button>
+                                <button type="button" onclick="setTab('fetch')" id="tabFetch"
+                                    class="flex-1 flex items-center justify-center gap-2 px-5 py-2 text-xs font-bold rounded-lg transition-all duration-200 tpl-tab-inactive">
+                                    <i class="fa-brands fa-telegram text-[11px]"></i>
+                                    <span>Ambil dari Link</span>
+                                </button>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-2 template-note">Nama Template</label>
+                                <input type="text" name="name" id="inputName" required placeholder="Contoh: Promo Gajian Akhir Bulan" class="template-input dp-input font-semibold">
+                            </div>
+
+                            <div id="sectionFetch" class="hidden space-y-3 bg-blue-50 p-4 rounded-xl border border-blue-100 animate-enter">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <i class="fa-brands fa-telegram text-blue-600 text-lg"></i>
+                                    <h4 class="font-bold text-blue-800 text-sm">Import dari Telegram</h4>
+                                </div>
+                                <div class="flex flex-col sm:flex-row gap-2">
+                                    <input type="text" id="teleLink" placeholder="https://t.me/channel/123" class="dp-input flex-1 text-sm">
+                                    <button type="button" onclick="fetchMessage()" id="btnFetchAction" class="dp-btn dp-btn-sky whitespace-nowrap">
+                                        <i class="fa-solid fa-download text-xs"></i> Ambil
+                                    </button>
+                                </div>
+                                <p class="text-[10px] text-blue-600 leading-tight">Bot akan membaca teks + media dari link Telegram. Media tidak perlu upload ulang.</p>
+                            </div>
+
+                            <div id="sectionContent" class="space-y-4">
+                                <div id="fetchStatus" class="hidden bg-green-50 border border-green-200 rounded-xl p-3 flex items-start gap-3">
+                                    <div class="bg-green-100 text-green-600 p-2 rounded-lg"><i class="fa-solid fa-link"></i></div>
+                                    <div>
+                                        <h5 class="text-xs font-bold text-green-800">Cloud media aktif</h5>
+                                        <p class="text-[10px] text-green-700">Saat broadcast, sistem akan memakai media asli dari Telegram Cloud.</p>
+                                    </div>
+                                    <button type="button" onclick="resetFetch()" class="btn-close ml-auto"><i class="fa-solid fa-xmark"></i></button>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2 flex justify-between template-note">
+                                        Isi Pesan (Caption)
+                                        <span class="text-indigo-600 cursor-pointer hover:underline" onclick="insertName()">+ Sisipkan {name}</span>
+                                    </label>
+                                    <textarea name="message" id="messageArea" rows="6" required oninput="updatePreview()" placeholder="Tulis isi template di sini..." class="template-input dp-input text-sm leading-relaxed" style="resize:vertical;height:auto"></textarea>
+                                </div>
+
+                                <div id="manualUploadBox" class="space-y-2">
+                                    <label class="block text-xs font-bold text-slate-500 uppercase template-note">Upload Gambar (Opsional)</label>
+                                    <label class="template-soft flex flex-col items-center justify-center gap-2 p-8 min-h-[150px] border-2 border-dashed border-slate-300 rounded-xl cursor-pointer hover:border-violet-400 hover:bg-violet-50/50 transition group">
+                                        <i class="fa-solid fa-cloud-arrow-up text-indigo-400 group-hover:text-violet-500 text-2xl transition"></i>
+                                        <div class="text-center">
+                                            <span id="fileLabel" class="text-sm font-bold text-slate-700 template-note">Pilih file gambar</span>
+                                            <span class="text-slate-400 text-xs mx-1">atau</span>
+                                            <span class="text-xs font-bold text-violet-500">Drop &amp; Drag gambar</span>
+                                        </div>
+                                        <p class="text-[10px] text-slate-400">Format JPG / PNG · Maks. 2MB</p>
+                                        <input type="file" name="image_file" class="hidden" accept="image/*" onchange="previewImage(event)">
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="mt-auto pt-5 flex flex-col sm:flex-row gap-3">
+                                <button type="button" onclick="closeModal()" class="dp-btn dp-btn-ghost px-6 py-3">
+                                    <i class="fa-solid fa-xmark text-sm"></i> Batal
+                                </button>
+                                <button type="submit" id="btnSubmit" class="dp-btn dp-btn-primary flex-1 py-3">
+                                    <i class="fa-solid fa-floppy-disk"></i> Simpan Template
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="lg:col-span-5 template-soft bg-slate-50 border-l border-slate-200 p-6 flex flex-col items-center justify-center relative overflow-hidden">
+                        <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#6366f1 1px, transparent 1px); background-size: 20px 20px;"></div>
+                        <span class="relative z-10 text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-white px-3 py-1 rounded-full border border-slate-100 mb-4 template-card">Live Preview</span>
+
+                        <div class="relative template-preview">
+                            <!-- Side buttons -->
+                            <div class="absolute -left-[5px] top-16 w-[4px] h-7 bg-gray-700 rounded-l-full shadow-inner"></div>
+                            <div class="absolute -left-[5px] top-28 w-[4px] h-9 bg-gray-700 rounded-l-full shadow-inner"></div>
+                            <div class="absolute -left-[5px] top-40 w-[4px] h-9 bg-gray-700 rounded-l-full shadow-inner"></div>
+                            <div class="absolute -right-[5px] top-24 w-[4px] h-12 bg-gray-700 rounded-r-full shadow-inner"></div>
+
+                            <!-- Phone frame -->
+                            <div class="w-[300px] bg-gray-950 rounded-[2.6rem] p-[9px] shadow-[0_30px_60px_-10px_rgba(0,0,0,0.4),0_0_0_1px_rgba(255,255,255,0.05)] ring-1 ring-white/10">
+                                <div class="tpl-phone-screen bg-white rounded-[2.1rem] overflow-hidden flex flex-col relative" style="height: 540px;">
+
+                                    <!-- Status bar (iOS style with dynamic island) -->
+                                    <div class="tpl-status-bar bg-[#2481cc] shrink-0">
+                                        <div class="relative flex items-center justify-between px-5 pt-2.5 pb-0.5">
+                                            <span class="text-[10px] font-semibold text-white/95 tracking-wide" style="font-variant-numeric:tabular-nums">9:41</span>
+                                            <div class="absolute left-1/2 -translate-x-1/2 top-1.5 w-[72px] h-[18px] bg-black rounded-full z-30 flex items-center justify-center gap-1.5 shadow-inner">
+                                                <div class="w-1.5 h-1.5 bg-[#2a2a2a] rounded-full"></div>
+                                                <div class="w-6 h-[3px] bg-[#1a1a1a] rounded-full"></div>
+                                            </div>
+                                            <div class="flex items-center gap-1.5">
+                                                <div class="flex items-end gap-px">
+                                                    <div class="w-[3px] h-[5px] bg-white/90 rounded-sm"></div>
+                                                    <div class="w-[3px] h-[7px] bg-white/90 rounded-sm"></div>
+                                                    <div class="w-[3px] h-[9px] bg-white/90 rounded-sm"></div>
+                                                    <div class="w-[3px] h-[11px] bg-white/90 rounded-sm"></div>
+                                                </div>
+                                                <i class="fa-solid fa-wifi text-white/90 text-[9px]"></i>
+                                                <div class="flex items-center gap-px">
+                                                    <div class="w-[18px] h-[9px] border border-white/80 rounded-[2px] p-px flex items-center">
+                                                        <div class="h-full w-[80%] bg-white/90 rounded-[1px]"></div>
+                                                    </div>
+                                                    <div class="w-[2px] h-[5px] bg-white/60 rounded-r-sm"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Chat header (Telegram style) -->
+                                    <div class="tpl-header-bar px-3 pt-1.5 pb-2.5 flex items-center gap-2 text-white shrink-0" style="background:#2481cc;box-shadow:0 1px 3px rgba(0,0,0,0.15)">
+                                        <button class="w-7 h-7 flex items-center justify-center rounded-full transition">
+                                            <i class="fa-solid fa-chevron-left text-sm text-white/90"></i>
+                                        </button>
+                                        <div class="relative shrink-0">
+                                            <div class="w-9 h-9 bg-gradient-to-br from-violet-500 to-purple-600 rounded-full flex items-center justify-center shadow-md">
+                                                <i class="fa-solid fa-paper-plane text-white text-[11px]"></i>
+                                            </div>
+                                            <div class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#4dcd5a] rounded-full border-[1.5px] border-[#2481cc]"></div>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-center gap-1 leading-tight">
+                                                <h4 class="font-semibold text-[13px] truncate">Pelanggan</h4>
+                                                <svg class="w-3 h-3 text-white/80 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                                            </div>
+                                            <p class="text-[10px] text-white/70 leading-none mt-0.5">online</p>
+                                        </div>
+                                        <div class="flex items-center gap-0.5 shrink-0">
+                                            <button class="w-7 h-7 flex items-center justify-center rounded-full transition">
+                                                <i class="fa-solid fa-phone text-[11px] text-white/90"></i>
+                                            </button>
+                                            <button class="w-7 h-7 flex items-center justify-center rounded-full transition">
+                                                <i class="fa-solid fa-ellipsis-vertical text-sm text-white/90"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Chat body -->
+                                    <div class="tpl-chat-body flex-1 overflow-y-auto overflow-x-hidden flex flex-col px-3 py-3 gap-2 custom-scrollbar"
+                                         style="background-color: #abbbc2; background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-size: cover; background-position: center;">
+
+                                        <div class="flex justify-center my-1">
+                                            <span class="tpl-date-badge bg-white/70 text-gray-500 text-[9px] font-medium px-3 py-0.5 rounded-full shadow-sm backdrop-blur-sm">Hari ini</span>
+                                        </div>
+
+                                        <div class="flex-1"></div>
+
+                                        <!-- Message bubble -->
+                                        <div class="flex items-end gap-1.5 max-w-[88%] self-start">
+                                            <div class="w-5 h-5 bg-gradient-to-br from-violet-500 to-indigo-600 rounded-full flex items-center justify-center shrink-0 mb-1 shadow-sm">
+                                                <i class="fa-solid fa-paper-plane text-white text-[7px]"></i>
+                                            </div>
+                                            <div class="relative">
+                                                <svg class="tpl-bubble-tail absolute -left-[6px] bottom-3 text-white" width="8" height="12" viewBox="0 0 8 12"><path fill="currentColor" d="M0 12C0 4 8 0 8 0v12z"/></svg>
+                                                <div class="tpl-bubble bg-white rounded-2xl rounded-bl-sm shadow-sm overflow-hidden">
+                                                    <img id="mockupImage" class="hidden w-full max-h-32 object-cover rounded-t-2xl border-b border-slate-100">
+                                                    <div id="mockupCloudMedia" class="hidden w-full h-20 bg-gradient-to-br from-indigo-50 to-violet-50 flex-col items-center justify-center text-indigo-400 border-b border-indigo-100/50">
+                                                        <i class="fa-brands fa-telegram text-2xl mb-1 opacity-60"></i>
+                                                        <span class="text-[8px] font-black uppercase tracking-widest opacity-60">Media</span>
+                                                    </div>
+                                                    <div class="px-2 pt-2 pb-1">
+                                                        <div id="mockupText" class="tpl-bubble-text whitespace-pre-wrap text-[11px] text-gray-800 leading-relaxed font-sans break-words min-h-[1rem]"><span class="text-slate-300 italic">Isi pesan...</span></div>
+                                                    </div>
+                                                    <div class="flex justify-end items-center gap-1 px-2 pb-2 pt-0.5">
+                                                        <span class="tpl-timestamp text-[9px] text-gray-400">09:41</span>
+                                                        <svg class="w-3.5 h-3.5 text-blue-500" viewBox="0 0 16 11" fill="currentColor"><path d="M11.071.653a.75.75 0 0 1 .976 1.136L5.56 9.26a.75.75 0 0 1-1.073.043L.964 5.9a.75.75 0 0 1 1.072-1.05l3.037 3.1 5.998-7.297ZM15.07.653a.75.75 0 0 1 .976 1.136L9.56 9.26a.75.75 0 0 1-1.01.056l.937-.953 5.583-7.71Z"/></svg>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Input bar (Telegram style) -->
+                                    <div class="tpl-input-bar bg-white border-t border-gray-100 px-2 py-2 shrink-0 flex items-center gap-1.5">
+                                        <button class="w-8 h-8 flex items-center justify-center text-gray-400 shrink-0">
+                                            <i class="fa-regular fa-face-smile text-[17px]"></i>
+                                        </button>
+                                        <div class="tpl-input-field flex-1 bg-[#f4f4f5] rounded-2xl h-9 px-3 flex items-center border border-gray-200/60">
+                                            <span class="tpl-input-placeholder text-[12px] text-gray-400 flex-1">Tulis pesan...</span>
+                                            <button class="w-5 h-5 flex items-center justify-center text-gray-400 shrink-0">
+                                                <i class="fa-solid fa-paperclip text-[11px]"></i>
+                                            </button>
+                                        </div>
+                                        <div class="w-9 h-9 rounded-full flex items-center justify-center text-white shrink-0 shadow-sm" style="background:#2481cc">
+                                            <i class="fa-solid fa-microphone text-sm"></i>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </div>
+</div>
+
+<script>
+    const modal = document.getElementById('templateModal');
+    const backdrop = document.getElementById('modalBackdrop');
+    const panel = document.getElementById('modalPanel');
+    const modalTitle = document.getElementById('modalTitle');
+    const templateForm = document.getElementById('templateForm');
+    const btnSubmit = document.getElementById('btnSubmit');
+    const tabManual = document.getElementById('tabManual');
+    const tabFetch = document.getElementById('tabFetch');
+    const sectionFetch = document.getElementById('sectionFetch');
+
+    const templateIdField = document.getElementById('templateId');
+    const nameField = document.getElementById('inputName');
+    const messageArea = document.getElementById('messageArea');
+    const sourceChatIdField = document.getElementById('sourceChatId');
+    const sourceMessageIdField = document.getElementById('sourceMessageId');
+
+    const manualUploadBox = document.getElementById('manualUploadBox');
+    const fetchStatus = document.getElementById('fetchStatus');
+    const mockupCloudMedia = document.getElementById('mockupCloudMedia');
+    const mockupImage = document.getElementById('mockupImage');
+
+    function openCreateModal() {
+        resetForm();
+        modalTitle.innerText = "Buat Template Baru";
+        btnSubmit.innerText = "Simpan Template";
+        templateForm.action = "/save_template";
+        setTab('manual');
+        openModalAnimation();
+    }
+
+    function openEditModal(data) {
+        resetForm();
+        modalTitle.innerText = "Edit Template";
+        btnSubmit.innerText = "Simpan Perubahan";
+        templateForm.action = "/update_template";
+
+        templateIdField.value = data.id;
+        nameField.value = data.name;
+        messageArea.value = data.message_text;
+
+        if (data.source_message_id) {
+            sourceChatIdField.value = data.source_chat_id;
+            sourceMessageIdField.value = data.source_message_id;
+            manualUploadBox.classList.add('hidden');
+            fetchStatus.classList.remove('hidden');
+            mockupCloudMedia.classList.remove('hidden');
+            mockupCloudMedia.classList.add('flex');
+        }
+
+        updatePreview();
+        openModalAnimation();
+    }
+
+    function openModalAnimation() {
+        modal.classList.remove('hidden');
+        lockScroll();
+        setTimeout(() => {
+            backdrop.classList.remove('opacity-0');
+            panel.classList.remove('opacity-0', 'scale-95');
+            panel.classList.add('opacity-100', 'scale-100');
+        }, 10);
+    }
+
+    function closeModal() {
+        backdrop.classList.add('opacity-0');
+        panel.classList.remove('opacity-100', 'scale-100');
+        panel.classList.add('opacity-0', 'scale-95');
+        setTimeout(() => { modal.classList.add('hidden'); unlockScroll(); }, 300);
+    }
+
+    function resetForm() {
+        templateForm.reset();
+        templateIdField.value = "";
+        sourceChatIdField.value = "";
+        sourceMessageIdField.value = "";
+        document.getElementById('fileLabel').innerText = 'Pilih file gambar';
+        resetFetch();
+        document.getElementById('mockupText').innerHTML = '<span class="text-slate-300 italic">Isi pesan...</span>';
+    }
+
+    function setTab(mode) {
+        if (mode === 'manual') {
+            tabManual.classList.replace('tpl-tab-inactive', 'tpl-tab-active');
+            tabFetch.classList.replace('tpl-tab-active', 'tpl-tab-inactive');
+            sectionFetch.classList.add('hidden');
+            if (!sourceMessageIdField.value) manualUploadBox.classList.remove('hidden');
+        } else {
+            tabFetch.classList.replace('tpl-tab-inactive', 'tpl-tab-active');
+            tabManual.classList.replace('tpl-tab-active', 'tpl-tab-inactive');
+            sectionFetch.classList.remove('hidden');
+            manualUploadBox.classList.add('hidden');
+        }
+    }
+
+    function insertName() {
+        messageArea.value += " {name} ";
+        messageArea.focus();
+        updatePreview();
+    }
+
+    function updatePreview() {
+        const input = messageArea.value;
+        const preview = document.getElementById('mockupText');
+
+        if (!input) {
+            preview.innerHTML = '<span class="text-slate-300 italic">Isi pesan...</span>';
+            return;
+        }
+
+        const formatted = input
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/{name}/g, '<span class="bg-yellow-200 text-yellow-800 px-1 rounded text-[9px] font-bold shadow-sm">{Nama}</span>')
+            .replace(/\n/g, '<br>');
+
+        preview.innerHTML = formatted;
+    }
+
+    function previewImage(event) {
+        const file = event.target.files[0];
+        const label = document.getElementById('fileLabel');
+
+        if (file) {
+            label.innerText = file.name;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                mockupImage.src = e.target.result;
+                mockupImage.classList.remove('hidden');
+                mockupCloudMedia.classList.add('hidden');
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+
+    async function fetchMessage() {
+        const link = document.getElementById('teleLink').value;
+        const btn = document.getElementById('btnFetchAction');
+        if (!link) return showAlert({ title: 'Link Kosong', message: 'Masukkan link Telegram terlebih dahulu!', icon: 'fa-link', iconColor: 'text-amber-400', iconBg: 'bg-amber-500/20', glowColor: 'bg-amber-500' });
+
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+        btn.disabled = true;
+
+        try {
+            const res = await fetch('/api/fetch_message', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({link: link})
+            });
+            const data = await res.json();
+
+            if (data.status === 'success') {
+                messageArea.value = data.text;
+                sourceChatIdField.value = data.source_chat_id;
+                sourceMessageIdField.value = data.source_message_id;
+                updatePreview();
+
+                if (data.has_media) {
+                    manualUploadBox.classList.add('hidden');
+                    fetchStatus.classList.remove('hidden');
+                    mockupImage.classList.add('hidden');
+                    mockupCloudMedia.classList.remove('hidden');
+                    mockupCloudMedia.classList.add('flex');
+                } else {
+                    manualUploadBox.classList.remove('hidden');
+                    fetchStatus.classList.add('hidden');
+                }
+
+                messageArea.classList.add('ring-2', 'ring-green-500');
+                setTimeout(() => messageArea.classList.remove('ring-2', 'ring-green-500'), 500);
+            } else {
+                showAlert({ title: 'Gagal Ambil Pesan', message: data.message, icon: 'fa-circle-xmark', iconColor: 'text-red-400', iconBg: 'bg-red-500/20', glowColor: 'bg-red-500' });
+            }
+        } catch (e) {
+            showAlert({ title: 'Error', message: 'Gagal koneksi ke server.', icon: 'fa-wifi', iconColor: 'text-red-400', iconBg: 'bg-red-500/20', glowColor: 'bg-red-500' });
+        } finally {
+            btn.innerHTML = originalHtml;
+            btn.disabled = false;
+        }
+    }
+
+    function resetFetch() {
+        sourceChatIdField.value = "";
+        sourceMessageIdField.value = "";
+        fetchStatus.classList.add('hidden');
+        if (tabManual.classList.contains('tpl-tab-active')) {
+            manualUploadBox.classList.remove('hidden');
+        }
+        mockupCloudMedia.classList.add('hidden');
+        mockupCloudMedia.classList.remove('flex');
+        mockupImage.classList.add('hidden');
+    }
+
+    function copyText(text) {
+        navigator.clipboard.writeText(text);
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,764 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Koneksi Telegram{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto animate-fade-in pb-16">
+
+    <!-- ===== PAGE HEADER ===== -->
+    <div class="dp-page-header mb-8">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pl-2">
+            <div>
+                <div class="flex items-center gap-3 mb-2">
+                    <i class="fa-solid fa-network-wired flex-shrink-0" style="color: var(--accent); font-size: 4rem;"></i>
+                    <div>
+                        <p class="text-[10px] font-bold uppercase tracking-widest leading-none mb-0.5" style="color: var(--accent); opacity: 0.75">Koneksi Akun</p>
+                        <h1 class="text-2xl font-extrabold tracking-tight text-slate-800 sm:text-3xl leading-tight">Manajer Akun Telegram</h1>
+                    </div>
+                </div>
+                <p class="mt-1.5 text-sm text-slate-500">Hubungkan nomor Telegram untuk digunakan sebagai pengirim broadcast.</p>
+            </div>
+            <button onclick="openConnectModal()" class="dp-btn dp-btn-primary flex-shrink-0">
+                <i class="fa-solid fa-plus"></i> Tambah Akun
+            </button>
+        </div>
+    </div>
+
+    <!-- ===== ACCOUNT CARDS ===== -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for acc in accounts %}
+        <div class="tg-card" data-active="{{ 'true' if acc.is_active else 'false' }}">
+            <!-- Status bar top -->
+            <div class="tg-card-bar {{ 'tg-bar-active' if acc.is_active else 'tg-bar-pending' }}"></div>
+            <div class="tg-card-body">
+                <!-- Row: avatar + badge -->
+                <div class="tg-card-top">
+                    <div class="tg-avatar-wrap">
+                        <div class="tg-avatar">{{ (acc.first_name[:1] if acc.first_name else 'T') | upper }}</div>
+                        {% if acc.is_active %}
+                        <span class="tg-avatar-dot"></span>
+                        {% endif %}
+                    </div>
+                    {% if acc.is_active %}
+                    <span class="tg-badge tg-badge-active"><span class="tg-pulse"></span> AKTIF</span>
+                    {% else %}
+                    <span class="tg-badge tg-badge-pending">PENDING</span>
+                    {% endif %}
+                </div>
+                <!-- Info -->
+                <div class="tg-info">
+                    <h3 class="tg-name">{{ acc.first_name }} {{ acc.last_name or '' }}</h3>
+                    {% if acc.username %}
+                    <a href="https://t.me/{{ acc.username }}" target="_blank" class="tg-username">@{{ acc.username }}</a>
+                    {% else %}
+                    <span class="tg-no-user">Tidak ada username</span>
+                    {% endif %}
+                    <div class="tg-phone-row">
+                        <i class="fa-solid fa-phone tg-phone-icon"></i>
+                        <span class="tg-phone">{{ acc.phone_number }}</span>
+                    </div>
+                </div>
+                <!-- Footer -->
+                <div class="tg-footer">
+                    <span class="tg-id-chip">ID #{{ acc.id }}</span>
+                    <button onclick="disconnectAccount('{{ acc.phone_number }}')" class="tg-disconnect-btn">
+                        <i class="fa-solid fa-link-slash"></i> Putuskan
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-span-full">
+            <div class="dp-card">
+                <div class="dp-empty">
+                    <div class="dp-empty-icon"><i class="fa-solid fa-plug-circle-xmark"></i></div>
+                    <h3>Belum Ada Akun Terhubung</h3>
+                    <p>Klik tombol <strong>"Tambah Akun"</strong> di atas untuk mulai menghubungkan Telegram.</p>
+                    <button onclick="openConnectModal()" class="dp-btn dp-btn-primary mt-6">
+                        <i class="fa-solid fa-plus"></i> Tambah Akun Pertama
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Multi Account Info -->
+    {% if accounts %}
+    <div class="mt-8 rounded-2xl border p-5 flex gap-4 items-start max-w-2xl dp-anim-card dp-d7 multi-account-card">
+        <div class="dp-icon-box dp-icon-box-purple flex-shrink-0">
+            <i class="fa-solid fa-circle-info"></i>
+        </div>
+        <div>
+            <h4 class="text-sm font-bold multi-account-title">Multi-Akun Support</h4>
+            <p class="text-xs mt-1 multi-account-text">
+                Hubungkan maksimal <strong>3 Akun Telegram</strong>. Nama akun diperbarui otomatis saat login ulang.
+            </p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- ===== CONNECT MODAL ===== -->
+<div id="connectModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity opacity-0" id="modalBackdrop"></div>
+    <div class="fixed inset-0 z-10 flex items-center justify-center p-4">
+        <div class="dp-card w-full max-w-md opacity-0 scale-95 transition-all duration-300" id="modalPanel">
+
+                <div class="bg-gray-900 px-6 py-5 relative overflow-hidden shrink-0 rounded-t-3xl">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/20 to-violet-500/20 rounded-full blur-3xl -mr-8 -mt-8 pointer-events-none"></div>
+                    <div class="relative z-10 flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-brands fa-telegram text-lg text-blue-400"></i>
+                            <div>
+                                <h3 class="font-bold text-lg text-white tracking-tight">Sambungkan Telegram</h3>
+                                <p class="text-gray-400 text-xs mt-0.5">Login dengan nomor HP atau scan QR Code.</p>
+                            </div>
+                        </div>
+                        <button onclick="closeModal()" class="btn-close-on-dark">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="px-4 pb-3">
+                    <div class="modal-tab-wrap">
+                        <div class="grid grid-cols-2 gap-1.5">
+                            <button onclick="switchTab('phone')" id="tabPhone" class="tab-btn tab-active">
+                                <span class="icon-box"><i class="fa-solid fa-mobile-screen"></i></span> Nomor HP
+                            </button>
+                            <button onclick="switchTab('qr')" id="tabQr" class="tab-btn">
+                                <span class="icon-box"><i class="fa-solid fa-qrcode"></i></span> Scan QR Code
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-6">
+                    <!-- Phone OTP -->
+                    <div id="contentPhone" class="space-y-4">
+                        <div class="text-center mb-4">
+                            <div class="dp-icon-box dp-icon-box-sky mx-auto mb-3" style="width:3rem;height:3rem;border-radius:1rem;font-size:1.25rem">
+                                <i class="fa-solid fa-comment-sms"></i>
+                            </div>
+                            <p class="text-xs text-slate-500">Masukkan nomor HP Telegram Anda (diawali kode negara, cth: +62).</p>
+                        </div>
+
+                        <div id="step1">
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Nomor HP</label>
+                            <input type="text" id="phoneInput" placeholder="+628xxx" class="dp-input font-mono font-bold text-lg text-center tracking-wider">
+                            <button onclick="sendOtp()" id="btnSendOtp" class="dp-btn dp-btn-sky w-full mt-3">Kirim Kode OTP</button>
+                        </div>
+
+                        <div id="step2" class="hidden animate-enter">
+                            <div class="rounded-xl border border-amber-100 bg-amber-50 p-3 mb-4 flex gap-3 items-start">
+                                <i class="fa-solid fa-circle-info text-amber-500 mt-0.5 flex-shrink-0"></i>
+                                <div class="text-xs text-amber-800">Cek aplikasi Telegram Anda (Bukan SMS). Masukkan kode login yang dikirim Telegram.</div>
+                            </div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Kode OTP</label>
+                            <input type="text" id="otpInput" placeholder="12345" class="dp-input font-mono font-bold text-2xl text-center tracking-[0.5em]">
+                            <div id="passField" class="hidden mt-3">
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Password (2FA)</label>
+                                <input type="password" id="pwInput" class="dp-input">
+                            </div>
+                            <button onclick="verifyOtp()" id="btnVerify" class="dp-btn dp-btn-primary w-full mt-4">
+                                <i class="fa-solid fa-shield-check"></i> Verifikasi & Login
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- QR Code -->
+                    <div id="contentQr" class="hidden flex flex-col items-center justify-center py-4">
+                        <div id="qrLoading" class="flex flex-col items-center gap-4">
+                            <div class="relative flex items-center justify-center">
+                                <div class="qr-loader-outer"></div>
+                                <div class="qr-loader-ring"></div>
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <i class="fa-solid fa-qrcode text-sm" style="color:var(--accent);opacity:0.7"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold tracking-widest uppercase mb-2 text-center" style="color:var(--accent)">Membuat QR Code</p>
+                                <div class="flex items-center justify-center gap-1.5">
+                                    <div class="loader-dot"></div>
+                                    <div class="loader-dot"></div>
+                                    <div class="loader-dot"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="qrDisplay" class="hidden flex flex-col items-center w-full">
+                            <div class="bg-white p-3 rounded-2xl border-2 border-indigo-100 shadow-lg mb-4">
+                                <img id="qrImage" src="" class="w-48 h-48 object-contain rounded-xl">
+                            </div>
+                            <span class="dp-badge dp-badge-purple animate-pulse mb-4">
+                                <i class="fa-solid fa-spinner fa-spin"></i> Menunggu Scan...
+                            </span>
+                            <ol class="text-left text-xs text-slate-600 space-y-1.5 list-decimal pl-5 bg-slate-50 p-4 rounded-xl w-full border border-slate-100">
+                                <li>Buka <strong>Telegram</strong> di HP.</li>
+                                <li>Ke <strong>Settings</strong> › <strong>Devices</strong>.</li>
+                                <li>Klik <strong>Link Desktop Device</strong>.</li>
+                                <li>Arahkan kamera ke QR Code ini.</li>
+                            </ol>
+                        </div>
+                        <div id="qrError" class="hidden text-center">
+                            <i class="fa-solid fa-triangle-exclamation text-rose-500 text-3xl mb-2"></i>
+                            <p class="text-sm font-bold text-slate-800 mb-2">Gagal memuat QR</p>
+                            <button onclick="generateQR()" class="dp-btn dp-btn-ghost dp-btn-sm">Coba Lagi</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </div>
+</div>
+
+<!-- ===== LIMIT MODAL ===== -->
+<div id="limitModal" class="fixed inset-0 z-[60] hidden">
+    <div class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm" onclick="closeLimitModal()"></div>
+    <div class="fixed inset-0 z-10 flex items-center justify-center p-4">
+        <div class="dp-card w-full max-w-sm p-8 text-center">
+            <div class="dp-empty-icon mx-auto mb-0" style="color:#e11d48">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+            <h3 class="text-xl font-extrabold text-slate-800 mb-2 mt-4">Limit Tercapai!</h3>
+            <p class="text-sm text-slate-500 mb-6">Maksimal 3 Akun Telegram. Hubungi admin untuk upgrade Enterprise.</p>
+            <a href="https://wa.me/628972996650" target="_blank" class="dp-btn dp-btn-primary w-full">
+                <i class="fa-brands fa-whatsapp"></i> Hubungi Admin
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    const modal = document.getElementById('connectModal');
+    const panel = document.getElementById('modalPanel');
+    const backdrop = document.getElementById('modalBackdrop');
+    const limitModal = document.getElementById('limitModal');
+
+    function openConnectModal() {
+        modal.classList.remove('hidden');
+        lockScroll();
+        setTimeout(() => {
+            backdrop.classList.remove('opacity-0');
+            panel.classList.remove('scale-95','opacity-0');
+            panel.classList.add('scale-100','opacity-100');
+        }, 10);
+        switchTab('phone');
+    }
+
+    function closeModal() {
+        backdrop.classList.add('opacity-0');
+        panel.classList.remove('scale-100','opacity-100');
+        panel.classList.add('scale-95','opacity-0');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            unlockScroll();
+            document.getElementById('step1').classList.remove('hidden');
+            document.getElementById('step2').classList.add('hidden');
+            document.getElementById('passField').classList.add('hidden');
+            stopQrPolling();
+        }, 300);
+    }
+
+    function closeLimitModal() { limitModal.classList.add('hidden'); unlockScroll(); }
+
+    let qrPollInterval = null;
+    let currentSessionUuid = null;
+
+    function switchTab(tab) {
+        const tPhone = document.getElementById('tabPhone');
+        const tQr = document.getElementById('tabQr');
+        const cPhone = document.getElementById('contentPhone');
+        const cQr = document.getElementById('contentQr');
+
+        if (tab === 'phone') {
+            tPhone.classList.add('tab-active'); tQr.classList.remove('tab-active');
+            cPhone.classList.remove('hidden'); cQr.classList.add('hidden');
+            stopQrPolling();
+        } else {
+            tQr.classList.add('tab-active'); tPhone.classList.remove('tab-active');
+            cQr.classList.remove('hidden'); cPhone.classList.add('hidden');
+            generateQR();
+        }
+    }
+
+    function stopQrPolling() { if(qrPollInterval) { clearInterval(qrPollInterval); qrPollInterval = null; } }
+
+    async function generateQR() {
+        document.getElementById('qrLoading').classList.remove('hidden');
+        document.getElementById('qrDisplay').classList.add('hidden');
+        document.getElementById('qrError').classList.add('hidden');
+        stopQrPolling();
+        try {
+            const res = await fetch('/api/connect/get_qr', {method:'POST'});
+            const data = await res.json();
+            if (data.status === 'success') {
+                document.getElementById('qrImage').src = data.qr_image;
+                currentSessionUuid = data.session_uuid;
+                document.getElementById('qrLoading').classList.add('hidden');
+                document.getElementById('qrDisplay').classList.remove('hidden');
+                startPolling();
+            } else if (data.status === 'limit_reached') {
+                closeModal(); limitModal.classList.remove('hidden'); lockScroll();
+            } else { throw new Error(data.message); }
+        } catch(e) {
+            document.getElementById('qrLoading').classList.add('hidden');
+            document.getElementById('qrError').classList.remove('hidden');
+        }
+    }
+
+    function startPolling() {
+        qrPollInterval = setInterval(async () => {
+            try {
+                const res = await fetch('/api/connect/check_qr', {
+                    method:'POST', headers:{'Content-Type':'application/json'},
+                    body: JSON.stringify({session_uuid: currentSessionUuid})
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    stopQrPolling();
+                    document.getElementById('qrDisplay').innerHTML = `<div class="flex flex-col items-center justify-center h-48"><i class="fa-solid fa-circle-check text-emerald-500 text-5xl mb-3"></i><h4 class="font-bold text-slate-800 text-lg">Berhasil!</h4></div>`;
+                    setTimeout(() => location.reload(), 1500);
+                } else if (data.status === '2fa') {
+                    stopQrPolling();
+                    showPrompt({
+                        title: 'Verifikasi 2FA',
+                        label: 'Akun Anda dilindungi 2FA. Masukkan Password Cloud:',
+                        onConfirm: async function(pass) {
+                            if (pass) {
+                                await fetch('/api/connect/submit_2fa', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({session_uuid:currentSessionUuid, password:pass})});
+                                startPolling();
+                            } else { showAlert({ title: 'Password Diperlukan', message: 'Password 2FA dibutuhkan untuk melanjutkan.', icon: 'fa-lock', iconColor: 'text-amber-400', iconBg: 'bg-amber-500/20', glowColor: 'bg-amber-500' }); location.reload(); }
+                        }
+                    });
+                } else if (data.status === 'expired') { stopQrPolling(); showAlert({ title: 'QR Kadaluarsa', message: 'Kode QR sudah tidak valid. Silakan generate ulang.', icon: 'fa-qrcode', iconColor: 'text-amber-400', iconBg: 'bg-amber-500/20', glowColor: 'bg-amber-500' }); generateQR(); }
+            } catch(e) { console.log("Polling Error", e); }
+        }, 2000);
+    }
+
+    async function sendOtp() {
+        const phone = document.getElementById('phoneInput').value;
+        const btn = document.getElementById('btnSendOtp');
+        if (!phone) return showAlert({ title: 'Nomor Kosong', message: 'Isi nomor telepon terlebih dahulu!', icon: 'fa-mobile-screen', iconColor: 'text-amber-400', iconBg: 'bg-amber-500/20', glowColor: 'bg-amber-500' });
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Sending...';
+        btn.disabled = true;
+        try {
+            const res = await fetch('/api/connect/send_code', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({phone})});
+            const data = await res.json();
+            if (data.status === 'success') {
+                document.getElementById('step1').classList.add('hidden');
+                document.getElementById('step2').classList.remove('hidden');
+            } else if (data.status === 'limit_reached') { closeModal(); limitModal.classList.remove('hidden'); lockScroll(); }
+            else { showAlert({ title: 'Gagal', message: data.message, icon: 'fa-circle-xmark', iconColor: 'text-red-400', iconBg: 'bg-red-500/20', glowColor: 'bg-red-500' }); }
+        } catch(e) { showAlert({ title: 'Error', message: 'Gagal koneksi ke server.', icon: 'fa-wifi', iconColor: 'text-red-400', iconBg: 'bg-red-500/20', glowColor: 'bg-red-500' }); }
+        finally { btn.innerHTML = 'Kirim Kode OTP'; btn.disabled = false; }
+    }
+
+    async function verifyOtp() {
+        const otp = document.getElementById('otpInput').value;
+        const pw = document.getElementById('pwInput').value;
+        const btn = document.getElementById('btnVerify');
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Verifying...';
+        btn.disabled = true;
+        try {
+            const res = await fetch('/api/connect/verify_code', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({otp, password:pw})});
+            const data = await res.json();
+            if (data.status === 'success') { location.reload(); }
+            else if (data.status === '2fa') { document.getElementById('passField').classList.remove('hidden'); showAlert({ title: 'Verifikasi 2FA', message: 'Masukkan Password 2FA Anda untuk melanjutkan.', icon: 'fa-lock', iconColor: 'text-indigo-400', iconBg: 'bg-indigo-500/20', glowColor: 'bg-indigo-500' }); }
+            else { showAlert({ title: 'Gagal', message: data.message, icon: 'fa-circle-xmark', iconColor: 'text-red-400', iconBg: 'bg-red-500/20', glowColor: 'bg-red-500' }); }
+        } catch(e) { showAlert({ title: 'Error', message: 'Gagal koneksi ke server.', icon: 'fa-wifi', iconColor: 'text-red-400', iconBg: 'bg-red-500/20', glowColor: 'bg-red-500' }); }
+        finally { btn.innerHTML = '<i class="fa-solid fa-shield-check"></i> Verifikasi & Login'; btn.disabled = false; }
+    }
+
+    async function disconnectAccount(phone) {
+        showConfirm({
+            title: 'Putuskan Akun',
+            message: `Yakin ingin memutuskan koneksi akun <b class="text-white">${phone}</b>?`,
+            icon: 'fa-plug-circle-xmark',
+            iconColor: 'text-red-400',
+            iconBg: 'bg-red-500/20',
+            glowColor: 'bg-red-500',
+            confirmText: 'Ya, Putuskan',
+            confirmCls: 'bg-red-600 hover:bg-red-500 shadow-red-500/30',
+            onConfirm: async function() {
+                try {
+                    await fetch('/api/connect/disconnect', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({phone})});
+                    location.reload();
+                } catch(e) { showAlert({ title: 'Error', message: 'Gagal koneksi ke server.', icon: 'fa-wifi', iconColor: 'text-red-400', iconBg: 'bg-red-500/20', glowColor: 'bg-red-500' }); }
+            }
+        });
+    }
+</script>
+
+<style>
+    /* ============================================================
+       QR LOADER — Konsisten dengan page loader (versi mini)
+    ============================================================ */
+    .qr-loader-ring {
+        width: 48px; height: 48px;
+        border-radius: 50%;
+        border: 3px solid var(--accent-soft);
+        border-top-color: var(--accent);
+        animation: spinRing 0.8s linear infinite;
+    }
+    .qr-loader-outer {
+        width: 64px; height: 64px;
+        border-radius: 50%;
+        border: 2px solid transparent;
+        border-top-color: rgba(37,99,235,0.3);
+        border-right-color: rgba(37,99,235,0.3);
+        animation: spinRing 1.4s linear infinite reverse;
+        position: absolute;
+        top: -8px; left: -8px;
+    }
+
+    /* ============================================================
+       MODAL TABS — Konsisten dengan halaman Profil
+    ============================================================ */
+    .modal-tab-wrap {
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.75rem;
+        padding: 0.35rem;
+        box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+    }
+    html[data-theme='dark'] .modal-tab-wrap {
+        background: rgba(15,28,53,0.7);
+        border-color: rgba(37,99,235,0.15);
+    }
+    .tab-btn {
+        display: flex; align-items: center; justify-content: center;
+        gap: 0.4rem; border-radius: 0.5rem;
+        border: 1px solid var(--border-color); background: var(--card-bg);
+        color: var(--text-muted); font-size: 0.8rem; font-weight: 700;
+        min-height: 2rem; padding: 0.4rem 0.5rem;
+        transition: background 0.15s, border-color 0.15s, color 0.15s;
+        cursor: pointer;
+    }
+    .tab-btn .icon-box {
+        width: 1.4rem; height: 1.4rem; display: inline-grid;
+        place-items: center; border-radius: 0.35rem;
+        background: transparent; font-size: 0.7rem;
+    }
+    .tab-btn:not(.tab-active):hover {
+        border-color: #93c5fd; color: #2563eb;
+    }
+    html[data-theme='dark'] .tab-btn:not(.tab-active):hover {
+        border-color: rgba(59,130,246,0.4); color: #60a5fa;
+    }
+    .tab-active { background: #2563eb !important; border-color: #2563eb !important; color: #ffffff !important; }
+    .tab-active .icon-box { background: transparent; color: #ffffff; }
+    html[data-theme='dark'] .tab-active { background: #2563eb !important; border-color: #2563eb !important; color: #ffffff !important; }
+    html[data-theme='dark'] .tab-btn .icon-box { background: transparent; }
+    html[data-theme='dark'] .tab-active .icon-box { background: transparent; color: #ffffff; }
+
+    /* ============================================================
+       Multi-Account Support card
+    ============================================================ */
+    .multi-account-card { background: linear-gradient(135deg,#faf5ff,#ede9fe); border-color:#c4b5fd; }
+    .multi-account-title { color:#4c1d95; }
+    .multi-account-text  { color:#6d28d9; }
+    .multi-account-text strong { color:#4c1d95; }
+    html[data-theme='dark'] .multi-account-card { background:linear-gradient(135deg,rgba(76,29,149,.18),rgba(109,40,217,.12)); border-color:rgba(167,139,250,.3); }
+    html[data-theme='dark'] .multi-account-title { color:#c4b5fd; }
+    html[data-theme='dark'] .multi-account-text  { color:#a78bfa; }
+    html[data-theme='dark'] .multi-account-text strong { color:#ddd6fe; }
+
+    /* ============================================================
+       TG-CARD — Friendly Blue-Violet Design (rebuilt from scratch)
+    ============================================================ */
+
+    /* ── Base card ── */
+    .tg-card {
+        position: relative;
+        border-radius: 1.5rem;
+        overflow: hidden;
+        background: #ffffff;
+        border: 1.5px solid #dbeafe;
+        box-shadow: 0 2px 10px rgba(37,99,235,.07), 0 1px 3px rgba(0,0,0,.05);
+        transition:
+            transform .32s cubic-bezier(.22,1,.36,1),
+            box-shadow .32s ease,
+            background .32s ease,
+            border-color .32s ease;
+    }
+    html[data-theme='dark'] .tg-card {
+        background: var(--panel-bg, #1e1e2e);
+        border-color: rgba(99,102,241,.2);
+        box-shadow: 0 2px 10px rgba(0,0,0,.2);
+    }
+
+    /* ── Hover state — border violet, tint subtle ── */
+    .tg-card:hover {
+        background: rgba(109,40,217,.05) !important;
+        border-color: #7c3aed !important;
+        border-width: 2px;
+        transform: translateY(-6px);
+        box-shadow: 0 12px 32px rgba(109,40,217,.15), 0 0 0 4px rgba(124,58,237,.08);
+    }
+    html[data-theme='dark'] .tg-card:hover {
+        background: rgba(109,40,217,.12) !important;
+        border-color: #a78bfa !important;
+    }
+
+    /* ── Top colour bar — pill style ── */
+    .tg-card-bar {
+        display: block;
+        height: 5px;
+        width: 48%;
+        margin: 0 auto;
+        border-radius: 0 0 99px 99px;
+        transition: width .4s cubic-bezier(.22,1,.36,1),
+                    box-shadow .4s ease,
+                    background .32s ease;
+    }
+    .tg-bar-active {
+        background: linear-gradient(90deg, #34d399, #10b981, #059669);
+        box-shadow: 0 3px 10px rgba(16,185,129,.45), 0 1px 3px rgba(16,185,129,.2);
+    }
+    .tg-bar-pending {
+        background: linear-gradient(90deg, #fcd34d, #f59e0b, #d97706);
+        box-shadow: 0 3px 10px rgba(245,158,11,.45), 0 1px 3px rgba(245,158,11,.2);
+    }
+    .tg-card:hover .tg-card-bar {
+        width: 70%;
+    }
+    .tg-card:hover .tg-bar-active {
+        box-shadow: 0 4px 14px rgba(16,185,129,.55), 0 1px 4px rgba(16,185,129,.3);
+    }
+    .tg-card:hover .tg-bar-pending {
+        box-shadow: 0 4px 14px rgba(245,158,11,.55), 0 1px 4px rgba(245,158,11,.3);
+    }
+
+    /* ── Body ── */
+    .tg-card-body { padding: 1.4rem 1.4rem 1.2rem; }
+
+    /* ── Top row: avatar + badge ── */
+    .tg-card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1.1rem;
+    }
+
+    /* ── Avatar ── */
+    .tg-avatar-wrap { position: relative; display: inline-block; }
+    .tg-avatar {
+        width: 3.25rem; height: 3.25rem;
+        border-radius: .875rem;
+        background: linear-gradient(145deg, #60a5fa, #2563eb, #1d4ed8);
+        color: #fff;
+        font-size: 1.2rem;
+        font-weight: 800;
+        letter-spacing: -.01em;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 4px 14px rgba(37,99,235,.4);
+        border: 2.5px solid rgba(255,255,255,.7);
+        transition:
+            background .32s ease,
+            border-color .32s ease,
+            box-shadow .32s ease;
+    }
+    html[data-theme='dark'] .tg-avatar {
+        border-color: rgba(255,255,255,.15);
+    }
+    .tg-card:hover .tg-avatar {
+        box-shadow: 0 0 0 4px rgba(124,58,237,.18), 0 4px 16px rgba(37,99,235,.35);
+        border-color: rgba(255,255,255,.85);
+    }
+
+    /* ── Online dot ── */
+    .tg-avatar-dot {
+        position: absolute; bottom: -4px; right: -4px;
+        width: 13px; height: 13px;
+        border-radius: 50%;
+        background: #10b981;
+        border: 2.5px solid #fff;
+        transition: border-color .32s ease, box-shadow .32s ease;
+    }
+    html[data-theme='dark'] .tg-avatar-dot { border-color: var(--panel-bg, #1e1e2e); }
+    .tg-card:hover .tg-avatar-dot {
+        border-color: rgba(255,255,255,.5);
+        box-shadow: 0 0 0 3px rgba(52,211,153,.45);
+    }
+
+    /* ── Status badge ── */
+    .tg-badge {
+        display: inline-flex; align-items: center; gap: .3rem;
+        padding: .22rem .65rem;
+        border-radius: 99px;
+        font-size: .6563rem; font-weight: 700; letter-spacing: .05em;
+        transition: background .32s ease, color .32s ease, border-color .32s ease;
+    }
+    .tg-badge-active {
+        background: #ecfdf5;
+        color: #059669;
+        border: 1.5px solid #a7f3d0;
+    }
+    html[data-theme='dark'] .tg-badge-active {
+        background: rgba(16,185,129,.12);
+        border-color: rgba(16,185,129,.3);
+        color: #34d399;
+    }
+    .tg-badge-pending {
+        background: #fffbeb;
+        color: #b45309;
+        border: 1.5px solid #fde68a;
+    }
+    html[data-theme='dark'] .tg-badge-pending {
+        background: rgba(245,158,11,.1);
+        border-color: rgba(245,158,11,.3);
+        color: #fcd34d;
+    }
+    /* Pulse dot inside badge */
+    .tg-pulse {
+        display: inline-block; width: 5px; height: 5px;
+        border-radius: 50%; background: #10b981;
+        animation: tg-pulse 1.6s ease-in-out infinite;
+    }
+    @keyframes tg-pulse {
+        0%,100% { opacity: 1; transform: scale(1); }
+        50%      { opacity: .45; transform: scale(.65); }
+    }
+
+    /* ── Info block ── */
+    .tg-info { margin-bottom: 1.1rem; }
+
+    .tg-name {
+        font-size: 1rem; font-weight: 800; line-height: 1.3;
+        color: #0f172a;
+        margin: 0 0 .15rem;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        transition: color .32s ease;
+    }
+    html[data-theme='dark'] .tg-name { color: #f1f5f9; }
+    .tg-card:hover .tg-name { color: #3b0764 !important; }
+    html[data-theme='dark'] .tg-card:hover .tg-name { color: #e9d5ff !important; }
+
+    .tg-username {
+        display: inline-block; margin-top: .1rem;
+        font-size: .8125rem; font-weight: 600;
+        color: #2563eb;
+        text-decoration: none;
+        transition: color .32s ease;
+    }
+    .tg-username:hover { text-decoration: underline; }
+    html[data-theme='dark'] .tg-username { color: #93c5fd; }
+    .tg-card:hover .tg-username { color: #6d28d9 !important; }
+    html[data-theme='dark'] .tg-card:hover .tg-username { color: #c4b5fd !important; }
+
+    .tg-no-user {
+        display: inline-block; margin-top: .1rem;
+        font-size: .75rem; font-style: italic;
+        color: #94a3b8;
+        transition: color .32s ease;
+    }
+
+    .tg-phone-row {
+        display: flex; align-items: center; gap: .45rem;
+        margin-top: .7rem;
+        padding: .45rem .65rem;
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        border-radius: .625rem;
+        transition: background .32s ease, border-color .32s ease;
+    }
+    html[data-theme='dark'] .tg-phone-row {
+        background: rgba(37,99,235,.1);
+        border-color: rgba(99,102,241,.25);
+    }
+    .tg-card:hover .tg-phone-row {
+        background: rgba(109,40,217,.08) !important;
+        border-color: #c4b5fd !important;
+    }
+    html[data-theme='dark'] .tg-card:hover .tg-phone-row {
+        background: rgba(109,40,217,.2) !important;
+        border-color: #7c3aed !important;
+    }
+    .tg-phone-icon {
+        font-size: .625rem;
+        color: #2563eb;
+        flex-shrink: 0;
+        transition: color .32s ease;
+    }
+    .tg-card:hover .tg-phone-icon { color: #7c3aed; }
+    .tg-phone {
+        font-size: .75rem; font-family: monospace; font-weight: 700;
+        color: #1e3a5f;
+        transition: color .32s ease;
+    }
+    html[data-theme='dark'] .tg-phone { color: #93c5fd; }
+    .tg-card:hover .tg-phone { color: #4c1d95 !important; }
+    html[data-theme='dark'] .tg-card:hover .tg-phone { color: #ddd6fe !important; }
+
+    /* ── Footer ── */
+    .tg-footer {
+        display: flex; align-items: center; justify-content: space-between;
+        padding-top: .9rem;
+        border-top: 1.5px solid #e0e7ff;
+        transition: border-color .32s ease;
+    }
+    html[data-theme='dark'] .tg-footer { border-top-color: rgba(99,102,241,.2); }
+    .tg-card:hover .tg-footer { border-top-color: rgba(124,58,237,.3); }
+
+    /* ID chip */
+    .tg-id-chip {
+        display: inline-flex; align-items: center; gap: .3rem;
+        padding: .22rem .6rem;
+        border-radius: .5rem;
+        background: #eff6ff;
+        border: 1.5px solid #bfdbfe;
+        font-size: .625rem; font-weight: 700;
+        color: #2563eb;
+        letter-spacing: .02em;
+        transition: background .32s ease, color .32s ease, border-color .32s ease;
+    }
+    html[data-theme='dark'] .tg-id-chip {
+        background: rgba(37,99,235,.12);
+        border-color: rgba(99,102,241,.3);
+        color: #93c5fd;
+    }
+    .tg-card:hover .tg-id-chip {
+        background: rgba(109,40,217,.1);
+        border-color: #a78bfa;
+        color: #6d28d9;
+    }
+    html[data-theme='dark'] .tg-card:hover .tg-id-chip {
+        background: rgba(109,40,217,.25);
+        border-color: #7c3aed;
+        color: #ddd6fe;
+    }
+
+    /* Disconnect button */
+    .tg-disconnect-btn {
+        display: inline-flex; align-items: center; gap: .35rem;
+        padding: .28rem .8rem;
+        border-radius: .625rem;
+        border: 1.5px solid #fecdd3;
+        background: #fff1f2;
+        color: #e11d48;
+        font-size: .75rem; font-weight: 600;
+        cursor: pointer;
+        transition:
+            background .25s ease,
+            color .25s ease,
+            border-color .25s ease,
+            box-shadow .25s ease;
+    }
+    .tg-disconnect-btn:hover {
+        background: #e11d48;
+        color: #fff;
+        border-color: #e11d48;
+        box-shadow: 0 3px 10px rgba(225,29,72,.35);
+    }
+    html[data-theme='dark'] .tg-disconnect-btn {
+        background: rgba(239,68,68,.1);
+        border-color: rgba(239,68,68,.3);
+        color: #fca5a5;
+    }
+    html[data-theme='dark'] .tg-disconnect-btn:hover {
+        background: #dc2626;
+        border-color: #dc2626;
+        color: #fff;
+    }
+</style>
+{% endblock %}

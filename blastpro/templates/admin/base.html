@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Super Admin{% endblock %} - God Mode</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        .admin-sidebar { background: #0f172a; border-right: 1px solid #1e293b; }
+        .nav-link { color: #94a3b8; transition: all 0.2s; }
+        .nav-link:hover, .nav-link.active { background: #1e293b; color: #fff; border-right: 3px solid #6366f1; }
+        .nav-link i { width: 20px; text-align: center; margin-right: 10px; }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        /* ===== CLOSE BUTTON (CONSISTENT) ===== */
+        .btn-close {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 8px;
+            border: none;
+            background: rgba(255, 255, 255, 0.07);
+            color: #94a3b8;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: background 0.15s ease, color 0.15s ease;
+            padding: 0;
+            line-height: 1;
+        }
+        .btn-close:hover, .btn-close:focus {
+            background: transparent;
+            color: #e2e8f0;
+            outline: none;
+        }
+        .btn-close:active {
+            background: transparent;
+            color: #818cf8;
+        }
+        .btn-close-on-dark {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 8px;
+            border: none;
+            background: rgba(255, 255, 255, 0.12);
+            color: rgba(255, 255, 255, 0.65);
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: background 0.15s ease, color 0.15s ease;
+            padding: 0;
+            line-height: 1;
+        }
+        .btn-close-on-dark:hover, .btn-close-on-dark:focus {
+            background: transparent;
+            color: #ffffff;
+            outline: none;
+        }
+        .btn-close-on-dark:active {
+            background: transparent;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* ===== SCROLL LOCK (saat modal/popup terbuka) ===== */
+        body.modal-open { overflow: hidden !important; }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden antialiased bg-[#0B1120] text-slate-300 font-sans">
+
+    <aside class="w-64 admin-sidebar hidden md:flex flex-col z-20 shadow-2xl">
+        <div class="h-16 flex items-center px-6 border-b border-gray-800 bg-[#0B1120]">
+            <i class="fa-solid fa-user-astronaut text-indigo-500 text-xl mr-3"></i>
+            <span class="font-bold text-lg tracking-wider text-white">GOD MODE</span>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto py-6 space-y-1">
+            <p class="px-6 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Main Control</p>
+            
+            <a href="/super-admin" class="nav-link flex items-center px-6 py-3 text-sm font-medium {% if active_page == 'dashboard' %}active{% endif %}">
+                <i class="fa-solid fa-gauge-high"></i> Dashboard
+            </a>
+            
+            <a href="/super-admin/finance" class="nav-link flex items-center px-6 py-3 text-sm font-medium {% if active_page == 'finance' %}active{% endif %}">
+                <i class="fa-solid fa-wallet"></i> Finance
+                {% if pending_count and pending_count > 0 %}
+                <span class="ml-auto bg-red-500/20 text-red-400 text-[10px] font-bold px-2 py-0.5 rounded border border-red-500/30">{{ pending_count }}</span>
+                {% endif %}
+            </a>
+
+            <a href="/super-admin/banks" class="nav-link flex items-center px-6 py-3 text-sm font-medium {% if active_page == 'banks' %}active{% endif %}">
+                <i class="fa-solid fa-building-columns"></i> Banks
+            </a>
+            
+            <a href="/super-admin/mutations" class="nav-link flex items-center px-6 py-3 text-sm font-medium {% if active_page == 'mutations' %}active{% endif %}">
+                <i class="fa-solid fa-book-journal-whills"></i> Mutasi (Ledger)
+            </a>
+            
+            <a href="/super-admin/pricing" class="nav-link flex items-center px-6 py-3 text-sm font-medium {% if active_page == 'pricing' %}active{% endif %}">
+                <i class="fa-solid fa-tags"></i> Pricing
+            </a>
+
+            <a href="/super-admin/users" class="nav-link flex items-center px-6 py-3 text-sm font-medium {% if active_page == 'users' %}active{% endif %}">
+                <i class="fa-solid fa-users-gear"></i> Manage Users
+            </a>
+        </nav>
+
+        <div class="p-4 border-t border-gray-800 bg-[#0B1120]">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded bg-indigo-600 flex items-center justify-center font-bold text-white text-xs shadow-lg shadow-indigo-500/30">
+                    ADM
+                </div>
+                <div class="overflow-hidden flex-1">
+                    <p class="text-xs font-bold text-white truncate">Super Admin</p>
+                    <p class="text-[10px] text-emerald-400 flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Online
+                    </p>
+                </div>
+                <a href="/logout" class="text-slate-500 hover:text-white transition" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></a>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
+        
+        <header class="md:hidden h-16 bg-[#0f172a] border-b border-gray-800 flex items-center justify-between px-4 z-30">
+            <span class="font-bold text-white flex items-center gap-2"><i class="fa-solid fa-user-astronaut text-indigo-500"></i> God Mode</span>
+            <button class="text-gray-400"><i class="fa-solid fa-bars"></i></button>
+        </header>
+
+        <div class="fixed top-6 right-6 z-50 space-y-2 pointer-events-none w-full max-w-sm">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        {% if category == 'danger' or category == 'error' %}
+                            {% set alert_cls = 'bg-red-500/10 border-red-500/50 text-red-200' %}
+                            {% set alert_icon = 'fa-circle-xmark' %}
+                        {% elif category == 'warning' %}
+                            {% set alert_cls = 'bg-amber-500/10 border-amber-500/50 text-amber-200' %}
+                            {% set alert_icon = 'fa-triangle-exclamation' %}
+                        {% elif category == 'info' %}
+                            {% set alert_cls = 'bg-blue-500/10 border-blue-500/50 text-blue-200' %}
+                            {% set alert_icon = 'fa-circle-info' %}
+                        {% else %}
+                            {% set alert_cls = 'bg-emerald-500/10 border-emerald-500/50 text-emerald-200' %}
+                            {% set alert_icon = 'fa-circle-check' %}
+                        {% endif %}
+                        <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 6000)"
+                             class="px-4 py-3 rounded-lg border shadow-2xl backdrop-blur-md text-sm font-bold flex items-start pointer-events-auto {{ alert_cls }}">
+                            <i class="fa-solid {{ alert_icon }} mt-0.5 mr-3 flex-shrink-0"></i>
+                            <span>{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <div id="page-content" class="flex-1 overflow-y-auto p-6 md:p-8 scroll-smooth bg-[#0B1120] relative">
+            <div class="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+                <div class="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-indigo-500/5 rounded-full blur-[100px]"></div>
+                <div class="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-[100px]"></div>
+            </div>
+            
+            <div class="relative z-10">
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+        
+    </main>
+
+    <style>
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-down { animation: fadeInDown 0.3s ease-out forwards; }
+    </style>
+
+    {% block scripts %}{% endblock %}
+
+    <!-- ===== CUSTOM SELECT DROPDOWN COMPONENT (Admin Dark) ===== -->
+    <style>
+        .cs-wrapper { position: relative; display: inline-block; width: 100%; }
+        .cs-trigger {
+            width: 100%;
+            padding: 0.75rem 2.5rem 0.75rem 1rem;
+            border: 1px solid #334155;
+            border-radius: 999px;
+            background-color: #1E293B;
+            color: #E2E8F0;
+            font-size: 0.875rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            user-select: none;
+            outline: none;
+            box-sizing: border-box;
+        }
+        .cs-trigger:hover { border-color: #475569; }
+        .cs-trigger:focus { border-color: #6366f1; }
+        .cs-trigger.cs-open { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.2); }
+        .cs-value { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+        .cs-arrow { width: 1rem; height: 1rem; flex-shrink: 0; transition: transform 0.2s ease; color: #60A5FA; }
+        .cs-trigger.cs-open .cs-arrow { transform: rotate(180deg); }
+        .cs-dropdown {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0; right: 0;
+            z-index: 9999;
+            background: #1E293B;
+            border: 1px solid #334155;
+            border-radius: 1.25rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3);
+            max-height: 260px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            animation: csDropIn 0.14s cubic-bezier(0.2,0,0,1);
+            scrollbar-width: thin;
+            scrollbar-color: #334155 transparent;
+        }
+        .cs-dropdown::-webkit-scrollbar { width: 4px; }
+        .cs-dropdown::-webkit-scrollbar-thumb { background: #334155; border-radius: 99px; }
+        @keyframes csDropIn {
+            from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .cs-option {
+            padding: 0.65rem 1.1rem;
+            font-size: 0.875rem;
+            color: #CBD5E1;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.12s, color 0.12s;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .cs-option:first-child { border-radius: 1.25rem 1.25rem 0 0; }
+        .cs-option:last-child  { border-radius: 0 0 1.25rem 1.25rem; }
+        .cs-option:only-child  { border-radius: 1.25rem; }
+        .cs-option:hover    { background: rgba(99,102,241,0.15); color: #A5B4FC; }
+        .cs-option.cs-selected { background: rgba(99,102,241,0.2); color: #A5B4FC; }
+    </style>
+    <script>
+    window.lockScroll   = function() {
+        var el = document.getElementById('page-content');
+        if (el) el.style.overflow = 'hidden';
+    };
+    window.unlockScroll = function() {
+        var el = document.getElementById('page-content');
+        if (el) el.style.overflow = '';
+    };
+
+    (function() {
+        var ARROW_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="cs-arrow"><polyline points="6 9 12 15 18 9"/></svg>';
+
+        function closeAll(except) {
+            document.querySelectorAll('.cs-trigger.cs-open').forEach(function(t) {
+                if (t === except) return;
+                t.classList.remove('cs-open');
+                var dd = t.parentNode.querySelector('.cs-dropdown');
+                if (dd) dd.remove();
+            });
+        }
+
+        function buildCustomSelect(select) {
+            if (select._csInit) return;
+            select._csInit = true;
+            select.style.display = 'none';
+
+            var wrapper = document.createElement('div');
+            wrapper.className = 'cs-wrapper';
+            select.parentNode.insertBefore(wrapper, select);
+            wrapper.appendChild(select);
+
+            var trigger = document.createElement('div');
+            trigger.className = 'cs-trigger';
+            trigger.setAttribute('tabindex', '0');
+            if (select.style.fontSize) trigger.style.fontSize = select.style.fontSize;
+            if (select.style.width)    trigger.style.width    = select.style.width;
+
+            var valueSpan = document.createElement('span');
+            valueSpan.className = 'cs-value';
+            trigger.appendChild(valueSpan);
+            trigger.insertAdjacentHTML('beforeend', ARROW_SVG);
+            wrapper.appendChild(trigger);
+
+            function syncValue() {
+                var opt = select.options[select.selectedIndex];
+                valueSpan.textContent = opt ? opt.text : '';
+            }
+
+            function openDropdown() {
+                closeAll(trigger);
+                trigger.classList.add('cs-open');
+                var dropdown = document.createElement('div');
+                dropdown.className = 'cs-dropdown';
+                Array.from(select.options).forEach(function(opt) {
+                    var item = document.createElement('div');
+                    item.className = 'cs-option';
+                    if (opt.selected) item.classList.add('cs-selected');
+                    item.textContent = opt.text;
+                    item.dataset.value = opt.value;
+                    item.addEventListener('mousedown', function(e) {
+                        e.preventDefault();
+                        select.value = opt.value;
+                        select.dispatchEvent(new Event('change', { bubbles: true }));
+                        syncValue();
+                        trigger.classList.remove('cs-open');
+                        dropdown.remove();
+                    });
+                    dropdown.appendChild(item);
+                });
+                wrapper.appendChild(dropdown);
+            }
+
+            function closeDropdown() {
+                trigger.classList.remove('cs-open');
+                var dd = wrapper.querySelector('.cs-dropdown');
+                if (dd) dd.remove();
+            }
+
+            trigger.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (trigger.classList.contains('cs-open')) closeDropdown();
+                else openDropdown();
+            });
+
+            trigger.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); trigger.click(); }
+                if (e.key === 'Escape') closeDropdown();
+            });
+
+            new MutationObserver(function() { syncValue(); }).observe(select, { childList: true, attributes: true, subtree: true });
+            syncValue();
+        }
+
+        function initCustomSelects(root) {
+            (root || document).querySelectorAll('select.admin-select').forEach(function(sel) {
+                if (!sel._csInit) buildCustomSelect(sel);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() { initCustomSelects(); });
+        document.addEventListener('click', function() { closeAll(null); });
+        window.initCustomSelects = initCustomSelects;
+    })();
+    </script>
+</body>
+</html>
+
+

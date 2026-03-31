@@ -1,0 +1,681 @@
+<!-- PAGE OPEN CURTAIN -->
+<div class="page-curtain" aria-hidden="true"></div>
+
+<!-- INTRO ROCKET — muncul di tengah lalu meluncur ke navbar -->
+<div id="intro-rocket" aria-hidden="true">
+    <img src="{{ url_for('static', filename='img/logo-blastpro.png') }}" alt="">
+</div>
+
+<!-- HERO SECTION -->
+<section class="hero-bg pt-28 pb-12 md:pt-36 md:pb-20 overflow-hidden relative">
+
+    <!-- Background decorative elements -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+        <div class="ha-orb-1 absolute top-20 right-[8%] w-72 h-72 bg-purple-200/30 rounded-full blur-3xl"></div>
+        <div class="ha-orb-2 absolute top-40 left-[5%] w-56 h-56 bg-indigo-200/25 rounded-full blur-3xl"></div>
+        <div class="ha-orb-3 absolute bottom-10 right-[20%] w-48 h-48 bg-violet-200/20 rounded-full blur-3xl"></div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-5 md:px-8 relative z-10">
+
+        <!-- Top Badge -->
+        <div class="flex justify-center mb-7 ha-badge">
+            <span class="section-label">
+                <span class="w-1.5 h-1.5 bg-brand-500 rounded-full pulse-dot"></span>
+                🇰🇭 Senjata Rahasia UMKM Indo di Kamboja
+            </span>
+        </div>
+
+        <!-- Headline -->
+        <div class="text-center max-w-4xl mx-auto mb-6">
+            <h1 class="text-5xl md:text-7xl font-black text-slate-900 leading-[1.1] tracking-tight">
+                <span class="ha-line-wrap">
+                    <span class="ha-line-inner ha-line-inner-1">Banjiri Pasar Kamboja dengan</span>
+                </span>
+                <span class="ha-line-wrap">
+                    <span class="ha-line-inner ha-line-inner-2 gradient-text">Postingan Toko-mu!</span>
+                </span>
+            </h1>
+        </div>
+
+        <!-- Subheadline -->
+        <div class="text-center max-w-2xl mx-auto mb-10 ha-sub">
+            <p class="text-lg md:text-xl text-slate-500 leading-relaxed">
+                Berhenti bayar mahal cuma buat 1 grup. Saatnya <strong class="text-slate-700 font-semibold">DOMINASI ratusan grup Telegram</strong> jual-beli di Kamboja secara otomatis. Biarkan bot yang kerja, lo fokus hitung profit!
+            </p>
+        </div>
+
+        <!-- CTA Buttons -->
+        <div class="flex flex-col sm:flex-row gap-3 justify-center mb-12 ha-cta-wrap">
+            <a href="/register"
+               class="inline-flex items-center justify-center gap-2.5 px-8 py-4 shimmer-btn text-white text-base font-bold rounded-full transition-all shadow-xl shadow-brand-300/40 hover:-translate-y-1 hover:shadow-2xl hover:shadow-brand-400/40 active:translate-y-0">
+                <i class="fa-solid fa-bolt text-sm"></i> Ambil Slot Dominasi
+            </a>
+            <a href="#cara-kerja"
+               class="inline-flex items-center justify-center gap-2.5 px-8 py-4 bg-white text-slate-700 text-base font-bold rounded-full border border-slate-200 hover:border-brand-200 hover:bg-brand-50 hover:text-brand-700 transition-all shadow-sm">
+                <i class="fa-solid fa-play text-brand-500 text-xs"></i>
+                Lihat Cara Kerja
+            </a>
+        </div>
+
+        <!-- Social Proof Strip -->
+        <div class="flex flex-wrap justify-center gap-4 sm:gap-8 mb-14 text-sm text-slate-500 ha-proof">
+            <div class="flex items-center gap-2.5">
+                <div class="flex -space-x-2">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-100 to-indigo-200 border-2 border-white flex items-center justify-center text-indigo-700 text-[9px] font-black shadow-sm">AR</div>
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-100 to-emerald-200 border-2 border-white flex items-center justify-center text-emerald-700 text-[9px] font-black shadow-sm">SN</div>
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-amber-100 to-amber-200 border-2 border-white flex items-center justify-center text-amber-700 text-[9px] font-black shadow-sm">BH</div>
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-brand-100 to-brand-200 border-2 border-white flex items-center justify-center text-brand-700 text-[9px] font-black shadow-sm">+</div>
+                </div>
+                <span><strong class="text-slate-800 font-bold"><span class="count-up-num" data-count="500" data-count-duration="1600">500</span>+ boss aktif</strong> udah ngerasain manfaatnya</span>
+            </div>
+            <div class="hidden sm:block w-px h-5 bg-slate-200 self-center"></div>
+            <div class="flex items-center gap-1.5">
+                <div class="flex gap-0.5">
+                    <i class="fa-solid fa-star ha-star text-amber-400 text-sm"></i>
+                    <i class="fa-solid fa-star ha-star text-amber-400 text-sm"></i>
+                    <i class="fa-solid fa-star ha-star text-amber-400 text-sm"></i>
+                    <i class="fa-solid fa-star ha-star text-amber-400 text-sm"></i>
+                    <i class="fa-solid fa-star ha-star text-amber-400 text-sm"></i>
+                </div>
+                <span class="font-bold text-slate-700">4.9/5</span>
+                <span class="text-slate-400">rating dari para boss nyata</span>
+            </div>
+            <div class="hidden sm:block w-px h-5 bg-slate-200 self-center"></div>
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-shield-halved text-green-500 text-base"></i>
+                <span>Garansi <strong class="text-slate-700 font-semibold">7 Hari</strong> Uang Kembali — Aman Bosque! 🤝</span>
+            </div>
+        </div>
+
+        <!-- Scroll down indicator -->
+        <div class="flex justify-center mb-8 ha-scroll-wrap">
+            <div class="ha-scroll-indicator flex flex-col items-center gap-1.5 text-slate-400 cursor-pointer" onclick="document.getElementById('features').scrollIntoView({behavior:'smooth'})">
+                <span class="text-[10px] font-semibold uppercase tracking-widest">Scroll</span>
+                <div class="w-5 h-8 rounded-full border-2 border-slate-300 flex items-start justify-center pt-1.5">
+                    <div style="width:3px;height:6px;border-radius:9999px;background:#94a3b8;animation:ha-scroll-bounce 2s ease-in-out 4.8s infinite;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Preview -->
+        <div class="max-w-5xl mx-auto ha-dash">
+            <div id="demo-section-container" class="rounded-3xl border border-slate-200/80 shadow-2xl shadow-slate-900/10 glow-brand overflow-hidden bg-white">
+
+                <!-- Browser chrome -->
+                <div class="flex items-center gap-3 px-5 py-3.5 bg-slate-50 border-b border-slate-200/80">
+                    <div class="flex gap-1.5 shrink-0">
+                        <div class="w-3 h-3 rounded-full bg-red-400 cursor-default"></div>
+                        <div class="w-3 h-3 rounded-full bg-amber-400 cursor-default"></div>
+                        <div class="w-3 h-3 rounded-full bg-green-400 cursor-default"></div>
+                    </div>
+                    <div class="flex-1 bg-white border border-slate-200 rounded-lg py-1.5 px-4 text-xs text-slate-400 flex items-center justify-center gap-2 font-mono shadow-inner">
+                        <i class="fa-solid fa-lock text-green-500 text-[9px]"></i>
+                        <span>app.blastpro.id/dashboard</span>
+                    </div>
+                    <div class="shrink-0 hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-red-50 rounded-lg border border-red-200 text-xs text-red-500 font-semibold whitespace-nowrap">
+                        <span class="relative flex h-2 w-2 shrink-0">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                        </span>
+                        Read Only
+                    </div>
+                </div>
+
+                <!-- Demo styles -->
+                <style>
+                    /* Animated cursor */
+                    #demo-cursor {
+                        position: absolute;
+                        pointer-events: none;
+                        z-index: 300;
+                        /* No CSS transition — animation driven by rAF */
+                        filter: drop-shadow(0 2px 5px rgba(0,0,0,0.22));
+                        will-change: left, top;
+                    }
+                    @keyframes cursorClick {
+                        0%   { transform: scale(1) rotate(-5deg); }
+                        35%  { transform: scale(0.78) rotate(-8deg); }
+                        70%  { transform: scale(1.05) rotate(-3deg); }
+                        100% { transform: scale(1) rotate(0deg); }
+                    }
+                    #demo-cursor.clicking { animation: cursorClick 0.22s ease forwards; }
+                    @keyframes rippleOut {
+                        0%   { transform: scale(0); opacity: 0.55; }
+                        60%  { opacity: 0.2; }
+                        100% { transform: scale(3.2); opacity: 0; }
+                    }
+                    #demo-cursor-ripple {
+                        position: absolute;
+                        width: 24px; height: 24px;
+                        border-radius: 50%;
+                        background: rgba(79,70,229,0.3);
+                        pointer-events: none;
+                        z-index: 299;
+                        transform-origin: center;
+                        opacity: 0;
+                    }
+                    #demo-cursor-ripple.active { animation: rippleOut 0.45s ease-out forwards; }
+
+                    /* Mac Dock icon buttons */
+                    .demo-dock-btn {
+                        position: relative;
+                        width: 40px; height: 40px;
+                        border-radius: 12px;
+                        display: flex; align-items: center; justify-content: center;
+                        background: transparent; border: none;
+                        cursor: pointer;
+                        transition: transform 0.2s cubic-bezier(.34,1.56,.64,1), background-color 0.15s ease;
+                        outline: none;
+                    }
+                    .demo-dock-btn:hover { transform: scale(1.22) translateY(-4px); }
+                    .demo-dock-btn i { font-size: 14px; color: rgba(255,255,255,0.5); transition: color 0.15s; }
+                    .demo-dock-btn.active { background-color: rgba(99,102,241,0.28); }
+                    .demo-dock-btn.active i { color: #a5b4fc; }
+                    /* Active dot indicator below icon */
+                    .demo-dock-btn::after {
+                        content: '';
+                        position: absolute;
+                        bottom: 2px; left: 50%; transform: translateX(-50%);
+                        width: 3px; height: 3px;
+                        border-radius: 50%;
+                        background: #a5b4fc;
+                        opacity: 0;
+                        transition: opacity 0.2s;
+                    }
+                    .demo-dock-btn.active::after { opacity: 1; }
+                    /* Tooltip on hover */
+                    .demo-dock-label {
+                        position: absolute;
+                        bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+                        background: rgba(15,23,42,0.85); color: #fff;
+                        font-size: 8.5px; font-weight: 600;
+                        padding: 3px 7px; border-radius: 6px; white-space: nowrap;
+                        opacity: 0; pointer-events: none;
+                        transition: opacity 0.15s ease, transform 0.15s ease;
+                        transform: translateX(-50%) translateY(4px);
+                    }
+                    .demo-dock-btn:hover .demo-dock-label {
+                        opacity: 1; transform: translateX(-50%) translateY(0);
+                    }
+                    /* Separator between groups */
+                    .demo-dock-sep {
+                        width: 1px; height: 22px;
+                        background: rgba(255,255,255,0.15);
+                        margin: 0 5px; flex-shrink: 0;
+                    }
+
+                    /* ── Dock: position & base state ── */
+                    #demo-dock-outer {
+                        position: absolute; bottom: 0; left: 0; right: 0;
+                        z-index: 201;
+                        display: flex; justify-content: center; padding-bottom: 0;
+                        /* start hidden, no transition (prevents flash on load) */
+                        transform: translateY(calc(100% + 4px));
+                    }
+                    /* Smooth ease-out for hover show/hide – no spring so no clipping glitch */
+                    #demo-dock-outer.dock-animate {
+                        transition: transform 0.28s ease-out;
+                    }
+                    /* Visible state */
+                    #demo-dock-outer.dock-visible {
+                        transform: translateY(0);
+                    }
+
+                    /* ── Icon pop wave keyframes (spring only for scale, not for translateY of outer) ── */
+                    @keyframes dockIconPop {
+                        0%   { transform: scale(1)   translateY(0);    filter: brightness(1); }
+                        35%  { transform: scale(2.1) translateY(-12px); filter: brightness(1.7) drop-shadow(0 0 8px rgba(165,180,252,0.9)); }
+                        65%  { transform: scale(1.5) translateY(-6px);  filter: brightness(1.3); }
+                        85%  { transform: scale(0.9) translateY(1px);   filter: brightness(1); }
+                        100% { transform: scale(1)   translateY(0);     filter: brightness(1); }
+                    }
+                    @keyframes dockIconColorFlash {
+                        0%   { color: rgba(255,255,255,0.5); }
+                        50%  { color: #c7d2fe; text-shadow: 0 0 12px rgba(165,180,252,1); }
+                        100% { color: rgba(255,255,255,0.5); }
+                    }
+                    .demo-dock-btn.dock-pop {
+                        animation: dockIconPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+                    }
+                    .demo-dock-btn.dock-pop i {
+                        animation: dockIconColorFlash 0.6s ease forwards;
+                    }
+
+                    /* ── Brand logo animations ── */
+                    @keyframes brandFlow {
+                        0%, 100% { background-position: 0% center; }
+                        50% { background-position: 100% center; }
+                    }
+                    @keyframes brandDotPulse {
+                        0%, 100% { transform: scale(1); opacity: 0.65; }
+                        50% { transform: scale(1.4); opacity: 1; }
+                    }
+
+                    /* ── Glow ring burst ── */
+                    @keyframes dockGlowRing {
+                        0%   { box-shadow: 0 4px 24px -4px rgba(0,0,0,0.35), 0 1px 3px rgba(0,0,0,0.2), inset 0 0 0 0.5px rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.12); }
+                        30%  { box-shadow: 0 0 0 3px rgba(99,102,241,0.5), 0 4px 48px -4px rgba(99,102,241,0.8), 0 1px 3px rgba(0,0,0,0.2), inset 0 0 0 0.5px rgba(255,255,255,0.28); border-color: rgba(165,180,252,0.6); }
+                        60%  { box-shadow: 0 0 0 5px rgba(99,102,241,0.2), 0 4px 60px -4px rgba(139,92,246,0.6), inset 0 0 0 0.5px rgba(255,255,255,0.18); border-color: rgba(216,180,254,0.4); }
+                        100% { box-shadow: 0 4px 24px -4px rgba(0,0,0,0.35), 0 1px 3px rgba(0,0,0,0.2), inset 0 0 0 0.5px rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.12); }
+                    }
+                    #demo-dots { position: relative; }
+                    #demo-dots.dock-glowing {
+                        animation: dockGlowRing 1s ease-in-out forwards;
+                    }
+
+                    /* ── Shimmer sweep ── */
+                    @keyframes dockShimmerSweep {
+                        0%   { opacity: 0; left: -60%; }
+                        15%  { opacity: 1; }
+                        85%  { opacity: 1; }
+                        100% { opacity: 0; left: 160%; }
+                    }
+                    #demo-dock-shimmer {
+                        position: absolute;
+                        top: 0; left: -60%; height: 100%; width: 40%;
+                        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+                        transform: skewX(-15deg);
+                        pointer-events: none; opacity: 0;
+                    }
+                    #demo-dock-shimmer.sweep {
+                        animation: dockShimmerSweep 0.85s ease-in-out forwards;
+                    }
+                </style>
+
+                <!-- Dashboard preview — real iframe -->
+                <div class="overflow-hidden relative" style="height:500px;" id="demo-dashboard-wrap">
+
+                    <!-- Click-block overlay: read-only -->
+                    <div style="position:absolute;inset:0;z-index:200;cursor:not-allowed;" title="Mode Read Only"></div>
+
+                    <!-- Animated cursor (decorative) -->
+                    <div id="demo-cursor-ripple" style="left:0;top:0;"></div>
+                    <div id="demo-cursor" style="left:420px;top:200px;opacity:1;">
+                        <svg width="20" height="24" viewBox="0 0 20 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M2 2L2 18L6.5 13.5L9.5 21L11.5 20L8.5 13H14L2 2Z" fill="white" stroke="#1e293b" stroke-width="1.5" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+
+                    <!-- Real dashboard iframe (demo mode — no auth required) -->
+                    <!-- Retina trick: render at 2× size, scale down to 50% → crisp high-DPI look -->
+                    <div style="position:absolute;inset:0;overflow:hidden;">
+                        <iframe
+                            id="demo-frame"
+                            src="/live-demo/dashboard"
+                            style="width:200%;height:200%;border:none;display:block;pointer-events:none;transform:scale(0.5);transform-origin:top left;"
+                            scrolling="no"
+                            tabindex="-1"
+                            aria-hidden="true"
+                            loading="lazy"
+                        ></iframe>
+                    </div>
+
+                    <!-- Mac Dock Navigation — floats inside the screen at the bottom -->
+                    <div id="demo-dock-outer">
+                        <div id="demo-dots" class="inline-flex items-center gap-0.5 px-2.5 py-2"
+                             style="border-radius:16px 16px 0 0;background:rgba(20,20,28,0.82);backdrop-filter:blur(18px) saturate(1.6);-webkit-backdrop-filter:blur(18px) saturate(1.6);border:1px solid rgba(255,255,255,0.12);border-bottom:none;box-shadow:0 -4px 32px -4px rgba(0,0,0,0.3),0 4px 24px -4px rgba(0,0,0,0.35),0 1px 3px rgba(0,0,0,0.2),inset 0 0 0 0.5px rgba(255,255,255,0.08);">
+                        </div>
+                    </div>
+
+                </div>
+
+                <script>
+                (function() {
+                    /* ── Dock icons (each maps to a real dashboard route) ── */
+                    var dockIcons = [
+                        { ico: 'fa-solid fa-chart-pie',      label: 'Ringkasan',   href: '/live-demo/dashboard' },
+                        { ico: 'fa-solid fa-paper-plane',    label: 'Broadcast',   href: '/live-demo/broadcast' },
+                        { ico: 'fa-solid fa-robot',          label: 'Auto Reply',  href: '/live-demo/auto-reply' },
+                        { ico: 'fa-solid fa-calendar-check', label: 'Jadwal',      href: '/live-demo/schedule' },
+                        { ico: 'fa-solid fa-bullseye',       label: 'Target Grup', href: '/live-demo/targets' },
+                        { ico: 'fa-regular fa-file-lines',   label: 'Template',    href: '/live-demo/templates' },
+                        { ico: 'fa-solid fa-address-book',   label: 'CRM User',    href: '/live-demo/crm' }
+                    ];
+                    var dockSeps   = [1, 5];
+                    var dotsEl     = document.getElementById('demo-dots');
+                    var frameEl    = document.getElementById('demo-frame');
+                    var activeIdx  = 0;
+                    var pendingDock = null;  /* shared: dock onclick → cursor IIFE */
+
+                    dockIcons.forEach(function(d, i) {
+                        if (dockSeps.indexOf(i) !== -1) {
+                            var sep = document.createElement('div');
+                            sep.className = 'demo-dock-sep';
+                            dotsEl.appendChild(sep);
+                        }
+                        var b = document.createElement('button');
+                        b.className = 'demo-dock-btn' + (i === 0 ? ' active' : '');
+                        b.setAttribute('data-dock-idx', i);
+                        b.innerHTML = '<i class="' + d.ico + '"></i><span class="demo-dock-label">' + d.label + '</span>';
+                        b.onclick = function() {
+                            /* 1. Immediate UI + iframe navigation */
+                            dotsEl.querySelectorAll('.demo-dock-btn').forEach(function(btn) { btn.classList.remove('active'); });
+                            b.classList.add('active');
+                            if (frameEl) { frameEl.src = d.href; }
+                            activeIdx = i;
+                            /* 2. Signal cursor: respond after current moveTo finishes */
+                            pendingDock = { src: d.href, di: i };
+                            /* 3. Cancel any waiting cursor timer so it responds ASAP */
+                            if (window._cursorTimer) { clearTimeout(window._cursorTimer); window._cursorTimer = null; }
+                            /* 4. If cursor not moving, kick it off immediately */
+                            if (!window._cursorMoving) {
+                                setTimeout(function() {
+                                    if (window._cursorResume) window._cursorResume();
+                                }, 30);
+                            }
+                        };
+                        dotsEl.appendChild(b);
+                    });
+
+                    /* ── Scripted cursor: sidebar nav → click → page change → browse content ── */
+                    (function() {
+                        var cursorEl = document.getElementById('demo-cursor');
+                        var rippleEl = document.getElementById('demo-cursor-ripple');
+                        var wrapEl   = document.getElementById('demo-dashboard-wrap');
+                        var frameEl  = document.getElementById('demo-frame');
+                        if (!cursorEl || !wrapEl) return;
+
+                        /* Sidebar item positions in container visual-space (px, after 0.5× scale) */
+                        var pages = [
+                            { src: '/live-demo/dashboard',  sx: 100, sy:  55, di: 0 },
+                            { src: '/live-demo/broadcast',  sx: 100, sy: 125, di: 1 },
+                            { src: '/live-demo/auto-reply', sx: 100, sy: 102, di: 2 },
+                            { src: '/live-demo/schedule',   sx: 100, sy: 148, di: 3 },
+                            { src: '/live-demo/targets',    sx: 100, sy: 188, di: 4 },
+                            { src: '/live-demo/templates',  sx: 100, sy: 211, di: 5 },
+                            { src: '/live-demo/crm',        sx: 100, sy: 234, di: 6 }
+                        ];
+
+                        /* Auto-browse visit order */
+                        var script = [
+                            { pi: 1, browse: [{ xp: 0.45, yp: 0.48 }, { xp: 0.70, yp: 0.58 }] },
+                            { pi: 4, browse: [{ xp: 0.58, yp: 0.38 }, { xp: 0.62, yp: 0.62 }] },
+                            { pi: 5, browse: [{ xp: 0.50, yp: 0.28 }, { xp: 0.74, yp: 0.48 }] },
+                            { pi: 2, browse: [{ xp: 0.42, yp: 0.44 }, { xp: 0.66, yp: 0.54 }] },
+                            { pi: 6, browse: [{ xp: 0.56, yp: 0.34 }, { xp: 0.48, yp: 0.64 }] },
+                            { pi: 3, browse: [{ xp: 0.62, yp: 0.44 }, { xp: 0.52, yp: 0.56 }] },
+                            { pi: 0, browse: [{ xp: 0.55, yp: 0.33 }, { xp: 0.68, yp: 0.24 }] }
+                        ];
+
+                        var curX = 400, curY = 180, idx = 0;
+
+                        function easeInOut(t) { return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2; }
+                        function jitter()     { return (Math.random()-0.5)*1.8; }
+
+                        function doClick(x, y) {
+                            if (rippleEl) {
+                                rippleEl.style.left = (x-12)+'px'; rippleEl.style.top = (y-12)+'px';
+                                rippleEl.classList.remove('active'); void rippleEl.offsetWidth;
+                                rippleEl.classList.add('active');
+                                setTimeout(function() { rippleEl.classList.remove('active'); }, 450);
+                            }
+                            cursorEl.classList.remove('clicking'); void cursorEl.offsetWidth;
+                            cursorEl.classList.add('clicking');
+                            setTimeout(function() { cursorEl.classList.remove('clicking'); }, 280);
+                        }
+
+                        function setActiveDock(di) {
+                            var el = document.getElementById('demo-dots'); if (!el) return;
+                            el.querySelectorAll('.demo-dock-btn').forEach(function(b,i) {
+                                b.classList.toggle('active', i===di);
+                            });
+                        }
+
+                        /* moveTo: smooth bezier movement; sets _cursorMoving so dock onclick can detect idle */
+                        function moveTo(dx, dy, dur, cb) {
+                            window._cursorMoving = true;
+                            var sx=curX, sy=curY;
+                            var cp1x=sx+(dx-sx)*0.3+(Math.random()-0.5)*60, cp1y=sy+(dy-sy)*0.1+(Math.random()-0.5)*40;
+                            var cp2x=sx+(dx-sx)*0.7+(Math.random()-0.5)*60, cp2y=dy-(dy-sy)*0.1+(Math.random()-0.5)*40;
+                            var t0=null;
+                            function step(ts) {
+                                if (!t0) t0=ts;
+                                var raw=Math.min((ts-t0)/dur,1), t=easeInOut(raw), mt=1-t;
+                                curX=mt*mt*mt*sx+3*mt*mt*t*cp1x+3*mt*t*t*cp2x+t*t*t*dx+jitter();
+                                curY=mt*mt*mt*sy+3*mt*mt*t*cp1y+3*mt*t*t*cp2y+t*t*t*dy+jitter();
+                                cursorEl.style.left=curX+'px'; cursorEl.style.top=curY+'px';
+                                if (raw<1) { requestAnimationFrame(step); }
+                                else { window._cursorMoving=false; if(cb) cb(); }
+                            }
+                            requestAnimationFrame(step);
+                        }
+
+                        /* st: tracked setTimeout — dock onclick can cancel via window._cursorTimer */
+                        function st(fn, delay) {
+                            window._cursorTimer = setTimeout(fn, delay);
+                        }
+
+                        /*
+                         * checkAndContinue: at each natural pause, check if dock was clicked.
+                         * If pendingDock is set → navigate with userTriggered=true (10s idle after);
+                         * otherwise run normalCb immediately.
+                         */
+                        function checkAndContinue(normalCb) {
+                            if (!pendingDock) { normalCb(); return; }
+                            var pd = pendingDock; pendingDock = null;
+                            var pg = null;
+                            for (var j=0; j<pages.length; j++) { if (pages[j].src===pd.src) { pg=pages[j]; break; } }
+                            if (!pg) { normalCb(); return; }
+                            doNavigate(pg, normalCb, true); /* userTriggered → idle-browse 10s after */
+                        }
+
+                        /*
+                         * idleBrowse: cursor wanders the content area realistically for `duration` ms.
+                         * Still checks pendingDock at each pause so a new dock click is always caught.
+                         */
+                        function idleBrowse(duration, onDone) {
+                            var r         = wrapEl.getBoundingClientRect();
+                            var deadline  = Date.now() + duration;
+                            var pts = [
+                                { xp: 0.44, yp: 0.42 }, { xp: 0.63, yp: 0.28 },
+                                { xp: 0.71, yp: 0.56 }, { xp: 0.50, yp: 0.64 },
+                                { xp: 0.56, yp: 0.38 }, { xp: 0.38, yp: 0.53 },
+                                { xp: 0.76, yp: 0.42 }, { xp: 0.59, yp: 0.70 },
+                                { xp: 0.48, yp: 0.32 }, { xp: 0.68, yp: 0.48 }
+                            ];
+                            var pi = 0;
+                            function next() {
+                                /* If user clicked dock again, hand off immediately */
+                                if (pendingDock) { checkAndContinue(onDone); return; }
+                                /* Time's up — resume auto-browse */
+                                if (Date.now() >= deadline) { onDone(); return; }
+                                var pt   = pts[pi++ % pts.length];
+                                var doKlik = Math.random() > 0.45;
+                                moveTo(pt.xp*r.width, pt.yp*r.height, 750+Math.random()*450, function() {
+                                    if (pendingDock) { checkAndContinue(onDone); return; }
+                                    if (doKlik) {
+                                        st(function() {
+                                            doClick(curX, curY);
+                                            st(next, 450+Math.random()*450);
+                                        }, 80);
+                                    } else {
+                                        st(next, 550+Math.random()*500);
+                                    }
+                                });
+                            }
+                            next();
+                        }
+
+                        /*
+                         * doNavigate: cursor glides to sidebar item, clicks it, then:
+                         *   userTriggered=true  → idleBrowse for ~10 s before resuming auto-nav
+                         *   userTriggered=false → short browse, then immediately call onDone
+                         */
+                        function doNavigate(pg, onDone, userTriggered) {
+                            var r = wrapEl.getBoundingClientRect();
+                            moveTo(pg.sx, pg.sy, 700+Math.random()*200, function() {
+                                st(function() {
+                                    doClick(pg.sx, pg.sy);
+                                    setActiveDock(pg.di);
+                                    st(function() {
+                                        moveTo(0.54*r.width, 0.42*r.height, 800, function() {
+                                            if (userTriggered) {
+                                                /* Stay on page, browse realistically ~10 s */
+                                                idleBrowse(10000, onDone);
+                                            } else {
+                                                st(onDone, 500);
+                                            }
+                                        });
+                                    }, 1100);
+                                }, 110);
+                            });
+                        }
+
+                        /* Main auto-browse loop */
+                        function runStep() {
+                            var entry = script[idx % script.length]; idx++;
+                            var pg = pages[entry.pi];
+                            var r  = wrapEl.getBoundingClientRect();
+
+                            moveTo(pg.sx, pg.sy, 950+Math.random()*300, function() {
+                                checkAndContinue(function() {
+                                    st(function() {
+                                        doClick(pg.sx, pg.sy);
+                                        if (frameEl) frameEl.src = pg.src;
+                                        setActiveDock(pg.di);
+                                        st(function() {
+                                            var bi=0;
+                                            function browse() {
+                                                checkAndContinue(function() {
+                                                    if (bi >= entry.browse.length) { st(runStep, 700); return; }
+                                                    var bp=entry.browse[bi++];
+                                                    moveTo(bp.xp*r.width, bp.yp*r.height, 950+Math.random()*400, function() {
+                                                        checkAndContinue(function() { st(browse, 650+Math.random()*350); });
+                                                    });
+                                                });
+                                            }
+                                            browse();
+                                        }, 1800);
+                                    }, 130);
+                                });
+                            });
+                        }
+
+                        /* Expose resume callback so dock onclick can restart cursor when idle */
+                        window._cursorResume = function() { checkAndContinue(runStep); };
+
+                        /* Start after intro animation finishes */
+                        st(runStep, 2600);
+                    })();
+
+                    /* ── EVERYTHING BELOW: dock visibility + intro animation ── */
+                    (function() {
+                        var outer    = document.getElementById('demo-dock-outer');
+                        var inner    = document.getElementById('demo-dots');
+                        var dashWrap = document.getElementById('demo-dashboard-wrap');
+                        var section  = document.getElementById('demo-section-container');
+                        if (!outer || !inner || !dashWrap || !section) return;
+
+                        var introPlayed        = false;
+                        var isVisible          = false;
+                        var hideTimer          = null;
+                        var introTimer         = null;
+                        var DASH_RISE_DURATION = 1500;
+                        var DOCK_BUFFER        = 220;
+
+                        var haDashEl = section.closest('.ha-dash') || section.parentElement;
+
+                        var shimmer = document.createElement('div');
+                        shimmer.id  = 'demo-dock-shimmer';
+                        outer.appendChild(shimmer);
+
+                        function showDock() {
+                            clearTimeout(hideTimer);
+                            if (isVisible) return;
+                            isVisible = true;
+                            outer.classList.add('dock-animate');
+                            outer.classList.add('dock-visible');
+                        }
+
+                        function hideDock(delay) {
+                            clearTimeout(hideTimer);
+                            hideTimer = setTimeout(function() {
+                                isVisible = false;
+                                outer.classList.add('dock-animate');
+                                outer.classList.remove('dock-visible');
+                            }, delay == null ? 0 : delay);
+                        }
+
+                        function playIntro() {
+                            if (introPlayed) return;
+                            introPlayed = true;
+                            showDock();
+                            var btns      = inner.querySelectorAll('.demo-dock-btn');
+                            var step      = 110;
+                            var waveStart = 320;
+                            btns.forEach(function(btn, i) {
+                                setTimeout(function() {
+                                    btn.classList.remove('dock-pop');
+                                    void btn.offsetWidth;
+                                    btn.classList.add('dock-pop');
+                                    setTimeout(function() { btn.classList.remove('dock-pop'); }, 680);
+                                }, waveStart + i * step);
+                            });
+                            var midPeak = waveStart + Math.floor(btns.length / 2) * step + 80;
+                            setTimeout(function() {
+                                shimmer.classList.remove('sweep');
+                                void shimmer.offsetWidth;
+                                shimmer.classList.add('sweep');
+                                setTimeout(function() { shimmer.classList.remove('sweep'); }, 900);
+                            }, midPeak);
+                            var glowAt = waveStart + btns.length * step + 60;
+                            setTimeout(function() {
+                                inner.classList.remove('dock-glowing');
+                                void inner.offsetWidth;
+                                inner.classList.add('dock-glowing');
+                                setTimeout(function() { inner.classList.remove('dock-glowing'); }, 1050);
+                            }, glowAt);
+                            hideDock(glowAt + 1150 + 650);
+                        }
+
+                        if (window.IntersectionObserver) {
+                            var obs = new IntersectionObserver(function(entries) {
+                                if (entries[0].isIntersecting && !introPlayed) {
+                                    obs.disconnect();
+                                    if (haDashEl && !haDashEl.classList.contains('visible')) {
+                                        haDashEl.classList.add('visible');
+                                    }
+                                    clearTimeout(introTimer);
+                                    introTimer = setTimeout(playIntro, DASH_RISE_DURATION + DOCK_BUFFER);
+                                }
+                            }, { threshold: 0.15 });
+                            obs.observe(section);
+                        }
+
+                        dashWrap.addEventListener('mouseenter', function() {
+                            if (!introPlayed) return;
+                            clearTimeout(hideTimer);
+                            showDock();
+                        });
+                        outer.addEventListener('mouseenter', function() {
+                            if (!introPlayed) return;
+                            clearTimeout(hideTimer);
+                        });
+
+                        /* Hide when cursor leaves the entire demo section */
+                        section.addEventListener('mouseleave', function() {
+                            if (!introPlayed) return;
+                            hideDock(280);
+                        });
+                    })();
+                })();
+                </script>
+            </div>
+
+            <!-- Floating badges below dashboard -->
+            <div class="flex flex-wrap justify-center gap-3 mt-5" data-anim>
+                <div class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-slate-200 shadow-sm text-xs text-slate-600 font-semibold">
+                    <span class="w-2 h-2 bg-emerald-400 rounded-full pulse-dot"></span> Bot gercep 24/7 nonstop
+                </div>
+                <div class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-slate-200 shadow-sm text-xs text-slate-600 font-semibold">
+                    <i class="fa-solid fa-shield-halved text-brand-500"></i> Dilindungi enkripsi SSL 256-bit
+                </div>
+                <div class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-slate-200 shadow-sm text-xs text-slate-600 font-semibold">
+                    <i class="fa-solid fa-cloud text-blue-400"></i> Nggak perlu VPS — 100% cloud!
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>

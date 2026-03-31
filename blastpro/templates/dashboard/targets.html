@@ -1,0 +1,1412 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Manager Target Grup{% endblock %}
+
+{% block content %}
+<style>
+    .targets-empty-state {
+        border-color: #c4b5fd;
+        background: linear-gradient(135deg, #faf5ff, #f5f3ff);
+    }
+    html[data-theme='dark'] .targets-empty-state {
+        border-color: rgba(167,139,250,0.25) !important;
+        background: linear-gradient(135deg, rgba(109,40,217,0.14), rgba(109,40,217,0.06)) !important;
+    }
+    html[data-theme='dark'] .targets-empty-state h3 {
+        color: var(--text-primary) !important;
+    }
+
+    #targets-page .hero-panel {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+    }
+
+    html[data-theme='dark'] #targets-page .hero-panel {
+        background: #111c34;
+        border-color: #243b5e;
+    }
+
+    html[data-theme='dark'] #targets-page .theme-aware-soft {
+        background-color: #1c2942 !important;
+        border-color: #243b5e !important;
+        color: #dbeafe !important;
+    }
+
+    html[data-theme='dark'] #targets-page .theme-aware-muted {
+        color: #94a3b8 !important;
+    }
+
+    /* ===== DARK MODE — TARGETS PAGE SPECIFIC ===== */
+
+    /* Account section sticky header */
+    html[data-theme='dark'] #targets-page .account-section .sticky {
+        background-color: rgba(13, 22, 40, 0.95) !important;
+        border-color: var(--border-color) !important;
+    }
+
+    /* Phone number inline badge */
+    html[data-theme='dark'] #targets-page .account-section h2 span {
+        background: var(--panel-muted) !important;
+        border-color: var(--border-color) !important;
+        color: var(--text-muted) !important;
+    }
+
+    /* ==========================================================
+       TC-CARD — Line-struktur card: terstruktur & konsisten
+    ========================================================== */
+
+    /* ── Wrapper card ── */
+    .tc-card {
+        position: relative;
+        border-radius: 1.25rem;
+        overflow: visible;
+        background: #ffffff;
+        border: 1.5px solid #e2e8f0;
+        box-shadow: 0 1px 4px rgba(0,0,0,.06), 0 4px 16px rgba(37,99,235,.05);
+        display: flex;
+        flex-direction: column;
+        transition:
+            transform .28s cubic-bezier(.22,1,.36,1),
+            box-shadow .28s ease,
+            border-color .28s ease;
+    }
+    html[data-theme='dark'] .tc-card {
+        background: var(--panel-bg, #131c30);
+        border-color: rgba(255,255,255,.07);
+        box-shadow: 0 2px 12px rgba(0,0,0,.25);
+    }
+    .tc-card:hover {
+        border-color: #6366f1;
+        border-width: 1.5px;
+        transform: translateY(-4px);
+        box-shadow: 0 10px 28px rgba(99,102,241,.14), 0 0 0 4px rgba(99,102,241,.07);
+    }
+    html[data-theme='dark'] .tc-card:hover {
+        border-color: #818cf8;
+        box-shadow: 0 10px 28px rgba(99,102,241,.22), 0 0 0 4px rgba(129,140,248,.1);
+    }
+
+    /* Accent bar (pill) — di luar card, tepi atas tengah */
+    .tc-bar {
+        display: block;
+        position: absolute;
+        top: -7px; left: 50%;
+        transform: translateX(-50%);
+        height: 5px;
+        width: 40%;
+        border-radius: 99px;
+        background: linear-gradient(90deg, #818cf8 0%, #6366f1 50%, #4f46e5 100%);
+        box-shadow: 0 2px 8px rgba(99,102,241,.4);
+        transition: width .35s cubic-bezier(.22,1,.36,1), box-shadow .35s ease;
+        z-index: 10;
+    }
+    .tc-card:hover .tc-bar {
+        width: 60%;
+        box-shadow: 0 3px 14px rgba(99,102,241,.55);
+    }
+
+    /* ── HEADER section ── */
+    .tc-body {
+        padding: 0;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        z-index: 10;
+    }
+
+    /* Header row: avatar + name + menu */
+    .tc-header-row {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        padding: 1.15rem 1rem 1rem;
+    }
+
+    /* Avatar: compact circle */
+    .tc-avatar {
+        width: 2.6rem; height: 2.6rem;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #818cf8, #4f46e5);
+        color: #fff;
+        font-size: 1rem; font-weight: 900;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+        box-shadow: 0 3px 10px rgba(79,70,229,.35);
+        transition: box-shadow .28s;
+    }
+    html[data-theme='dark'] .tc-avatar {
+        box-shadow: 0 3px 10px rgba(79,70,229,.5);
+    }
+    .tc-card:hover .tc-avatar {
+        box-shadow: 0 0 0 3px rgba(99,102,241,.2), 0 4px 14px rgba(79,70,229,.45);
+    }
+
+    /* Template name — fills remaining space */
+    .tc-name {
+        flex: 1;
+        font-size: .9rem; font-weight: 700; line-height: 1.25;
+        color: #0f172a;
+        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+        overflow: hidden;
+        transition: color .28s;
+    }
+    html[data-theme='dark'] .tc-name { color: #e2e8f0; }
+    .tc-card:hover .tc-name { color: #4338ca; }
+    html[data-theme='dark'] .tc-card:hover .tc-name { color: #a5b4fc; }
+
+    /* Menu button */
+    .tc-menu-btn {
+        width: 1.85rem; height: 1.85rem;
+        border-radius: .5rem;
+        border: 1px solid #e2e8f0;
+        background: #f8fafc;
+        color: #94a3b8;
+        display: flex; align-items: center; justify-content: center;
+        font-size: .7rem; cursor: pointer; flex-shrink: 0;
+        transition: background .18s, color .18s, border-color .18s;
+    }
+    .tc-menu-btn:hover { background: #eff6ff; border-color: #c7d2fe; color: #4f46e5; }
+    html[data-theme='dark'] .tc-menu-btn { background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.08); color: #4b6ea8; }
+    html[data-theme='dark'] .tc-menu-btn:hover { background: rgba(99,102,241,.12); color: #a5b4fc; }
+
+    /* ── Divider line ── */
+    .tc-divider {
+        height: 1px;
+        background: #f1f5f9;
+        margin: 0;
+        transition: background .28s;
+    }
+    html[data-theme='dark'] .tc-divider { background: rgba(255,255,255,.06); }
+    .tc-card:hover .tc-divider { background: #e0e7ff; }
+    html[data-theme='dark'] .tc-card:hover .tc-divider { background: rgba(99,102,241,.2); }
+
+    /* ── Stats row ── */
+    .tc-stats-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: .65rem 1rem;
+    }
+    .tc-count-badge {
+        display: inline-flex; align-items: center; gap: .3rem;
+        font-size: .7rem; font-weight: 700; color: #4338ca;
+        transition: color .28s;
+    }
+    html[data-theme='dark'] .tc-count-badge { color: #818cf8; }
+    .tc-card:hover .tc-count-badge { color: #3730a3; }
+    html[data-theme='dark'] .tc-card:hover .tc-count-badge { color: #c7d2fe; }
+    .tc-count-badge i { font-size: .6rem; color: #6366f1; }
+
+    .tc-date {
+        font-size: .625rem; color: #94a3b8; font-weight: 500;
+        display: flex; align-items: center; gap: .3rem;
+        transition: color .28s;
+    }
+    html[data-theme='dark'] .tc-date { color: #4b6ea8; }
+    .tc-card:hover .tc-date { color: #6366f1; }
+
+    /* ── Preview list section ── */
+    .tc-preview {
+        padding: .7rem 1rem .9rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+    }
+    .tc-preview-label {
+        font-size: .55rem; font-weight: 700; text-transform: uppercase;
+        letter-spacing: .08em; color: #94a3b8;
+        margin-bottom: .45rem;
+        display: flex; justify-content: space-between; align-items: center;
+        transition: color .28s;
+    }
+    html[data-theme='dark'] .tc-preview-label { color: #4b6ea8; }
+    .tc-card:hover .tc-preview-label { color: #6366f1; }
+
+    .tc-preview-list {
+        display: flex; flex-direction: column;
+        border: 1px solid #f1f5f9;
+        border-radius: .75rem;
+        overflow: hidden;
+        transition: border-color .28s;
+    }
+    html[data-theme='dark'] .tc-preview-list { border-color: rgba(255,255,255,.06); }
+    .tc-card:hover .tc-preview-list { border-color: #e0e7ff; }
+    html[data-theme='dark'] .tc-card:hover .tc-preview-list { border-color: rgba(99,102,241,.2); }
+
+    .tc-preview-item {
+        display: flex; align-items: center; gap: .5rem;
+        padding: .38rem .65rem;
+        font-size: .7rem; font-weight: 600; color: #334155;
+        border-bottom: 1px solid #f1f5f9;
+        transition: background .18s, color .18s, border-color .18s;
+    }
+    .tc-preview-item:last-child { border-bottom: none; }
+    html[data-theme='dark'] .tc-preview-item {
+        color: #94a3b8;
+        border-color: rgba(255,255,255,.05);
+    }
+    .tc-card:hover .tc-preview-item {
+        background: #fafafe;
+        color: #3730a3;
+        border-color: #e0e7ff;
+    }
+    html[data-theme='dark'] .tc-card:hover .tc-preview-item {
+        background: rgba(99,102,241,.05) !important;
+        color: #c7d2fe !important;
+        border-color: rgba(99,102,241,.15) !important;
+    }
+
+    .tc-row-num {
+        width: 1.1rem; height: 1.1rem;
+        border-radius: .3rem;
+        background: #eff6ff;
+        border: 1px solid #dbeafe;
+        font-size: .55rem; font-weight: 800; color: #4f46e5;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+        transition: background .18s, border-color .18s, color .18s;
+    }
+    html[data-theme='dark'] .tc-row-num { background: rgba(99,102,241,.12); border-color: rgba(99,102,241,.25); color: #818cf8; }
+    .tc-card:hover .tc-row-num { background: #e0e7ff; border-color: #c7d2fe; color: #3730a3; }
+    html[data-theme='dark'] .tc-card:hover .tc-row-num { background: rgba(99,102,241,.2) !important; border-color: rgba(99,102,241,.35) !important; color: #a5b4fc !important; }
+
+    .tc-preview-more {
+        display: flex; align-items: center; gap: .4rem;
+        padding: .38rem .65rem;
+        font-size: .65rem; font-weight: 600; color: #94a3b8;
+        border-bottom: none;
+        transition: color .28s;
+    }
+    html[data-theme='dark'] .tc-preview-more { color: #4b6ea8; }
+    .tc-card:hover .tc-preview-more { color: #6366f1; }
+
+    /* ── Dropdown ── */
+    .tc-dropdown {
+        position: absolute; right: 0; margin-top: .5rem;
+        width: 11.5rem;
+        background: #fff;
+        border-radius: .875rem;
+        border: 1.5px solid #e0e7ff;
+        box-shadow: 0 16px 48px rgba(37,99,235,.12), 0 4px 12px rgba(0,0,0,.06);
+        padding: .375rem 0;
+        z-index: 50;
+    }
+    html[data-theme='dark'] .tc-dropdown {
+        background: var(--panel-bg, #1e1e2e) !important;
+        border-color: rgba(99,102,241,.25) !important;
+        box-shadow: 0 16px 48px rgba(0,0,0,.5) !important;
+    }
+    .tc-dropdown-header { padding: .5rem 1rem .4rem; border-bottom: 1px solid #f1f5f9; }
+    html[data-theme='dark'] .tc-dropdown-header { border-color: rgba(255,255,255,.08) !important; }
+    .tc-dropdown-label { font-size: .6rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #94a3b8; }
+    html[data-theme='dark'] .tc-dropdown-label { color: var(--text-muted, #94a3b8) !important; }
+    .tc-dropdown-item {
+        width: 100%; text-align: left;
+        padding: .55rem 1rem; font-size: .75rem; font-weight: 700;
+        display: flex; align-items: center; gap: .6rem;
+        background: transparent; cursor: pointer;
+        transition: background .18s ease, color .18s ease;
+    }
+    .tc-dropdown-item-blue  { color: #475569; }
+    .tc-dropdown-item-blue:hover  { background: #eff6ff; color: #2563eb; }
+    .tc-dropdown-item-amber { color: #475569; }
+    .tc-dropdown-item-amber:hover { background: #fffbeb; color: #b45309; }
+    .tc-dropdown-item-red   { color: #e11d48; }
+    .tc-dropdown-item-red:hover   { background: #fff1f2; }
+    html[data-theme='dark'] .tc-dropdown-item-blue,
+    html[data-theme='dark'] .tc-dropdown-item-amber { color: var(--text-muted, #94a3b8) !important; }
+    html[data-theme='dark'] .tc-dropdown-item-blue:hover  { background: rgba(37,99,235,.1) !important; color: #93c5fd !important; }
+    html[data-theme='dark'] .tc-dropdown-item-amber:hover { background: rgba(245,158,11,.08) !important; color: #fcd34d !important; }
+    html[data-theme='dark'] .tc-dropdown-item-red:hover   { background: rgba(239,68,68,.1) !important; }
+    .tc-dropdown-sep { height: 1px; background: #f1f5f9; margin: .25rem 0; }
+    html[data-theme='dark'] .tc-dropdown-sep { background: rgba(255,255,255,.07) !important; }
+
+    /* legacy (unused but kept for safety) */
+    .tc-top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .tc-info { margin-bottom: .85rem; }
+    .tc-meta { display: flex; align-items: center; gap: .5rem; }
+    .tc-sep { width: 3px; height: 3px; border-radius: 50%; background: #cbd5e1; display: inline-block; }
+    .tc-dot { width: 5px; height: 5px; border-radius: 50%; background: #4f46e5; flex-shrink: 0; }
+
+    /* Section divider */
+    html[data-theme='dark'] #targets-page .border-dashed {
+        border-color: var(--border-color) !important;
+    }
+
+    /* ===== DETAIL MODAL (right panel) ===== */
+    html[data-theme='dark'] #detailPanel {
+        background: var(--panel-bg) !important;
+    }
+    html[data-theme='dark'] #detailPanel .border-b,
+    html[data-theme='dark'] #detailPanel .border-t {
+        border-color: var(--border-color) !important;
+    }
+    html[data-theme='dark'] #detailPanel .px-8.py-6 {
+        background: var(--panel-bg) !important;
+    }
+    html[data-theme='dark'] #detailPanel .flex-1.overflow-y-auto {
+        background: var(--panel-muted) !important;
+    }
+    html[data-theme='dark'] #detailPanel .px-8.py-5 {
+        background: var(--panel-bg) !important;
+    }
+    /* Detail list items (JS-rendered) */
+    html[data-theme='dark'] #detailList > div {
+        background: var(--panel-bg) !important;
+        border-color: var(--border-color) !important;
+    }
+    html[data-theme='dark'] #detailList > div:hover {
+        border-color: rgba(96,165,250,0.3) !important;
+    }
+    html[data-theme='dark'] #detailList h4 { color: var(--text-primary) !important; }
+    html[data-theme='dark'] #detailList .bg-slate-100 {
+        background: var(--panel-muted) !important;
+        border-color: var(--border-color) !important;
+        color: var(--text-muted) !important;
+    }
+    html[data-theme='dark'] #detailList .border-t {
+        border-color: var(--border-color) !important;
+    }
+    html[data-theme='dark'] #detailList .flex.gap-1 button {
+        background: var(--panel-muted) !important;
+        border-color: var(--border-color) !important;
+        color: #4b6ea8 !important;
+    }
+    html[data-theme='dark'] #detailList .flex.gap-1 button:hover {
+        background: rgba(96,165,250,0.12) !important;
+        color: #60a5fa !important;
+    }
+    html[data-theme='dark'] #detailList .bg-indigo-50 {
+        background: rgba(99,102,241,0.15) !important;
+        border-color: rgba(99,102,241,0.3) !important;
+        color: #a5b4fc !important;
+    }
+    html[data-theme='dark'] #detailList .text-slate-400 { color: #4b6ea8 !important; }
+    /* Detail title label badge */
+    html[data-theme='dark'] #detailPanel span.text-indigo-500 {
+        background: rgba(99,102,241,0.15) !important;
+        border-color: rgba(99,102,241,0.3) !important;
+        color: #a5b4fc !important;
+    }
+
+    /* ===== EDIT ITEM MODAL ===== */
+    html[data-theme='dark'] #editItemModal > div:last-child {
+        background: var(--panel-bg) !important;
+    }
+    html[data-theme='dark'] #editItemModal label { color: var(--text-muted) !important; }
+    html[data-theme='dark'] #editItemModal p.text-\[10px\] { color: #4b6ea8 !important; }
+
+    /* ===== SCAN MODAL ===== */
+    html[data-theme='dark'] #scanPanel {
+        background: var(--panel-bg) !important;
+        border-color: var(--border-color) !important;
+    }
+    html[data-theme='dark'] #scanPanel .bg-white {
+        background: var(--panel-bg) !important;
+    }
+    html[data-theme='dark'] #scanPanel .border-b {
+        border-color: var(--border-color) !important;
+    }
+    html[data-theme='dark'] #scanPanel .border-t {
+        border-color: var(--border-color) !important;
+    }
+    /* Filter section */
+    html[data-theme='dark'] #scanPanel .bg-slate-50\/80 {
+        background: var(--panel-muted) !important;
+        border-color: var(--border-color) !important;
+    }
+    html[data-theme='dark'] #scanPanel label {
+        color: var(--text-muted) !important;
+    }
+    html[data-theme='dark'] #scanPanel select {
+        background: var(--panel-bg) !important;
+        border-color: var(--border-color) !important;
+        color: var(--text-primary) !important;
+    }
+    /* Initial state dot grid */
+    html[data-theme='dark'] #initialState {
+        background: var(--panel-bg) !important;
+    }
+    html[data-theme='dark'] #initialState > div:first-child {
+        opacity: 0.08 !important;
+    }
+    /* Info pill */
+    html[data-theme='dark'] #initialState p {
+        background: var(--panel-muted) !important;
+        border-color: var(--border-color) !important;
+        color: var(--text-muted) !important;
+    }
+    /* Loading scan */
+    html[data-theme='dark'] #loadingScan h4 { color: var(--text-primary) !important; }
+    html[data-theme='dark'] #loadingScan p   { color: var(--text-muted) !important; }
+    html[data-theme='dark'] #loadingScan .border-indigo-100 {
+        border-color: rgba(99,102,241,0.2) !important;
+    }
+    /* Result list */
+    html[data-theme='dark'] #resultList {
+        background: var(--panel-muted) !important;
+    }
+    html[data-theme='dark'] #resultList label {
+        background: var(--panel-bg) !important;
+        border-color: var(--border-color) !important;
+        color: var(--text-primary) !important;
+    }
+    html[data-theme='dark'] #resultList label:hover {
+        border-color: rgba(96,165,250,0.3) !important;
+        background: rgba(96,165,250,0.06) !important;
+    }
+    /* Save bar */
+    html[data-theme='dark'] #saveBar {
+        background: var(--panel-bg) !important;
+        border-color: var(--border-color) !important;
+        box-shadow: 0 -10px 40px -10px rgba(0,0,0,0.3) !important;
+    }
+    html[data-theme='dark'] #saveBar span.font-bold { color: var(--text-primary) !important; }
+    html[data-theme='dark'] #selectedCountNum {
+        background: rgba(96,165,250,0.15) !important;
+        color: #93c5fd !important;
+    }
+
+    /* ===== IMPORT MODAL ===== */
+    html[data-theme='dark'] #importPanel {
+        background: var(--panel-bg) !important;
+    }
+    html[data-theme='dark'] #importPanel .p-8 {
+        background: var(--panel-bg) !important;
+    }
+    html[data-theme='dark'] #importPanel label { color: var(--text-muted) !important; }
+    html[data-theme='dark'] #importPanel select {
+        background: var(--panel-muted) !important;
+        border-color: var(--border-color) !important;
+        color: var(--text-primary) !important;
+    }
+    html[data-theme='dark'] #importPanel .border-dashed {
+        background: var(--panel-muted) !important;
+        border-color: var(--border-color) !important;
+    }
+    html[data-theme='dark'] #importPanel .border-dashed:hover {
+        border-color: rgba(16,185,129,0.4) !important;
+        background: rgba(16,185,129,0.06) !important;
+    }
+    html[data-theme='dark'] #importPanel #fileNameDisplay { color: var(--text-muted) !important; }
+    html[data-theme='dark'] #importPanel code { color: #93c5fd !important; }
+    html[data-theme='dark'] #importPanel p.text-\[10px\] { color: #4b6ea8 !important; }
+
+    /* ===== EMPTY STATE (no targets) ===== */
+    html[data-theme='dark'] #targets-page .rounded-\[2\.5rem\].border-dashed {
+        background: linear-gradient(135deg, rgba(124,58,237,0.06), rgba(99,102,241,0.1)) !important;
+        border-color: rgba(124,58,237,0.3) !important;
+    }
+
+    /* ===== SCAN RESULT ITEMS (JS-rendered) ===== */
+    html[data-theme='dark'] .scan-group-item {
+        background: var(--panel-bg) !important;
+        border-color: var(--border-color) !important;
+    }
+    html[data-theme='dark'] .scan-group-item:hover {
+        border-color: rgba(96,165,250,0.35) !important;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.3) !important;
+    }
+    html[data-theme='dark'] .scan-group-item h4 { color: var(--text-primary) !important; }
+    html[data-theme='dark'] .scan-group-item .bg-slate-100 {
+        background: var(--panel-muted) !important;
+        border-color: var(--border-color) !important;
+        color: var(--text-muted) !important;
+    }
+    html[data-theme='dark'] .scan-group-item .bg-emerald-50 {
+        background: rgba(16,185,129,0.12) !important;
+        border-color: rgba(16,185,129,0.28) !important;
+        color: #6ee7b7 !important;
+    }
+    html[data-theme='dark'] .scan-group-item .bg-amber-100 {
+        background: rgba(245,158,11,0.15) !important;
+        border-color: rgba(245,158,11,0.3) !important;
+        color: #fcd34d !important;
+    }
+    /* Forum topic section */
+    html[data-theme='dark'] [id^="topic-box-"] {
+        border-color: rgba(96,165,250,0.18) !important;
+    }
+    html[data-theme='dark'] [id^="topic-box-"] .bg-slate-50\/80 {
+        background: var(--panel-muted) !important;
+        border-color: var(--border-color) !important;
+    }
+    html[data-theme='dark'] [id^="topic-box-"] p.text-\[10px\] { color: #4b6ea8 !important; }
+    html[data-theme='dark'] [id^="topic-box-"] .bg-indigo-50 {
+        background: rgba(99,102,241,0.12) !important;
+        color: #a5b4fc !important;
+    }
+    /* Topic check labels */
+    html[data-theme='dark'] label.group\/topic {
+        background: rgba(99,102,241,0.1) !important;
+        border-color: rgba(99,102,241,0.25) !important;
+    }
+    html[data-theme='dark'] label.group\/topic:hover {
+        background: rgba(99,102,241,0.18) !important;
+    }
+    html[data-theme='dark'] label.group\/topic span.text-indigo-700 { color: #a5b4fc !important; }
+    html[data-theme='dark'] label.group\/topic span.text-slate-400  { color: #4b6ea8 !important; }
+    /* Manual topic label bg */
+    html[data-theme='dark'] label.text-\[9px\].bg-slate-50 {
+        background: var(--panel-muted) !important;
+        color: #4b6ea8 !important;
+    }
+    /* Checked scan item highlight */
+    html[data-theme='dark'] .scan-group-item.border-indigo-500 {
+        border-color: rgba(99,102,241,0.5) !important;
+        background: rgba(99,102,241,0.06) !important;
+    }
+</style>
+
+<div id="targets-page" class="max-w-7xl mx-auto animate-fade-in pb-32" x-data="targetManager()">
+
+    <div class="dp-page-header mb-6">
+        <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 pl-2">
+            <div>
+                <div class="flex items-center gap-3 mb-2">
+                    <i class="fa-solid fa-circle-nodes flex-shrink-0" style="color: var(--accent); font-size: 4rem;"></i>
+                    <div>
+                        <p class="text-[10px] font-bold uppercase tracking-widest leading-none mb-0.5" style="color: var(--accent); opacity: 0.75">Target Grup Manager</p>
+                        <h1 class="text-2xl font-extrabold tracking-tight text-slate-800 sm:text-3xl leading-tight">Manajemen Target Grup</h1>
+                    </div>
+                </div>
+                <p class="mt-1.5 text-sm text-slate-500">Kelola semua target grup dalam format template yang rapi. Kirim campaign lebih cepat, konsisten, dan minim salah kirim.</p>
+            </div>
+            <div class="flex flex-col sm:flex-row items-stretch gap-3 w-full xl:w-auto">
+                <div class="relative w-full sm:w-64 group">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
+                        <i class="fa-solid fa-magnifying-glass text-slate-400 group-focus-within:text-indigo-500 transition-colors"></i>
+                    </div>
+                    <input type="text" x-model="searchQuery" placeholder="Cari template..."
+                           class="dp-input pl-11 pr-10">
+                    <button x-show="searchQuery" @click="searchQuery = ''" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-red-500 transition" x-transition style="display: none;">
+                        <i class="fa-solid fa-circle-xmark"></i>
+                    </button>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="openImportModal()" class="dp-btn dp-btn-action flex-1 sm:flex-none">
+                        <i class="fa-solid fa-file-import"></i>
+                        <span class="text-xs uppercase tracking-wide">Import CSV</span>
+                    </button>
+                    <button onclick="openScanModal()" class="dp-btn dp-btn-action flex-1 sm:flex-none">
+                        <i class="fa-solid fa-radar"></i>
+                        <span class="text-xs uppercase tracking-wide">Scan Grup</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if not grouped_targets %}
+        <div class="flex flex-col items-center justify-center py-28 rounded-[2.5rem] border-2 border-dashed text-center group cursor-pointer transition-all duration-500 relative overflow-hidden dp-anim-card targets-empty-state" onclick="openScanModal()">
+            <div class="absolute inset-0 -z-10" style="background:radial-gradient(circle at 50% 40%,rgba(124,58,237,0.06),transparent 60%)"></div>
+            <div class="relative mb-8 dp-anim-icon dp-d2">
+                <div class="absolute inset-0 rounded-full animate-ping opacity-15 duration-1000" style="background:#c4b5fd"></div>
+                <i class="fa-solid fa-folder-plus text-6xl relative z-10 transition-all duration-300 group-hover:scale-110" style="color:#7c3aed;filter:drop-shadow(0 4px 12px rgba(124,58,237,0.3))"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-slate-800 group-hover:text-violet-700 transition-colors dp-anim-card dp-d4">Belum Ada Template Target</h3>
+            <p class="max-w-md mt-3 mb-8 leading-relaxed text-sm dp-anim-card dp-d5" style="color:#64748b">
+                Mulai langkah pertama Anda dengan <b>Scan Otomatis</b> atau <b>Import CSV</b> untuk membangun daftar grup siap pakai.
+            </p>
+            <button class="dp-btn dp-btn-primary dp-anim-scale dp-d6">
+                <i class="fa-solid fa-magic-wand-sparkles"></i> Buat Template Pertama
+            </button>
+        </div>
+    {% else %}
+
+        <div class="space-y-12">
+            {% for source_phone, templates in grouped_targets.items() %}
+            <div class="account-section animate-enter" x-show='matchAccount("{{ source_phone }}", {{ templates|tojson }})'>
+
+                <div class="flex items-center gap-4 mb-6 px-4 py-3 sticky top-16 z-30 bg-[#F8FAFC]/95 backdrop-blur-md border-b border-slate-200/60 rounded-xl shadow-sm transition-all duration-300 hover:shadow-md">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/20 ring-2 ring-white">
+                        <i class="fa-brands fa-telegram text-2xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                            {{ templates.values()|first|first|attr('source_name') if templates else 'Akun Telegram' }}
+                            <span class="text-[10px] font-mono font-medium text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200 shadow-sm">{{ source_phone }}</span>
+                        </h2>
+                        <div class="flex items-center gap-3 text-xs text-slate-500 mt-0.5">
+                            <span class="flex items-center gap-1"><i class="fa-solid fa-folder-open text-blue-400"></i> {{ templates|length }} Template</span>
+                            <span class="w-1 h-1 rounded-full bg-slate-300"></span>
+                            <span class="text-emerald-600 font-medium flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> Connected</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 px-1 pt-3">
+                    {% for tmpl_name, groups in templates.items() %}
+
+                    <div class="tc-card" x-show='matchTemplate("{{ tmpl_name }}")'>
+                        <!-- Accent pill bar -->
+                        <div class="tc-bar"></div>
+
+                        <div class="tc-body">
+
+                            <!-- ── HEADER: avatar + name + menu ── -->
+                            <div class="tc-header-row">
+                                <div class="tc-avatar">{{ tmpl_name[:1]|upper }}</div>
+                                <h3 class="tc-name" title="{{ tmpl_name }}">{{ tmpl_name }}</h3>
+                                <div class="relative" x-data="{ open: false }">
+                                    <button @click.stop="open = !open" @click.outside="open = false" class="tc-menu-btn">
+                                        <i class="fa-solid fa-ellipsis-vertical"></i>
+                                    </button>
+                                    <div x-show="open" class="tc-dropdown" style="display: none;">
+                                        <div class="tc-dropdown-header">
+                                            <p class="tc-dropdown-label">Menu Template</p>
+                                        </div>
+                                        <button onclick='viewDetails("{{ tmpl_name }}", {{ groups|tojson }})' class="tc-dropdown-item tc-dropdown-item-blue">
+                                            <i class="fa-solid fa-eye w-4 text-center"></i> Lihat & Edit Isi
+                                        </button>
+                                        <button onclick="promptRename('{{ tmpl_name }}', '{{ source_phone }}')" class="tc-dropdown-item tc-dropdown-item-amber">
+                                            <i class="fa-solid fa-pen-to-square w-4 text-center"></i> Ganti Nama
+                                        </button>
+                                        <div class="tc-dropdown-sep"></div>
+                                        <button onclick="event.stopPropagation(); deleteTemplate('{{ tmpl_name }}', '{{ source_phone }}')" class="tc-dropdown-item tc-dropdown-item-red">
+                                            <i class="fa-solid fa-trash-can w-4 text-center"></i> Hapus Template
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ── DIVIDER 1 ── -->
+                            <div class="tc-divider"></div>
+
+                            <!-- ── STATS ROW ── -->
+                            <div class="tc-stats-row">
+                                <span class="tc-count-badge">
+                                    <i class="fa-solid fa-layer-group"></i>
+                                    <b>{{ groups|length }}</b> Grup Target
+                                </span>
+                                <span class="tc-date">
+                                    <i class="fa-regular fa-calendar"></i>
+                                    {{ groups[0].created_at[:10] }}
+                                </span>
+                            </div>
+
+                            <!-- ── DIVIDER 2 ── -->
+                            <div class="tc-divider"></div>
+
+                            <!-- ── PREVIEW LIST ── -->
+                            <div class="tc-preview">
+                                <p class="tc-preview-label">
+                                    <span>Daftar Grup</span>
+                                    <i class="fa-solid fa-table-list"></i>
+                                </p>
+                                <ul class="tc-preview-list">
+                                    {% for g in groups[:3] %}
+                                    <li class="tc-preview-item">
+                                        <span class="tc-row-num">{{ loop.index }}</span>
+                                        <span class="truncate">{{ g.group_name }}</span>
+                                    </li>
+                                    {% endfor %}
+                                    {% if groups|length > 3 %}
+                                    <li class="tc-preview-more">
+                                        <i class="fa-solid fa-ellipsis"></i>
+                                        {{ groups|length - 3 }} grup lainnya
+                                    </li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+
+                        </div>
+
+                        <!-- Click overlay to open detail -->
+                        <div class="absolute inset-0 z-0 cursor-pointer rounded-[1.25rem]" onclick='viewDetails("{{ tmpl_name }}", {{ groups|tojson }})'></div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="border-b border-dashed border-slate-200 mt-10 mx-4"></div>
+            </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+</div>
+
+<div id="detailModal" class="fixed inset-0 z-[100] hidden" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity opacity-0" id="detailBackdrop" onclick="closeDetailModal()"></div>
+    <div class="fixed inset-y-0 right-0 z-10 w-full max-w-2xl bg-white shadow-2xl transform translate-x-full transition-transform duration-300 ease-out flex flex-col" id="detailPanel">
+
+        <div class="px-8 py-6 border-b border-slate-100 bg-white z-20 flex justify-between items-start shadow-sm">
+            <div>
+                <span class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest bg-indigo-50 px-2 py-1 rounded border border-indigo-100 mb-2 inline-block">Template Detail</span>
+                <h3 class="text-2xl font-extrabold text-slate-800" id="detailTitle">Loading...</h3>
+                <p class="text-sm text-slate-500 mt-1 flex items-center gap-2">
+                    <i class="fa-solid fa-folder-open text-slate-400"></i>
+                    <span id="detailSubtitle">0 Grup</span>
+                </p>
+            </div>
+            <button onclick="closeDetailModal()" class="btn-close">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-8 bg-slate-50/50 custom-scrollbar">
+            <div id="detailList" class="space-y-3"></div>
+        </div>
+
+        <div class="px-8 py-5 border-t border-slate-100 bg-white flex justify-end gap-3 shrink-0">
+            <button onclick="closeDetailModal()" class="dp-btn dp-btn-ghost">
+                Tutup
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="editItemModal" class="fixed inset-0 z-[110] hidden flex items-center justify-center p-4">
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" onclick="closeEditItemModal()"></div>
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 relative z-10 transform scale-100 transition-all">
+        <h3 class="text-lg font-bold text-slate-800 mb-4">Edit Info Grup</h3>
+        <input type="hidden" id="editItemId">
+
+        <div class="space-y-4">
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nama Grup</label>
+                <input type="text" id="editItemName" class="dp-input font-bold text-sm">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Topik ID (Pisahkan Koma)</label>
+                <input type="text" id="editItemTopics" placeholder="Contoh: 1, 404, 202" class="dp-input font-mono text-sm">
+                <p class="text-[10px] text-slate-400 mt-1">*Kosongkan jika General Chat</p>
+            </div>
+            <button onclick="saveItemChanges()" class="dp-btn dp-btn-primary w-full">
+                Simpan Perubahan
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="scanModal" class="fixed inset-0 z-[100] hidden">
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity opacity-0" id="scanBackdrop"></div>
+    <div class="fixed inset-0 z-10 overflow-hidden flex items-center justify-center p-4">
+        <div class="relative transform flex flex-col w-full max-w-3xl h-[85vh] bg-white rounded-[2rem] shadow-2xl transition-all opacity-0 scale-95 border border-slate-200 overflow-hidden ring-1 ring-black/5" id="scanPanel">
+
+            <div class="bg-white px-8 py-6 border-b border-slate-100 flex justify-between items-center shrink-0 relative z-20">
+                <div class="flex items-center gap-4">
+                    <i class="fa-brands fa-telegram text-2xl text-indigo-600"></i>
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+                            Scan Grup Baru
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Sinkronisasi grup dari akun Telegram ke dalam template.</p>
+                    </div>
+                </div>
+                <button onclick="closeScanModal()" class="btn-close">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="px-8 py-6 bg-slate-50/80 border-b border-slate-200/60 shrink-0 grid grid-cols-1 sm:grid-cols-2 gap-5 backdrop-blur-sm">
+                <div>
+                    <label class="text-[10px] font-bold text-indigo-900 uppercase tracking-widest mb-2 block flex items-center gap-1.5">
+                        <i class="fa-solid fa-circle-user"></i> Akun Sumber
+                    </label>
+                    <div class="dp-select-wrapper">
+                        <select id="scanAccountSelect" class="dp-select">
+                            {% for acc in accounts %}
+                                <option value="{{ acc.phone_number }}">{{ acc.first_name or 'Akun' }} ({{ acc.phone_number }})</option>
+                            {% else %}
+                                <option value="" disabled selected>⚠️ Tidak ada akun aktif</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-indigo-900 uppercase tracking-widest mb-2 block flex items-center gap-1.5">
+                        <i class="fa-solid fa-tag"></i> Nama Template Baru
+                    </label>
+                    <input type="text" id="scanTemplateName" placeholder="Contoh: Grup Jualan Pagi"
+                           class="dp-input font-bold text-sm">
+                </div>
+            </div>
+
+            <div id="initialState" class="flex-1 flex flex-col items-center justify-center bg-white relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-full bg-[radial-gradient(#e0e7ff_1px,transparent_1px)] [background-size:16px_16px] opacity-30"></div>
+                <div class="relative z-10 text-center">
+                    <button onclick="startScanning()" id="btnStartScan" class="dp-btn dp-btn-dark mx-auto group" style="padding:1rem 2.5rem;font-size:1.125rem;border-radius:1rem">
+                        <i class="fa-solid fa-radar animate-pulse text-indigo-300 group-hover:text-white transition-colors"></i>
+                        <span>Mulai Scanning</span>
+                        <i class="fa-solid fa-arrow-right text-sm opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all"></i>
+                    </button>
+                    <p class="text-slate-400 text-xs mt-4 font-medium bg-white/80 px-3 py-1 rounded-full inline-block border border-slate-100">
+                        <i class="fa-solid fa-circle-info mr-1"></i> Pastikan akun Telegram aktif di server.
+                    </p>
+                </div>
+            </div>
+
+            <div id="loadingScan" class="hidden flex-1 flex flex-col items-center justify-center z-20">
+                <div class="relative">
+                    <div class="w-16 h-16 border-4 border-indigo-100 rounded-full"></div>
+                    <div class="absolute inset-0 border-4 border-indigo-600 rounded-full border-t-transparent animate-spin"></div>
+                </div>
+                <h4 class="font-bold text-slate-800 mt-6 text-lg animate-pulse">Sedang Memindai...</h4>
+                <p class="text-xs text-slate-500">Mohon tunggu, jangan tutup halaman ini.</p>
+            </div>
+
+            <div id="resultList" class="hidden flex-1 overflow-y-auto p-8 bg-slate-50 grid gap-3 pb-32"></div>
+
+            <div id="saveBar" class="hidden px-8 py-5 bg-white border-t border-slate-200 flex justify-between items-center shrink-0 shadow-[0_-10px_40px_-10px_rgba(0,0,0,0.05)] z-30">
+                <div class="flex items-center gap-3">
+                    <span class="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 font-bold text-xs" id="selectedCountNum">0</span>
+                    <span class="text-sm font-bold text-slate-700">Grup Dipilih</span>
+                </div>
+                <button onclick="saveSelection()" id="btnSave" class="dp-btn dp-btn-primary">
+                    <span>Simpan Target</span>
+                    <i class="fa-solid fa-circle-check"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="importModal" class="fixed inset-0 z-[100] hidden">
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity opacity-0" onclick="closeImportModal()" id="importBackdrop"></div>
+    <div class="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
+        <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-lg p-0 relative transform scale-95 opacity-0 transition-all pointer-events-auto overflow-hidden" id="importPanel">
+
+            <div class="bg-slate-900 px-8 py-6 text-white relative overflow-hidden">
+                <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
+                <button onclick="closeImportModal()" class="btn-close-on-dark absolute top-4 right-4"><i class="fa-solid fa-xmark text-xl"></i></button>
+                <div class="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center mb-4 backdrop-blur-sm border border-white/10">
+                    <i class="fa-solid fa-file-csv text-3xl text-emerald-400"></i>
+                </div>
+                <h3 class="text-2xl font-bold">Import Target CSV</h3>
+                <p class="text-slate-400 text-sm mt-1">Upload daftar grup massal dari file eksternal.</p>
+            </div>
+
+            <div class="p-8">
+                <form id="csvForm" onsubmit="submitCsv(event)" class="space-y-5">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5 ml-1">Pilih Akun Sumber</label>
+                        <div class="dp-select-wrapper">
+                            <select name="source_phone" required class="dp-select">
+                                {% for acc in accounts %}
+                                    <option value="{{ acc.phone_number }}">{{ acc.first_name }} ({{ acc.phone_number }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5 ml-1">Nama Template Baru</label>
+                        <input type="text" name="template_name" required placeholder="Contoh: Import Maret 2026"
+                               class="dp-input font-bold text-sm">
+                    </div>
+
+                    <div class="border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center hover:border-emerald-400 hover:bg-emerald-50/30 transition bg-slate-50 group cursor-pointer relative">
+                        <input type="file" name="file" accept=".csv" required class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="document.getElementById('fileNameDisplay').innerText = this.files[0].name; document.getElementById('fileIcon').classList.add('text-emerald-500', 'scale-110');">
+                        <i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-300 mb-3 group-hover:text-emerald-500 transition-colors transform duration-300" id="fileIcon"></i>
+                        <p class="text-sm font-bold text-slate-600 group-hover:text-emerald-700 transition" id="fileNameDisplay">Klik untuk upload file CSV</p>
+                        <p class="text-[10px] text-slate-400 mt-1">Format header: <code>group_id, group_name, topic_ids</code></p>
+                    </div>
+
+                    <button type="submit" id="btnImport" class="dp-btn dp-btn-emerald w-full" style="padding:0.875rem 1rem">
+                        <span>Proses Import</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // --- ALPINEJS LOGIC ---
+    function targetManager() {
+        return {
+            searchQuery: '',
+            matchTemplate(name) {
+                if (!this.searchQuery) return true;
+                return name.toLowerCase().includes(this.searchQuery.toLowerCase());
+            },
+            matchAccount(phone, items) {
+                if (!this.searchQuery) return true;
+                const q = this.searchQuery.toLowerCase();
+                if (phone.includes(q)) return true;
+                return Object.keys(items).some(tmpl => tmpl.toLowerCase().includes(q));
+            }
+        }
+    }
+
+    // --- VARIABLES ---
+    let scannedGroups = [];
+    let currentDetailTemplate = null;
+
+    // --- 1. DETAIL MODAL LOGIC & EDIT ITEM ---
+    function viewDetails(tmplName, groups) {
+        currentDetailTemplate = { name: tmplName, groups: groups };
+
+        const modal = document.getElementById('detailModal');
+        const backdrop = document.getElementById('detailBackdrop');
+        const panel = document.getElementById('detailPanel');
+
+        document.getElementById('detailTitle').innerText = tmplName;
+        document.getElementById('detailSubtitle').innerText = `${groups.length} Grup Tersimpan`;
+
+        renderDetailList(groups);
+
+        modal.classList.remove('hidden');
+        lockScroll();
+        setTimeout(() => {
+            backdrop.classList.remove('opacity-0');
+            panel.classList.remove('translate-x-full');
+        }, 10);
+    }
+
+    function renderDetailList(groups) {
+        const list = document.getElementById('detailList');
+        list.innerHTML = '';
+
+        groups.forEach((g) => {
+            let topicBadges = '';
+            if(g.topic_ids) {
+                g.topic_ids.split(',').forEach(t => {
+                    topicBadges += `<span class="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded text-[10px] font-mono border border-indigo-100 font-bold">#${t}</span>`;
+                });
+            } else {
+                topicBadges = `<span class="text-[10px] text-slate-400 italic flex items-center gap-1"><i class="fa-solid fa-users"></i> General Chat</span>`;
+            }
+
+            const item = `
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-3 group hover:border-indigo-300 transition-colors" id="row-${g.id}">
+                <div class="flex justify-between items-start gap-3">
+                    <div class="min-w-0">
+                        <h4 class="font-bold text-slate-800 text-sm truncate" title="${g.group_name}">${g.group_name}</h4>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-500 font-mono border border-slate-200">${g.group_id}</span>
+                        </div>
+                    </div>
+                    <div class="flex gap-1">
+                        <button onclick="openEditItemModal('${g.id}', '${g.group_name.replace(/'/g, "\\'")}', '${g.topic_ids || ''}')"
+                                class="w-8 h-8 rounded-lg bg-slate-50 border border-slate-200 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition flex items-center justify-center">
+                            <i class="fa-solid fa-pen-to-square text-xs"></i>
+                        </button>
+                        <button onclick="removeGroupFromList(this, '${g.id}')"
+                                class="w-8 h-8 rounded-lg bg-slate-50 border border-slate-200 text-slate-400 hover:text-red-500 hover:bg-red-50 hover:border-red-200 transition flex items-center justify-center">
+                            <i class="fa-solid fa-trash-can text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-1.5 pt-2 border-t border-slate-50">
+                    ${topicBadges}
+                </div>
+            </div>`;
+            list.innerHTML += item;
+        });
+    }
+
+    // --- MODAL EDIT ITEM KECIL ---
+    function openEditItemModal(id, name, topics) {
+        document.getElementById('editItemId').value = id;
+        document.getElementById('editItemName').value = name;
+        document.getElementById('editItemTopics').value = topics;
+        document.getElementById('editItemModal').classList.remove('hidden');
+        lockScroll();
+    }
+
+    function closeEditItemModal() {
+        document.getElementById('editItemModal').classList.add('hidden');
+        unlockScroll();
+    }
+
+    async function saveItemChanges() {
+        const id = document.getElementById('editItemId').value;
+        const name = document.getElementById('editItemName').value;
+        const topics = document.getElementById('editItemTopics').value;
+
+        try {
+            const res = await fetch('/api/target/update_group', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ id: id, group_name: name, topic_ids: topics })
+            });
+            const d = await res.json();
+
+            if(d.status === 'success') {
+                closeEditItemModal();
+                location.reload();
+            } else {
+                showAlert({ title: 'Gagal', message: d.message, icon: 'fa-circle-xmark', iconColor: 'text-red-400', iconBg: 'bg-red-500/20', glowColor: 'bg-red-500' });
+            }
+        } catch(e) {
+            showAlert({ title: 'Error', message: String(e), icon: 'fa-triangle-exclamation', iconColor: 'text-red-400', iconBg: 'bg-red-500/20', glowColor: 'bg-red-500' });
+        }
+    }
+
+    function closeDetailModal() {
+        const modal = document.getElementById('detailModal');
+        const backdrop = document.getElementById('detailBackdrop');
+        const panel = document.getElementById('detailPanel');
+
+        backdrop.classList.add('opacity-0');
+        panel.classList.add('translate-x-full');
+        setTimeout(() => { modal.classList.add('hidden'); unlockScroll(); }, 300);
+    }
+
+    function removeGroupFromList(btn, id) {
+        showConfirm({
+            title: 'Hapus Grup',
+            message: 'Yakin ingin menghapus grup ini dari template?',
+            icon: 'fa-trash-can',
+            iconColor: 'text-red-400',
+            iconBg: 'bg-red-500/20',
+            glowColor: 'bg-red-500',
+            confirmText: 'Ya, Hapus',
+            confirmCls: 'bg-red-600 hover:bg-red-500 shadow-red-500/30',
+            onConfirm: function() {
+                fetch(`/delete_target/${id}`).then(() => {
+                    const el = document.getElementById(`row-${id}`);
+                    if(el) el.remove();
+                    let count = parseInt(document.getElementById('detailSubtitle').innerText);
+                    if(count > 0) document.getElementById('detailSubtitle').innerText = `${count - 1} Grup Tersimpan`;
+                });
+            }
+        });
+    }
+
+    // --- 2. DELETE & RENAME TEMPLATE LOGIC ---
+    async function deleteTemplate(name, phone) {
+        showConfirm({
+            title: '⚠️ Hapus Template',
+            message: `Anda akan menghapus <b class="text-white">SELURUH template "${name}"</b>. Semua grup di dalamnya akan hilang secara permanen. Tindakan ini tidak dapat dibatalkan!`,
+            icon: 'fa-triangle-exclamation',
+            iconColor: 'text-red-400',
+            iconBg: 'bg-red-500/20',
+            glowColor: 'bg-red-500',
+            confirmText: 'Ya, Hapus Permanen',
+            confirmCls: 'bg-red-600 hover:bg-red-500 shadow-red-500/30',
+            onConfirm: async function() {
+                try {
+                    const res = await fetch('/api/target/delete_template', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ template_name: name, source_phone: phone })
+                    });
+                    const d = await res.json();
+                    if(d.status === 'success') location.reload();
+                    else showAlert({ title: 'Gagal', message: d.message, icon: 'fa-circle-xmark', iconColor: 'text-red-400', iconBg: 'bg-red-500/20', glowColor: 'bg-red-500' });
+                } catch(e) {
+                    showAlert({ title: 'Error', message: String(e), icon: 'fa-triangle-exclamation', iconColor: 'text-red-400', iconBg: 'bg-red-500/20', glowColor: 'bg-red-500' });
+                }
+            }
+        });
+    }
+
+    async function promptRename(oldName, phone) {
+        showPrompt({
+            title: 'Ganti Nama Template',
+            label: 'Masukkan nama template baru:',
+            defaultValue: oldName,
+            onConfirm: async function(newName) {
+                if (!newName || newName === oldName) return;
+                try {
+                    const res = await fetch('/api/target/rename_template', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            old_name: oldName,
+                            new_name: newName,
+                            source_phone: phone
+                        })
+                    });
+                    const d = await res.json();
+                    if (d.status === 'success') location.reload();
+                    else showAlert({ title: 'Gagal', message: d.message, icon: 'fa-circle-xmark', iconColor: 'text-red-400', iconBg: 'bg-red-500/20', glowColor: 'bg-red-500' });
+                } catch (e) {
+                    showAlert({ title: 'Error', message: String(e), icon: 'fa-triangle-exclamation', iconColor: 'text-red-400', iconBg: 'bg-red-500/20', glowColor: 'bg-red-500' });
+                }
+            }
+        });
+    }
+
+    // --- 3. SCAN MODAL LOGIC (FIXED: TOPIC & MEMBER) ---
+    function openScanModal() {
+        const m = document.getElementById('scanModal');
+        m.classList.remove('hidden');
+        lockScroll();
+        setTimeout(() => {
+            document.getElementById('scanBackdrop').classList.remove('opacity-0');
+            document.getElementById('scanPanel').classList.remove('opacity-0', 'scale-95');
+            document.getElementById('scanPanel').classList.add('opacity-100', 'scale-100');
+        }, 10);
+
+        document.getElementById('initialState').classList.remove('hidden');
+        document.getElementById('loadingScan').classList.add('hidden');
+        document.getElementById('resultList').classList.add('hidden');
+        document.getElementById('saveBar').classList.add('hidden');
+        const date = new Date();
+        const dateStr = date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+        document.getElementById('scanTemplateName').value = `Scan ${dateStr}`;
+    }
+
+    function closeScanModal() {
+        document.getElementById('scanBackdrop').classList.add('opacity-0');
+        document.getElementById('scanPanel').classList.remove('opacity-100', 'scale-100');
+        document.getElementById('scanPanel').classList.add('opacity-0', 'scale-95');
+        setTimeout(() => { document.getElementById('scanModal').classList.add('hidden'); unlockScroll(); }, 300);
+    }
+
+    async function startScanning() {
+        const phone = document.getElementById('scanAccountSelect').value;
+        const tmpl = document.getElementById('scanTemplateName').value;
+
+        if (!phone) return showAlert({ title: 'Akun Belum Dipilih', message: 'Pilih akun sumber terlebih dahulu!', icon: 'fa-mobile-screen', iconColor: 'text-amber-400', iconBg: 'bg-amber-500/20', glowColor: 'bg-amber-500' });
+        if (!tmpl) return showAlert({ title: 'Nama Template Kosong', message: 'Beri nama template terlebih dahulu!', icon: 'fa-tag', iconColor: 'text-amber-400', iconBg: 'bg-amber-500/20', glowColor: 'bg-amber-500' });
+
+        const init = document.getElementById('initialState');
+        const load = document.getElementById('loadingScan');
+        const list = document.getElementById('resultList');
+        const saveBar = document.getElementById('saveBar');
+
+        init.classList.add('hidden');
+        load.classList.remove('hidden');
+
+        try {
+            const res = await fetch(`/scan_groups_api?phone=${encodeURIComponent(phone)}`);
+            const data = await res.json();
+
+            if(data.status === 'success') {
+                scannedGroups = data.data;
+                renderScanResults(scannedGroups);
+                load.classList.add('hidden');
+                list.classList.remove('hidden');
+                saveBar.classList.remove('hidden');
+                document.getElementById('saveBar').classList.add('flex');
+            } else {
+                showAlert({ title: 'Gagal Scan', message: data.message, icon: 'fa-circle-xmark', iconColor: 'text-red-400', iconBg: 'bg-red-500/20', glowColor: 'bg-red-500' });
+                init.classList.remove('hidden');
+                load.classList.add('hidden');
+            }
+        } catch(e) {
+            showAlert({ title: 'Error', message: String(e), icon: 'fa-triangle-exclamation', iconColor: 'text-red-400', iconBg: 'bg-red-500/20', glowColor: 'bg-red-500' });
+            init.classList.remove('hidden');
+            load.classList.add('hidden');
+        }
+    }
+
+    // [FIX UTAMA] LOGIC RENDER SCAN HASIL YANG LENGKAP
+    function renderScanResults(groups) {
+        const list = document.getElementById('resultList');
+        list.innerHTML = '';
+
+        if(groups.length === 0) {
+            list.innerHTML = `<div class="col-span-full text-center py-10 text-slate-400">Tidak ada grup ditemukan.</div>`;
+            return;
+        }
+
+        groups.forEach((g, idx) => {
+            const isForum = g.is_forum;
+            let topicsHtml = '';
+
+            if(isForum) {
+                let topicChecks = '';
+                g.topics.forEach(t => {
+                    topicChecks += `
+                    <label class="group/topic relative flex items-center gap-3 p-3 rounded-xl border border-indigo-100 bg-indigo-50/50 cursor-pointer hover:bg-white hover:shadow-sm transition select-none">
+                        <input type="checkbox" class="topic-check-${idx} form-checkbox h-4 w-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500" value="${t.id}">
+                        <span class="text-xs font-bold truncate flex-1 text-indigo-700">${t.title}</span>
+                        <span class="text-[9px] font-mono text-slate-400">#${t.id}</span>
+                    </label>`;
+                });
+
+                topicsHtml = `
+                <div class="mt-4 pl-4 border-l-2 border-indigo-100 ml-3 hidden transition-all duration-300 ease-in-out" id="topic-box-${idx}">
+                    <div class="bg-slate-50/80 rounded-2xl p-4 border border-slate-200/60">
+                        <div class="flex justify-between items-center mb-3">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
+                                <i class="fa-solid fa-layer-group mr-2 text-indigo-400"></i> Daftar Topik
+                            </p>
+                            <button class="text-[10px] text-indigo-600 font-bold hover:underline bg-indigo-50 px-2 py-1 rounded" onclick="toggleAllTopics(${idx})">
+                                Pilih Semua
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4 max-h-48 overflow-y-auto custom-scrollbar pr-1">
+                            ${topicChecks || '<p class="text-xs text-slate-400 italic col-span-2 text-center py-4">Topik otomatis tidak ditemukan.</p>'}
+                        </div>
+                        <div class="relative">
+                            <label class="text-[9px] font-bold text-slate-400 uppercase absolute -top-2 left-2 bg-slate-50 px-1">Atau Input Manual ID</label>
+                            <input type="text" id="manual-topic-${idx}" placeholder="Contoh: 101, 202, 404"
+                                   class="dp-input text-xs font-mono">
+                        </div>
+                    </div>
+                </div>`;
+            }
+
+            let memberBadge = '';
+            if (g.members) {
+                memberBadge = `<span class="bg-emerald-50 text-emerald-600 text-[10px] px-2 py-0.5 rounded-full font-bold border border-emerald-100 flex items-center gap-1"><i class="fa-solid fa-users"></i> ${g.members}</span>`;
+            }
+
+            const html = `
+            <div class="scan-group-item bg-white p-5 rounded-2xl border border-slate-200 hover:border-indigo-400 transition-all duration-200 hover:shadow-lg hover:shadow-indigo-500/5 group">
+                <div class="flex items-start gap-4">
+                    <div class="pt-1">
+                        <input type="checkbox" class="group-check form-checkbox h-6 w-6 text-indigo-600 rounded-lg border-slate-300 focus:ring-indigo-500 cursor-pointer transition transform active:scale-90"
+                               value="${idx}" onchange="toggleTopics(${idx})">
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-3 mb-2">
+                            <h4 class="font-bold text-slate-800 text-base truncate select-text cursor-text" title="${g.name}">${g.name}</h4>
+                            ${isForum ? '<span class="bg-amber-100 text-amber-700 text-[10px] px-2 py-0.5 rounded-lg font-bold border border-amber-200 shadow-sm flex items-center gap-1"><i class="fa-solid fa-comments"></i> FORUM</span>' : ''}
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2 w-full">
+                            <span class="font-mono bg-slate-100 px-2 py-0.5 rounded-md text-[10px] font-bold text-slate-500 border border-slate-200 flex items-center gap-1"><i class="fa-solid fa-fingerprint"></i> ${g.id}</span>
+                            ${memberBadge}
+                        </div>
+                    </div>
+                </div>
+                ${topicsHtml}
+            </div>`;
+            list.innerHTML += html;
+        });
+    }
+
+    function toggleTopics(index) {
+        const box = document.getElementById(`topic-box-${index}`);
+        const checkbox = document.querySelector(`input[value="${index}"].group-check`);
+        const card = checkbox.closest('.scan-group-item');
+
+        if (checkbox.checked) {
+            card.classList.add('border-indigo-500', 'bg-indigo-50/10', 'ring-1', 'ring-indigo-500');
+            if(box) {
+                box.classList.remove('hidden');
+                const generalCheck = document.querySelector(`.topic-check-${index}[value="1"]`);
+                if(generalCheck && !generalCheck.checked) generalCheck.checked = true;
+            }
+        } else {
+            card.classList.remove('border-indigo-500', 'bg-indigo-50/10', 'ring-1', 'ring-indigo-500');
+            if(box) box.classList.add('hidden');
+        }
+        updateScanCount();
+    }
+
+    function toggleAllTopics(index) {
+        const checks = document.querySelectorAll(`.topic-check-${index}`);
+        if(checks.length === 0) return;
+        const allChecked = Array.from(checks).every(c => c.checked);
+        checks.forEach(c => c.checked = !allChecked);
+    }
+
+    function updateScanCount() {
+        const n = document.querySelectorAll('.group-check:checked').length;
+        document.getElementById('selectedCountNum').innerText = n;
+    }
+
+    async function saveSelection() {
+        const phone = document.getElementById('scanAccountSelect').value;
+        const tmpl = document.getElementById('scanTemplateName').value;
+        const checks = document.querySelectorAll('.group-check:checked');
+
+        if (checks.length === 0) return showAlert({ title: 'Belum Ada Pilihan', message: 'Pilih minimal satu grup terlebih dahulu!', icon: 'fa-circle-check', iconColor: 'text-amber-400', iconBg: 'bg-amber-500/20', glowColor: 'bg-amber-500' });
+
+        const selected = [];
+        checks.forEach(c => {
+            const idx = c.value;
+            const g = scannedGroups[idx];
+            let topicIds = [];
+
+            // 1. Auto Topics
+            document.querySelectorAll(`.topic-check-${idx}:checked`).forEach(tc => topicIds.push(parseInt(tc.value)));
+
+            // 2. Manual Topics
+            const manualInput = document.getElementById(`manual-topic-${idx}`);
+            if(manualInput && manualInput.value) {
+                const manuals = manualInput.value.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
+                topicIds = [...topicIds, ...manuals];
+            }
+
+            selected.push({
+                group_name: g.name,
+                group_id: g.id,
+                topic_ids: [...new Set(topicIds)]
+            });
+        });
+
+        const btn = document.getElementById('btnSave');
+        const oldText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerText = "Menyimpan...";
+
+        try {
+            const res = await fetch('/save_bulk_targets', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    targets: selected,
+                    source_phone: phone,
+                    template_name: tmpl
+                })
+            });
+            const d = await res.json();
+            if(d.status === 'success') {
+                closeScanModal();
+                location.reload();
+            } else {
+                throw new Error(d.message);
+            }
+        } catch(e) {
+            showAlert({ title: 'Gagal Simpan', message: e.message, icon: 'fa-circle-xmark', iconColor: 'text-red-400', iconBg: 'bg-red-500/20', glowColor: 'bg-red-500' });
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = oldText;
+        }
+    }
+
+    // --- 4. IMPORT CSV ---
+    function openImportModal() {
+        const m = document.getElementById('importModal');
+        const p = document.getElementById('importPanel');
+        const b = document.getElementById('importBackdrop');
+        m.classList.remove('hidden');
+        lockScroll();
+        setTimeout(() => {
+            b.classList.remove('opacity-0');
+            p.classList.remove('opacity-0', 'scale-95');
+            p.classList.add('opacity-100', 'scale-100');
+        }, 10);
+    }
+
+    function closeImportModal() {
+        const m = document.getElementById('importModal');
+        const p = document.getElementById('importPanel');
+        const b = document.getElementById('importBackdrop');
+        b.classList.add('opacity-0');
+        p.classList.remove('opacity-100', 'scale-100');
+        p.classList.add('opacity-0', 'scale-95');
+        setTimeout(() => { m.classList.add('hidden'); unlockScroll(); }, 300);
+    }
+
+    async function submitCsv(e) {
+        e.preventDefault();
+        const form = document.getElementById('csvForm');
+        const btn = document.getElementById('btnImport');
+        const fd = new FormData(form);
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Mengupload...';
+
+        try {
+            const res = await fetch('/import_targets_csv', {method: 'POST', body: fd});
+            const d = await res.json();
+            if(d.status === 'success') {
+                showToast(d.message, 'success');
+                location.reload();
+            } else {
+                showAlert({ title: 'Gagal Import', message: d.message, icon: 'fa-circle-xmark', iconColor: 'text-red-400', iconBg: 'bg-red-500/20', glowColor: 'bg-red-500' });
+            }
+        } catch(err) {
+            showAlert({ title: 'Error', message: String(err), icon: 'fa-triangle-exclamation', iconColor: 'text-red-400', iconBg: 'bg-red-500/20', glowColor: 'bg-red-500' });
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    }
+</script>
+{% endblock %}

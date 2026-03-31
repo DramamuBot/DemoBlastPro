@@ -1,0 +1,62 @@
+/* Global Font */
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: #F8FAFC;
+}
+
+/* Smooth Fade In Animation */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-enter {
+    animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in-up {
+    animation: fadeInUp 0.4s ease-out forwards;
+}
+
+/* Left Side - clean flat with dot pattern */
+.auth-bg {
+    background-color: #4338ca;
+    position: relative;
+}
+
+.auth-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px);
+    background-size: 24px 24px;
+}
+
+/* Input Styles */
+.form-input {
+    transition: all 0.2s ease-in-out;
+}
+.form-input:focus {
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+
+/* Loader */
+.btn-loader {
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    border-top: 2px solid white;
+    width: 1.25rem;
+    height: 1.25rem;
+    animation: spin 1s linear infinite;
+    display: none;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
