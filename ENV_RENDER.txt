@@ -1,0 +1,61 @@
+# ============================================================
+# ENVIRONMENT VARIABLES UNTUK RENDER.COM - DemoBlastPro
+# Salin setiap KEY dan VALUE ke bagian Environment di Render
+# ============================================================
+
+# ---- WAJIB DIISI (Aplikasi tidak akan jalan tanpa ini) ----
+
+SECRET_KEY=isi_dengan_string_acak_panjang_minimal_32_karakter
+# Contoh: SECRET_KEY=ab12cd34ef56gh78ij90kl12mn34op56qr78st90uv12wx34
+
+FLASK_ENV=production
+
+
+# ---- SUPABASE (Database) ----
+# Sudah ada nilai default di kode, tapi lebih baik diisi eksplisit
+
+SUPABASE_URL=https://mragfujywnfzayejgxlx.supabase.co
+SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1yYWdmdWp5d25memF5ZWpneGx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NDYwODYsImV4cCI6MjA4OTQyMjA4Nn0.XVav3N6yE-JuMFEwjoOIfBJ0d5XbItVqBwpIkH3cjqo
+
+
+# ---- TELEGRAM (Opsional, untuk fitur notifikasi bot) ----
+
+NOTIF_BOT_TOKEN=isi_dengan_token_bot_telegram_kamu
+NOTIF_BOT_USERNAME=NamaBotLu_bot
+
+
+# ---- TELEGRAM API (Opsional, untuk fitur blast) ----
+
+API_ID=isi_dengan_api_id_dari_my.telegram.org
+API_HASH=isi_dengan_api_hash_dari_my.telegram.org
+
+
+# ---- MASTER KEY (Opsional, kunci master aplikasi) ----
+
+MASTER_KEY=isi_dengan_master_key_kamu
+
+
+# ---- ADMIN CREDENTIALS ----
+# Ganti dari default agar lebih aman!
+
+SUPER_ADMIN=admin@email.com
+PASS_ADMIN=GantiPasswordIniSekarang!
+
+DEMO_USER=user@blastpro.id
+PASS_USER=User1234
+
+
+# ---- EMAIL / SMTP (Opsional, untuk fitur kirim email) ----
+
+SMTP_SERVER=smtp.gmail.com
+SMTP_PORT=587
+SENDER_EMAIL=email_pengirim@gmail.com
+SENDER_PASSWORD=app_password_gmail_kamu
+
+
+# ---- LAINNYA ----
+
+APP_TIMEZONE=Asia/Jakarta
+SITE_URL=https://demoblastpro.onrender.com
+
+ENABLE_BOT_POLLING=false
